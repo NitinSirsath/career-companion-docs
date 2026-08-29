@@ -1,6 +1,6 @@
 # User Flows — Career Companion
 
-> **Status:** Draft for COM-4 review
+> **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
 > **Last Updated:** 2026-08-30
 
@@ -46,9 +46,9 @@ System-initiated processing may occur without direct user interaction when new o
 4. Google returns the authentication result.
 5. Career Companion creates or retrieves the user's application account.
 6. User is redirected to the authenticated application.
-7. If Gmail is not connected, the product presents the Gmail connection path.
+7. If Gmail is not connected, the product presents the first-run/onboarding path.
 
-**End state:** User is authenticated and can continue to Gmail connection or the dashboard.
+**End state:** User is authenticated and can continue onboarding or access the dashboard when setup is already complete.
 
 **Edge/error states:**
 
@@ -62,16 +62,43 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 
 ---
 
-### UF-02 — Connect Gmail and Perform Initial Sync
+### UF-02 — First-Run / Onboarding
 
-**Entry point:** Authenticated user has not connected Gmail, or chooses to connect/reconnect Gmail.
+**Entry point:** Authenticated user has not completed initial Career Companion setup.
+
+**User intent:** Understand the setup requirements and connect the Gmail account needed by the product.
+
+**Main flow:**
+
+1. User enters the first-run experience.
+2. Career Companion explains that Gmail access is required for the MVP.
+3. User chooses to connect Gmail.
+4. User completes the Gmail authorization flow described in UF-03.
+5. Initial synchronization begins.
+6. User is shown the sync/processing state and can proceed when the product is ready.
+7. User reaches the dashboard.
+
+**End state:** User has completed the required MVP setup and can use Career Companion.
+
+**Edge/error states:**
+
+- User leaves onboarding before connecting Gmail.
+- Gmail authorization is denied.
+- Initial sync fails or is only partially completed.
+- User returns later and resumes setup without creating duplicate connection state.
+
+---
+
+### UF-03 — Connect Gmail and Perform Initial Sync
+
+**Entry point:** Authenticated user chooses to connect Gmail during onboarding or later.
 
 **User intent:** Allow Career Companion to access the Gmail data required to understand their job search.
 
 **Main flow:**
 
 1. User chooses to connect Gmail.
-2. Career Companion requests the required Google/Gmail permissions.
+2. Career Companion requests the minimum required Google/Gmail permissions.
 3. User grants consent.
 4. Career Companion securely stores the authorization required for future Gmail access.
 5. Career Companion starts the initial synchronization.
@@ -80,10 +107,10 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 8. Relevant messages enter the AI processing pipeline.
 9. Structured job-search information is persisted.
 10. User is shown sync progress/state.
-11. Initial sync completes.
+11. Initial synchronization completes.
 12. User can view the resulting dashboard and tracked applications.
 
-**End state:** Gmail is connected and the user's available job-search data has been synchronized and processed to the extent supported by the MVP.
+**End state:** Gmail is connected and the available job-search data has been synchronized and processed to the extent supported by the MVP.
 
 **Edge/error states:**
 
@@ -99,22 +126,51 @@ A partial sync must not be represented as a fully completed sync.
 
 ---
 
-### UF-03 — Process a Job-Related Email with AI
+### UF-04 — Ongoing Email Sync
+
+**Entry point:** Gmail is connected and new or changed Gmail messages become available after initial synchronization.
+
+**User intent:** Keep the Career Companion job-search state current without manually re-running a full sync.
+
+**Main flow:**
+
+1. Career Companion detects new or changed Gmail messages.
+2. New messages enter the same relevance and AI processing pipeline used for synchronized messages.
+3. Relevant messages update applications, timelines, and actions when appropriate.
+4. Processing results are persisted.
+5. The dashboard reflects the updated job-search state.
+
+**End state:** New relevant Gmail activity is incorporated into Career Companion without requiring a full manual resynchronization.
+
+**Edge/error states:**
+
+- Gmail authorization has been revoked or expired.
+- Gmail service is unavailable or rate-limited.
+- New-message detection is delayed.
+- A message is discovered more than once.
+- Individual messages fail processing while other messages continue.
+- Sync/retry processing is interrupted.
+
+The flow defines the required product behavior; the underlying mechanism for detecting new Gmail messages is an architecture decision for a later phase.
+
+---
+
+### UF-05 — Process a Job-Related Email with AI
 
 **Entry point:** A new or synchronized Gmail message is available for processing.
 
-**User intent:** No direct user intent is required; the system is converting unstructured recruitment communication into structured job-search information.
+**User intent:** No direct user intent is required; the system converts unstructured recruitment communication into structured job-search information.
 
 **Main flow:**
 
 1. Career Companion receives or discovers a Gmail message.
-2. The message is checked for whether it is relevant to the job search.
+2. The message is checked for job-search relevance.
 3. Relevant messages are classified into an MVP-supported category such as Recruiter, Interview, Assessment, Offer, Rejection, or Follow-up.
 4. AI extracts useful structured information from the message.
 5. AI generates a concise summary when appropriate.
 6. AI determines whether the message requires user action.
 7. If action is required, the required action and relevant deadline/date are extracted when available.
-8. The message is associated with an existing application when a reliable match exists, or contributes to a new application when appropriate.
+8. The message is matched to an existing application when evidence supports that match; otherwise it may contribute to a new application candidate.
 9. Application state and timeline information are updated when the message represents a meaningful recruitment event.
 10. Processing result is persisted.
 
@@ -133,9 +189,11 @@ A partial sync must not be represented as a fully completed sync.
 
 Invalid AI output must not silently overwrite reliable existing application information.
 
+**Application matching principle:** Matching should use stable evidence available from the message and existing application records, such as normalized company, role, sender/domain, relevant identifiers, and temporal/contextual signals. When evidence is insufficient or conflicting, the system should preserve the ambiguity rather than silently attaching the message to the wrong application. Detailed matching logic belongs to the data/AI design phase.
+
 ---
 
-### UF-04 — View Job Search Dashboard
+### UF-06 — View Job Search Dashboard
 
 **Entry point:** Authenticated user with available job-search data opens the dashboard.
 
@@ -145,7 +203,7 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 1. User opens the dashboard.
 2. Career Companion loads tracked applications and recent relevant activity.
-3. Dashboard presents the current application states.
+3. Dashboard presents current application states.
 4. Dashboard surfaces items requiring action.
 5. Dashboard surfaces upcoming interviews and pending assessments when available.
 6. Dashboard surfaces recent important recruiter/application communication.
@@ -166,11 +224,13 @@ The dashboard should distinguish **no data**, **data still processing**, and **d
 
 ---
 
-### UF-05 — View Application and Timeline
+### UF-07 — View Application and Timeline
 
-**Entry point:** User selects an application from the dashboard or search/filter results.
+**Entry point:** User selects an application from the dashboard.
 
-**User intent:** Understand the complete known history and current state of a specific application.
+**User intent:** Understand the current state and known history of a specific application.
+
+**MVP boundary:** Application detail and timeline are included because understanding application state and recruitment history is part of the product's core value. Advanced editing, analytics, and complex search/filter experiences are outside this flow.
 
 **Main flow:**
 
@@ -178,9 +238,9 @@ The dashboard should distinguish **no data**, **data still processing**, and **d
 2. Career Companion displays available structured job details.
 3. Current application status is shown.
 4. Relevant recruitment events are displayed chronologically.
-5. Associated emails/events are represented in the timeline.
+5. Associated email/event evidence is represented in the timeline when available.
 6. Pending actions, interviews, assessments, offers, or rejection information are surfaced when applicable.
-7. User can navigate back to the dashboard or another application.
+7. User can navigate back to the dashboard.
 
 **End state:** User understands the current application state and its known history.
 
@@ -196,7 +256,7 @@ The system should preserve uncertainty rather than invent missing application de
 
 ---
 
-### UF-06 — Review and Act on Required Follow-up
+### UF-08 — Review and Act on Required Follow-up
 
 **Entry point:** AI identifies that a job-related communication requires user action, or identifies a follow-up opportunity.
 
@@ -205,11 +265,11 @@ The system should preserve uncertainty rather than invent missing application de
 **Main flow:**
 
 1. Career Companion creates or updates an actionable item from relevant communication.
-2. The action is surfaced on the dashboard/application context.
+2. The action is surfaced on the dashboard or application context.
 3. User opens the action.
 4. User sees the reason for the action and available deadline/date information.
 5. User reviews the associated application/email context.
-6. User marks the action as completed, dismissed, or otherwise handled according to the MVP interaction model.
+6. User marks the action as completed or dismissed.
 7. Career Companion updates the action state.
 
 **End state:** The user has either completed or intentionally dismissed the surfaced action, and the product reflects that state.
@@ -222,36 +282,36 @@ The system should preserve uncertainty rather than invent missing application de
 - Duplicate actions are generated from multiple related emails.
 - Action cannot be updated.
 
-Actions should be traceable to the underlying job-search evidence that caused them.
+Actions should remain traceable to the underlying job-search evidence that caused them.
 
 ---
 
-### UF-07 — Send Discord Notification for Important Job Activity
+### UF-09 — Manually Correct Application Status
 
-**Entry point:** A qualifying job-related event is successfully processed and meets the MVP notification criteria.
+**Entry point:** User determines that the current application status is incorrect or no longer reflects reality.
 
-**User intent:** Receive timely awareness of important job-search activity without continuously checking Gmail or Career Companion.
+**User intent:** Correct the application state while preserving the distinction between automated inference and user-confirmed information.
 
 **Main flow:**
 
-1. A job-related email is processed.
-2. Career Companion determines that the event qualifies for Discord notification.
-3. Career Companion builds a concise notification from structured information.
-4. Career Companion sends the notification through the configured Discord webhook.
-5. Delivery succeeds.
-6. The event remains available in Career Companion for later review.
+1. User opens the relevant application.
+2. User reviews the current status and available evidence.
+3. User chooses to correct the status.
+4. User selects the intended valid MVP status.
+5. Career Companion records the user-confirmed status and the fact that it was manually changed.
+6. The application reflects the corrected status.
+7. Existing email/timeline evidence remains available rather than being deleted or rewritten.
 
-**End state:** The user receives a Discord notification for the qualifying event.
+**End state:** The application reflects the user's explicit correction while retaining historical evidence and provenance.
 
 **Edge/error states:**
 
-- Discord is not configured.
-- Webhook is invalid or revoked.
-- Discord is temporarily unavailable.
-- Notification delivery fails after the job-search event was successfully persisted.
-- Duplicate notification is attempted for the same event.
+- User attempts to select an invalid/unsupported status.
+- Status update fails.
+- Later AI processing produces conflicting evidence.
+- Multiple users/devices attempt updates concurrently.
 
-Notification failure must not cause the underlying job-search event or application update to be lost.
+User-confirmed status must not be silently overwritten by subsequent AI processing. Detailed status precedence and transition rules belong to the data/domain design phase.
 
 ---
 
@@ -282,13 +342,32 @@ Email processing should be treated as asynchronous work. A message may be:
 - Ignored as non-relevant
 - Failed
 
-### 4.4 Application state
+### 4.4 Application status provenance
 
-Application status is derived from available job-search evidence and should not be changed solely because an individual email was processed without sufficient confidence.
+Application status may be informed by email-derived evidence or explicit user correction. The system must preserve enough provenance to distinguish automated inference from user-confirmed state.
 
-### 4.5 External service failure isolation
+Detailed status transition and conflict-resolution rules are intentionally deferred to the application/domain design phase.
 
-Failure of Gmail, the AI provider, or Discord should not unnecessarily destroy already persisted Career Companion data.
+### 4.5 Action lifecycle
+
+An actionable item should have an explicit lifecycle sufficient to distinguish at least:
+
+- Open/pending
+- Completed
+- Dismissed/ignored
+- Obsolete when later job-search events invalidate it
+
+The exact domain model will be defined during data design.
+
+### 4.6 Privacy and data handling
+
+Career Companion should minimize persisted Gmail content and prefer structured job-search information and necessary metadata over permanently storing complete email bodies when possible. Temporary processing data should be distinguishable from persisted application data, and access must remain scoped to the authenticated user.
+
+Specific retention periods and storage mechanisms will be defined during security/data design.
+
+### 4.7 External service failure isolation
+
+Failure of Gmail or the AI provider should not unnecessarily destroy already persisted Career Companion data. A downstream notification integration is not part of the MVP user flows.
 
 ---
 
@@ -302,8 +381,10 @@ These flows intentionally do **not** include:
 - Interview coaching
 - Outlook/LinkedIn/Slack/WhatsApp/Telegram integrations
 - Advanced analytics
+- Complex search/filter functionality
 - Full email-client functionality
 - Enterprise/team workflows
+- Discord notifications in the MVP
 
 These are outside the MVP boundary established by Product Vision and MVP Scope.
 
@@ -311,26 +392,34 @@ These are outside the MVP boundary established by Product Vision and MVP Scope.
 
 ## 6. End-to-End MVP Journey
 
-The critical flows connect into one primary journey:
+The primary MVP journey is:
 
-**Sign in → Connect Gmail → Initial sync → AI processing → Application state/timeline updates → Dashboard → Review application/actions → Discord notification for qualifying events**
+**Sign in → First-run onboarding → Connect Gmail → Initial sync → Ongoing email sync → AI processing → Application state/timeline updates → Dashboard → Review application/actions → Manually correct status when necessary**
 
 The key product outcome is not successful email synchronization by itself. The successful outcome is that the user can understand their job-search state and know what requires attention without manually organizing Gmail.
 
 ---
 
-## 7. Review Notes
+## 7. Review Status
 
-This document deliberately focuses on behavioral flows rather than implementation architecture or UI design. API contracts, database entities, AI schemas, and screen-level UX should be derived from these flows in subsequent tasks.
+COM-4 review incorporated the following decisions:
 
-### Review status
+- Discord notification flow removed from MVP.
+- First-run/onboarding flow added.
+- Ongoing email sync flow added.
+- Manual application status correction flow added.
+- Application detail/timeline retained as a core MVP behavior with a controlled boundary.
+- Application matching ambiguity explicitly acknowledged and deferred for detailed domain design.
+- Detailed status transition/conflict rules deferred to domain design.
+- Action lifecycle clarified at behavioral level.
+- Privacy/data minimization expectations made explicit.
+- Search/filter references removed from the application-detail entry point.
 
-- [ ] Product flow review completed
-- [ ] Edge/error states reviewed
-- [ ] Approved for implementation planning
+The document is now considered sufficient as the behavioral foundation for the next design phase.
 
 ## Document Versioning
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.1 | 2026-08-30 | Initial COM-4 user-flow definition. | 
+| 0.1 | 2026-08-30 | Initial COM-4 user-flow definition. |
+| 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
