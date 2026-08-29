@@ -2,7 +2,7 @@
 
 > **Status:** In Progress
 > **Linear Issue:** [COM-2 — Define Product Vision](https://linear.app/welcome-nitin/issue/COM-2/define-product-vision)
-> **Last Updated:** 2026-08-29
+> **Last Updated:** 2026-08-30
 
 ---
 
@@ -129,15 +129,17 @@ Career Companion is NOT being built for:
 
 ---
 
-## ⏳ Vision Statement
+## ✅ Vision Statement
 
-> **TODO** — To be finalized in a future Product Discovery workshop session.
+Career Companion is an AI-powered job search companion that automatically understands recruitment emails, tracks every application, surfaces required actions, and gives users a clear, real-time view of their entire job search from one dashboard.
 
 ---
 
-## ⏳ Value Proposition
+## ✅ Value Proposition
 
-> **TODO** — To be finalized in a future Product Discovery workshop session.
+Career Companion turns scattered recruitment emails into an organized, actionable view of a job search, saving users time and helping them stay on top of applications, responses, interviews, assessments, follow-ups, and other recruitment requirements. Many job seekers, especially working professionals, do not have enough time to manually track every application and follow-up. Career Companion provides detailed monitoring of what has happened, what is pending, and what requires action — including assessments, document requests, resume or portfolio requirements, technology-stack requirements, and other job-specific requests.
+
+**Core value:** The product should answer not only "What happened in my job search?" but also "What do I need to do next?"
 
 ---
 
@@ -164,3 +166,4 @@ Career Companion is NOT being built for:
 | Version | Date       | Notes                                                                 |
 |---------|------------|-----------------------------------------------------------------------|
 | 0.1     | 2026-08-29 | Initial document. Finalized: Problem Statement, Primary Problems, Desired Outcome, Product Direction, Application Status Tracking, Target User, Out of Scope, Assumptions. |
+| 0.2     | 2026-08-30 | Synchronized Vision Statement and Value Proposition from Linear COM-2 finalized decisions. |
