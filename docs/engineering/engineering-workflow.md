@@ -233,3 +233,8 @@ The overall product development lifecycle is:
 **Problem → Requirements → User Flows → Architecture → Data Model → API/AI/Security Design → Linear Implementation Planning → GitHub Implementation → Review → Linear Completion Notes → Notion Knowledge Update when warranted**
 
 This workflow is intentionally lightweight and should evolve as the project grows.
+## 14. Gmail Integration Decisions (Sprint 2)
+
+*   **Scope:** `gmail.readonly` is the exclusively selected scope. Other broader scopes (like full access) were rejected to adhere to least-privilege principles, while narrower scopes (like metadata-only) were rejected because we will eventually need to fetch full bodies for AI processing in Sprint 3.
+*   **Encryption:** Per-user OAuth tokens (access and refresh) are encrypted using AES-256-GCM before database storage. They are never logged or exposed in API payloads.
+*   **Data Minimization:** Raw email bodies and snippets are explicitly NOT persisted in the database, reducing privacy risks.
