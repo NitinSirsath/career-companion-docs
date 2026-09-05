@@ -1,6 +1,6 @@
 # Career Companion — High-Level Architecture
 
-**Version:** 0.1 (Draft)
+**Version:** 0.2 (In Review — awaiting final ChatGPT approval)
 **Status:** In Review
 **Linear Issue:** [COM-6 — Design High-Level Architecture](https://linear.app/welcome-nitin/issue/COM-6/design-high-level-architecture)
 **Last Updated:** 2026-09-05
@@ -87,7 +87,7 @@ The Worker and the Backend API share the same PostgreSQL database via Prisma. Th
 ### 3.4 Database
 
 **Technology:** PostgreSQL
-**Managed by:** Supabase (free tier: 500 MB, sufficient for MVP)
+**Managed by:** Managed PostgreSQL provider (current target: Supabase free tier)
 **ORM / schema:** Prisma (shared schema between API and Worker)
 
 The domain model is defined in [COM-5](https://linear.app/welcome-nitin/issue/COM-5). The database is the single source of truth for all job-search state. The Prisma schema is the authoritative implementation of the domain model.
@@ -174,10 +174,34 @@ Gmail
     Raw Gemini response is NEVER persisted
   ↓
 [7] Application matching  (see Section 5)
+
+    ┌─────────────────────────────────────────────────────────┐
+    │ Deterministic / High-confidence match (Tiers 1–2)       │
+    │   → Email.matchState = MATCHED                          │
+    │   → Email.applicationId set                             │
+    │   → Proceed directly to [8] Domain promotion            │
+    └─────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────┐
+    │ Ambiguous / Low-confidence (Tiers 3–4)                  │
+    │   → Email.matchState = AMBIGUOUS                        │
+    │   → Ranked candidates surfaced to user via dashboard    │
+    │   → User selects application (or creates new)           │
+    │   → User confirmation recorded                          │
+    │   → Email.matchState = MATCHED                          │
+    │   → Proceed to [8] Domain promotion                     │
+    └─────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────┐
+    │ No match (Tier 5)                                       │
+    │   → Email.matchState = UNMATCHED                        │
+    │   → Domain promotion deferred until user links manually │
+    └─────────────────────────────────────────────────────────┘
   ↓
-[8] Domain promotion
+[8] Domain promotion  (runs only after Email.matchState = MATCHED)
+    - Email.applicationId and Email.matchState already set in [7]
     - Create or update Application (aiStatus only — never userStatus)
-    - Create ApplicationEvent
+    - Create ApplicationEvent (linked to Email as evidence)
     - Create Action if actionRequired=true
 ```
 
@@ -185,7 +209,7 @@ Gmail
 
 - **No open database transactions during Gmail or Gemini API calls.** The pattern is always: read state → close transaction → call external API → open new transaction → persist result → close transaction.
 - **AI processing and domain promotion are separately retryable.** Steps 3–6 (AI phase) and step 8 (domain promotion) are independent pg-boss jobs. A retry on the AI phase does not re-trigger domain promotion. A retry on domain promotion is idempotent.
-- **Each phase writes only its own output.** The RelevanceClassifier writes to `Email.relevanceState`. The EmailAnalyzer writes to `AIProcessingResult`. Domain promotion writes to `Application`, `ApplicationEvent`, `Action`. These phases do not cross-write.
+- **Each phase owns its defined state transitions and must not bypass another phase's responsibilities.** The RelevanceClassifier owns `Email.relevanceState`. The EmailAnalyzer owns `AIProcessingResult`. The matching step owns `Email.matchState` and `Email.applicationId`. Domain promotion owns `Application`, `ApplicationEvent`, and `Action`. Phases must not reach into another phase's domain; for example, domain promotion must not bypass the matching step by writing `Email.applicationId` independently.
 
 ---
 
@@ -219,13 +243,21 @@ A single application may generate emails from a recruiter's personal Gmail, an A
 
 ### 5.4 Association Provenance
 
-For every email-to-application association, the system records:
+For every email-to-application association, the architecture requires that the following be recorded:
 
-- **Who confirmed it:** `AI_AUTO` or `USER_CONFIRMED`
+- **How the association was made:** automatically (deterministic or high-confidence AI) vs. user-confirmed
 - **AI confidence at time of match:** stored in `AIProcessingResult.extractedData`
 - **AI-proposed candidate applications:** retained even after user override
 
-This enables a V2 product feature: flagging potentially inconsistent associations when later evidence conflicts with a confirmed match. V1 preserves the data; V1 does not build the feature.
+This enables a V2 product feature: flagging potentially inconsistent associations when later evidence conflicts with a confirmed match. V1 preserves the data; V1 does not build the flagging UI or logic.
+
+> **⚠️ COM-5 Amendment Required**
+>
+> The current COM-5 domain model (`Email`) does not include a dedicated field for association provenance (i.e. whether the match was auto-confirmed or user-confirmed). The `Email.matchState` enum (`UNMATCHED`, `MATCHED`, `AMBIGUOUS`, `IGNORED`) covers the current match outcome but not how that outcome was reached.
+>
+> Before or during Sprint 1 implementation, COM-5 must be amended to add match provenance. The proposed addition is a field such as `matchConfirmedBy: AI_AUTO | USER_CONFIRMED` on the `Email` entity. This must be a tracked COM-5 change, not a silent schema addition.
+>
+> This COM-6 document records the requirement. The actual domain model change belongs in COM-5.
 
 ### 5.5 Application Timelines are Application-Scoped
 
@@ -245,7 +277,7 @@ This enables a V2 product feature: flagging potentially inconsistent association
 | Server state | TanStack Query | Built for server-state sync: caching, background refetch, optimistic updates |
 | UI primitives | shadcn/ui | Accessible, composable component primitives |
 | Styling | Tailwind CSS | Utility-first, consistent with shadcn/ui |
-| Hosting | Vercel (Hobby — free) | Fast CDN delivery of static assets |
+| Hosting | Vercel or equivalent static hosting | CDN delivery of static assets; persistent process not required |
 
 ### Backend API
 
@@ -256,7 +288,7 @@ This enables a V2 product feature: flagging potentially inconsistent association
 | ORM | Prisma | Type-safe, code-generates from schema, enforces domain model contracts |
 | Auth | Google OAuth 2.0 + Passport.js | Gmail scope grant handled at the backend |
 | Sessions | HTTP-only cookies | Secure, simple; JWTs not needed for V1 solo project |
-| Hosting | Railway or Render | Persistent process required (not serverless) |
+| Hosting | Persistent-process hosting (Railway, Render, or equivalent) | Persistent process required — not serverless |
 
 ### Background Worker
 
@@ -267,14 +299,14 @@ This enables a V2 product feature: flagging potentially inconsistent association
 | Gemini client | `@google/genai` | Official Google GenAI SDK |
 | Retry / dead-letter | pg-boss built-in | Exponential backoff, visibility timeout, dead-letter queue |
 
-> **pg-boss vs BullMQ:** BullMQ is architecturally equivalent but requires Redis (~\$15/month). pg-boss uses the existing PostgreSQL instance. The queue/worker patterns (enqueue, dequeue, retry, dead-letter) are identical. pg-boss is the V1 choice. Redis + BullMQ can be considered if volume requires it.
+> **pg-boss vs BullMQ:** BullMQ is architecturally equivalent but requires Redis. pg-boss uses the existing PostgreSQL instance. The queue/worker patterns (enqueue, dequeue, retry, dead-letter) are identical. pg-boss is the V1 choice. Redis + BullMQ can be considered if volume requires it.
 
 ### Database
 
 | Concern | Technology | Rationale |
 |---|---|---|
 | Database | PostgreSQL | Relational model fits the domain; strong consistency |
-| Managed provider | Supabase (free tier) | 500 MB, managed backups, no self-hosting |
+| Managed provider | Managed PostgreSQL (current target: Supabase) | Managed backups, no self-hosting required |
 | Schema management | Prisma Migrate | Versioned migrations, safe schema evolution |
 
 ### AI
@@ -346,23 +378,23 @@ These are non-negotiable for V1.
 ## 9. Deployment Topology
 
 ```
-Vercel (free)
+Static hosting (e.g. Vercel)
   └── Frontend (React SPA — static build, CDN delivery)
 
-Railway or Render (Hobby — ~$5/month)
+Persistent-process hosting (e.g. Railway, Render)
   ├── Backend API  (Express — persistent process)
   └── Worker       (pg-boss + Gmail sync + Gemini — persistent process)
-      Both share the same Supabase PostgreSQL connection
+      Both share the same PostgreSQL connection
 
-Supabase (free tier)
+Managed PostgreSQL (e.g. Supabase)
   └── PostgreSQL (domain data + pg-boss job tables)
 
-Google APIs (free tier / Gemini Pro plan)
+Google APIs
   ├── Gmail API  (OAuth 2.0 — gmail.readonly scope)
   └── Gemini API (RelevanceClassifier + EmailAnalyzer)
 ```
 
-**Estimated monthly cost at personal-project scale: ~\$0–\$5/month**
+> **Current implementation targets:** Vercel (frontend), Railway or Render (backend + worker), Supabase (PostgreSQL). These are implementation choices, not architectural dependencies. The architecture requires only: static hosting, a persistent-process host, and a managed PostgreSQL instance.
 
 ---
 
@@ -370,7 +402,7 @@ Google APIs (free tier / Gemini Pro plan)
 
 | Item | Reason |
 |---|---|
-| Local / self-hosted LLM | Infrastructure complexity not justified; Gemini free tier sufficient |
+| Local / self-hosted LLM | Infrastructure complexity not justified for V1; Gemini API with metadata-only classification is sufficient at personal-project scale |
 | Redis + BullMQ | pg-boss eliminates Redis dependency for V1 volume |
 | Gmail push notifications (Pub/Sub) | Polling sufficient for V1; Pub/Sub adds GCP setup overhead |
 | Inconsistency flagging UI | V2 feature; V1 preserves the data only |
@@ -386,4 +418,5 @@ Google APIs (free tier / Gemini Pro plan)
 
 | Version | Date | Notes |
 |---|---|---|
-| 0.1 | 2026-09-05 | Initial draft. All decisions from COM-6 review session incorporated. Pending ChatGPT review and approval before COM-6 can be marked Done. |
+| 0.1 | 2026-09-05 | Initial draft. All decisions from COM-6 review session incorporated. |
+| 0.2 | 2026-09-05 | ChatGPT review corrections: (1) explicit matching branch in pipeline, (2) AI_AUTO provenance flagged as COM-5 amendment, (3) phase ownership constraint reworded, (4) pricing/free-tier assumptions removed from architecture. Pending final ChatGPT approval. |
