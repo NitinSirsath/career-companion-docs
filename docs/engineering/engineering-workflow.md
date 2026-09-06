@@ -77,6 +77,16 @@ The normal implementation path is:
 
 Linear remains the execution record. GitHub provides the code history and review history.
 
+### Linear synchronization during implementation
+
+Linear should not only be updated when an issue is closed. When a commit or implementation step introduces **substantial changes to the scope, architecture, behavior, acceptance criteria, implementation approach, or technical decisions of a Linear issue**, the issue should be updated promptly with a meaningful implementation comment.
+
+The comment should capture the relevant change, why it was made, and any important consequences or follow-up work. The issue status should also be updated when the work materially changes its execution state.
+
+Small, routine commits that do not materially change the issue do not require a separate Linear comment.
+
+The goal is to keep Linear useful as the execution record without duplicating every Git commit.
+
 Implementation notes in Linear should capture useful context such as:
 
 - what was implemented
