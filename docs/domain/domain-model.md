@@ -1,8 +1,11 @@
 # Career Companion — Domain Model
 
-**Version:** 1.0  
-**Status:** Approved for MVP  
-**Last Updated:** 2026-08-30
+**Version:** 1.1
+**Status:** Sprint 2 Implemented  
+**Last Updated:** 2026-09-12
+
+### Version History / Implementation Notes
+- **v1.1 (Sprint 2):** Implemented `GmailConnection` and `Email` schemas. `GmailConnection` includes encrypted token fields and sync status. `Email` intentionally omits `snippet` and `body` (privacy decision: only metadata headers `Subject`, `From`, `Date` are ingested); `threadId` is implemented as a dedicated column.
 
 ## 1. Purpose
 

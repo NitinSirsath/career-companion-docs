@@ -1,9 +1,9 @@
 # Career Companion — High-Level Architecture
 
-**Version:** 0.4 (COM-6 Final — corrections applied)
-**Status:** In Review
+**Version:** 0.5
+**Status:** Sprint 2 Implemented
 **Linear Issue:** [COM-6 — Design High-Level Architecture](https://linear.app/welcome-nitin/issue/COM-6/design-high-level-architecture)
-**Last Updated:** 2026-09-06
+**Last Updated:** 2026-09-12
 
 ---
 
@@ -113,6 +113,18 @@ The AI integration uses **two named roles**, not specific model version constant
 Model names are stored in environment configuration, not hardcoded. This allows model upgrades without architectural changes.
 
 > **Note:** `gemini-2.0-flash-lite` was discontinued on June 1, 2026 and must not be used.
+
+---
+
+## 3.7 Gmail OAuth Implementation (Sprint 2)
+
+**Scope Selection:** `gmail.readonly` is the only requested scope. It allows reading metadata and full message bodies without write privileges. This scope eliminates the need for re-authorization during the Sprint 3 full-body fetch phase.
+
+**Sync Model:** Sprint 2 implements a synchronous API handler for Gmail metadata sync. This is a documented, deliberate shortcut to establish the data pipeline. Sprint 3 will upgrade this to a `pg-boss` background worker for scalable processing.
+
+**Token Encryption:** Per-user Gmail access and refresh tokens are encrypted at rest using AES-256-GCM. Each encryption operation generates a unique random Initialization Vector (IV). The encryption key is provisioned via the environment (`GMAIL_TOKEN_ENCRYPTION_KEY`). Tokens never appear in API responses or logs.
+
+**OAuth State & Sessions:** The OAuth callback state parameter is protected via a signed, single-use, 5-minute `HttpOnly`, `SameSite=Lax` cookie. Cross-user isolation is strictly enforced via development HTTP headers (`X-Development-User`). Full persistent session storage is deferred to Sprint 3.
 
 ---
 
