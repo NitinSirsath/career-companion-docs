@@ -248,3 +248,22 @@ If you encounter stuck jobs, schema mismatch errors, or wish to completely purge
 ```sql
 DROP SCHEMA pgboss CASCADE;
 ```
+
+## 15. Ticket Quality Standard
+
+Starting from Sprint 3.6, all Linear execution tickets must adhere to a new minimum quality standard to ensure they are actionable and clear.
+
+A ticket should be executable from Linear without requiring the developer to reconstruct decisions from ChatGPT history. 
+
+Execution tickets must include:
+*   **Objective/Problem:** Clear statement of what needs to be solved.
+*   **Technical Context/Current Architecture:** How this fits into the existing system.
+*   **Explicit Implementation Scope:** What is being built.
+*   **Data/API/Schema Contracts:** Defined inputs, outputs, and schema changes.
+*   **Likely Files/Modules:** Where the changes are expected to occur.
+*   **Security/Privacy Constraints:** Rules for handling sensitive data, logs, and isolation.
+*   **Dependency Chain:** Prerequisites or downstream effects.
+*   **Tests and Verification Strategy:** How the change will be validated.
+*   **Idempotency/Failure Behavior:** How the system handles retries and failures, where applicable.
+*   **Acceptance Criteria:** A clear checklist defining when the task is complete.
+*   **Explicit Non-Goals:** What is intentionally deferred or out of scope.

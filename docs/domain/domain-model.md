@@ -85,6 +85,7 @@ OAuth access/refresh credentials are sensitive infrastructure secrets and must n
 | `relevanceState` | Enum | Yes | `UNPROCESSED`, `RELEVANT`, `IRRELEVANT`. Routing state, not classification. |
 | `applicationId` | UUID | No | Nullable FK to Application. |
 | `matchState` | Enum | Yes | `UNMATCHED`, `MATCHED`, `AMBIGUOUS`, `IGNORED`. Makes application matching explicit. |
+| `matchConfirmedBy` | Enum | No | `AI_AUTO`, `USER_CONFIRMED`. Tracks how the match was established. |
 | `createdAt` | DateTime | Yes | Creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
 
@@ -163,6 +164,7 @@ The exact final status vocabulary should remain the smallest set required by the
 | `scheduledAt` | DateTime | No | Used when an event carries a known interview/scheduled time; null otherwise. |
 | `deadline` | DateTime | No | Used when an event carries a known assessment/action deadline; null otherwise. |
 | `notes` | String | No | Concise structured/contextual detail when needed; not a raw email copy. |
+| `provenance` | String | No | Identifies what caused this event (e.g. AI-extracted evidence). |
 | `createdAt` | DateTime | Yes | When Career Companion recorded the event. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
 
