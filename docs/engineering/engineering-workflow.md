@@ -238,3 +238,13 @@ This workflow is intentionally lightweight and should evolve as the project grow
 *   **Scope:** `gmail.readonly` is the exclusively selected scope. Other broader scopes (like full access) were rejected to adhere to least-privilege principles, while narrower scopes (like metadata-only) were rejected because we will eventually need to fetch full bodies for AI processing in Sprint 3.
 *   **Encryption:** Per-user OAuth tokens (access and refresh) are encrypted using AES-256-GCM before database storage. They are never logged or exposed in API payloads.
 *   **Data Minimization:** Raw email bodies and snippets are explicitly NOT persisted in the database, reducing privacy risks.
+
+## Background Queue (pg-boss) Reset
+
+The backend uses `pg-boss` for background job processing. It automatically provisions a `pgboss` schema in PostgreSQL.
+
+If you encounter stuck jobs, schema mismatch errors, or wish to completely purge the queue state in local development, you can drop the schema. `pg-boss` will automatically recreate it on the next backend startup.
+
+```sql
+DROP SCHEMA pgboss CASCADE;
+```
