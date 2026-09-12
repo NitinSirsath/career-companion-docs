@@ -794,3 +794,37 @@ Migrations run as a one-off ECS task before any service deployment. The running 
 | 0.2 | 2026-09-05 | ChatGPT review corrections: (1) explicit matching branch in pipeline, (2) AI_AUTO provenance flagged as COM-5 amendment, (3) phase ownership constraint reworded, (4) pricing/free-tier assumptions removed from architecture. |
 | 0.3 | 2026-09-06 | COM-6 amendment: full Cloud & Deployment Architecture added (Section 9). AWS-only deployment with ECS Fargate + ALB (API), ECS Fargate (Worker), RDS PostgreSQL, S3/CloudFront, ECR, Secrets Manager, CloudWatch, IAM/OIDC. V1 public-subnet trade-off documented. Section 10 split into Application and Infrastructure deferred items. |
 | 0.4 | 2026-09-06 | Final corrections: (1) API OAuth outbound access documented accurately; (2) stale Railway/Render/Vercel/Supabase references replaced throughout with AWS equivalents; (3) S3 OAC + private bucket + SPA routing documented; (4) Google OAuth clientId moved to config, only clientSecret stored in Secrets Manager; (5) RDS storage type de-hardcoded; (6) migration task network/IAM/ECR/logging requirements documented; (7) cost model disclaimer expanded. |
+
+## AI Provider Abstraction (COM-26)
+
+To maintain vendor independence and prevent strong coupling to any single AI SDK, Career Companion implements a strict Application-to-AI boundary. The business layer does not interact with the Gemini API directly.
+
+### Component Boundaries
+
+- **RelevanceClassifier:** Interface responsible exclusively for determining whether an email relates to a job search (`isJobSearchRelated`).
+- **EmailAnalyzer:** Interface responsible for extracting structured application data (company, title, status) from relevant emails.
+- **GeminiProvider:** The single implementation of both interfaces for V1. It encapsulates all `@google/genai` usage, model selection, and prompt formatting.
+
+### Structured Output & Zod Validation
+The system relies on strongly typed contracts. We define expected AI output using Zod schemas (e.g., `EmailRelevanceSchema`). 
+At runtime:
+1. Zod schemas are dynamically converted to JSON Schema.
+2. The schema is sent to the AI provider to enforce structured output generation.
+3. The provider's response is parsed and actively validated back through the Zod schema. Malformed responses are explicitly rejected as `SchemaValidationFailure`.
+
+### Contract & Prompt Versioning
+Prompts and output contracts are strictly versioned (e.g., `classification/v1`).
+These versions are maintained within the provider implementation and returned alongside the structured data. This allows downstream persistence (COM-27) to record exactly which contract produced an analysis, enabling graceful migrations if schemas change in the future.
+
+### Provider Error Classification
+Failures are abstracted into an application-level taxonomy:
+- **TerminalAIError:** Unrecoverable failures (e.g., invalid API keys, unsupported config, missing models). The job processing pipeline should immediately dead-letter the email without retrying.
+- **RetryableAIError:** Transient failures (e.g., HTTP 429 rate limits, 503 unavailable, network timeouts). The pipeline can exponentially backoff and retry.
+- **SchemaValidationFailure:** (Extends TerminalAIError). The provider responded successfully, but the output violated the expected contract constraints.
+
+### Privacy Boundary
+The AI boundary enforces a strict no-logging policy for sensitive data. 
+If an error occurs during classification or extraction, the exception is stripped of any raw email bodies or API keys before being thrown back to the queue worker. 
+
+### Future BYO Extension Point
+This architecture natively supports a "Bring Your Own" (BYO) model or a transition to another provider (e.g., OpenAI or Anthropic) in the future. To support a new provider, one must simply implement the `RelevanceClassifier` and `EmailAnalyzer` interfaces and register the new class within the factory pipeline.
