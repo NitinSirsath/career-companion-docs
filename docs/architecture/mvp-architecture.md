@@ -10,7 +10,9 @@ This document reflects the finalized end-to-end (E2E) architecture of the Career
 
 ## 2. Gmail Integration & Privacy
 - **Metadata vs. Body:** The system ingests basic metadata (sender, subject, snippet) via background jobs to detect job-related emails. The full email body is **only** fetched on-the-fly when the AI relevance classifier deems it necessary (Relevant or Uncertain).
-- **Privacy:** Raw email bodies are **never** persisted in the database and are **never** returned to the frontend. They are passed strictly in-memory to the AI provider and then discarded. Gmail access tokens are encrypted at rest using AES-256-GCM.
+- **Privacy:** Raw email bodies are **never** persisted in the database and are **never** returned to the frontend. They are passed strictly in-memory to the AI provider and then discarded. Gmail access tokens and refresh tokens are encrypted at rest using AES-256-GCM.
+- **Token Refresh:** The system uses standard OAuth2 offline access. During sync operations, both the access token and refresh token are provided to the `google-auth-library` to enable silent auto-refresh of expired credentials without requiring the user to reconnect.
+- **Sync Architecture:** For V1 MVP, Gmail inbox ingestion is a synchronous, list-based scan triggered by the frontend (`POST /api/gmail/sync`). It does not yet use the Gmail History API or background queueing for the initial fetch, which may limit scalability for accounts with immense inboxes.
 
 ## 3. AI Pipeline (Gemini Only)
 - **Why Gemini Only?** Gemini (specifically 2.5 Flash and Flash-Lite) is the sole implemented AI provider for MVP. This choice minimizes infrastructure complexity while offering excellent multimodal/structured output capabilities out of the box via Google's official GenAI SDK.
