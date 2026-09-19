@@ -267,3 +267,52 @@ Execution tickets must include:
 *   **Idempotency/Failure Behavior:** How the system handles retries and failures, where applicable.
 *   **Acceptance Criteria:** A clear checklist defining when the task is complete.
 *   **Explicit Non-Goals:** What is intentionally deferred or out of scope.
+
+
+## 16. AI-Assisted Development & Verification Workflow
+
+Career Companion uses AI heavily for implementation, so development must be verification-driven.
+
+The standard execution loop is:
+
+**Define → Understand → Plan → Implement → Verify → Review → Commit → Close**
+
+### No Evidence, No Fix
+
+Before changing code for a bug, identify the first failing boundary using logs, database state, API responses, tests, or a reproducible case.
+
+Do not patch forward based on assumptions.
+
+### AI Agent Rules
+
+- Diagnose before modifying code.
+- Do not perform speculative refactors during debugging.
+- Do not change unrelated architectural boundaries.
+- When asked to diagnose, stop after diagnosis.
+- Implement only the accepted fix.
+- Verify actual behavior, not only compilation.
+- If verification fails, diagnose the new failure boundary before making another change.
+
+### Golden Path Verification
+
+Critical product flows should have repeatable verification paths.
+
+The primary Gmail/AI path is:
+
+**Gmail → Sync → Email → Queue → Worker → AI → AI Result → Matching → Actions → UI**
+
+Any change affecting this path should preserve or update its verification coverage.
+
+### AI Implementation Handoff
+
+For an AI-assisted implementation task, the agent should report:
+
+- what it understood
+- proposed files/modules
+- implementation performed
+- tests and commands run
+- behavioral evidence
+- known limitations or unresolved failures
+
+This workflow is documented for project reference in Notion:
+https://app.notion.com/p/3e0a98abb650818097d6d72462c8ea6a?pvs=204
