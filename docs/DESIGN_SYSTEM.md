@@ -5,39 +5,61 @@ This document outlines the IBM-inspired frontend design foundation for Career Co
 ## Core Philosophy
 - **Precise, Calm, Information-Rich:** The UI should feel like a professional operational tool, not a generic SaaS dashboard.
 - **Square Geometry:** `0px` border radius everywhere.
-- **Restrained Color:** Use semantic tokens rather than arbitrary HEX values.
-- **Hairlines over Shadows:** Hierarchy is achieved through borders (`hairline`, `strong-hairline`) and surface colors (`surface-1`, `surface-2`), avoiding heavy box-shadows.
+- **Restrained Color:** Components consume semantic design tokens. Themes define semantic token values. Never hardcode colors.
+- **Hairlines over Shadows:** Hierarchy is achieved through semantic borders (`border-default`, `border-strong`) and surface colors (`surface`, `surface-subtle`), avoiding heavy box-shadows.
+
+## Themes
+The application supports a multi-theme architecture:
+- **Light:** Primary IBM-inspired light theme.
+- **Dark:** IBM-inspired dark theme.
+- **Grey:** Neutral grey-oriented theme.
+- **GitHub:** GitHub-inspired color theme.
+- **Monokai:** Monokai-inspired color theme.
+
+Theme switching dynamically updates CSS variables defined in `.theme-*` root classes. 
 
 ## Typography
 - **Primary Font:** IBM Plex Sans (`var(--font-sans)`)
 - We rely on native font weights and tracking to establish hierarchy rather than excessive size differences.
 
-## Tokens (Tailwind)
+## Tokens (Tailwind v4 Semantic Variables)
 
 ### Surfaces
-- `bg-background`: The canvas (white).
-- `bg-surface-1`: Primary elevated surface (cards, sidebars).
-- `bg-surface-2`: Secondary surface (hovers, secondary sections).
+- `bg-surface`: The primary canvas.
+- `bg-surface-subtle`: Secondary canvas (hovers, backgrounds).
+- `bg-surface-raised`: Elevated surface (cards, modals).
+- `bg-surface-selected`: Visually distinct active indicator for selected navigation items.
+- `bg-surface-disabled`: For explicitly disabled states.
 
 ### Borders
-- `border-border`: Standard hairline.
+- `border-border-subtle`: Very subtle dividing line.
+- `border-border-default`: Standard hairline.
 - `border-border-strong`: Stronger emphasis hairline.
+- `border-border-focus`: Primary interaction indicator.
 
 ### Text
-- `text-foreground`: Primary ink.
-- `text-muted-foreground`: Secondary ink.
+- `text-text-primary`: Primary ink.
+- `text-text-secondary`: Secondary ink.
+- `text-text-tertiary`: Muted ink.
+- `text-text-disabled`: Non-interactive ink.
+- `text-text-inverse`: Contrast ink against primary action backgrounds.
 
-### Action Colors
-- `primary`: `#0f62fe` (IBM Blue)
-- `success`: `#24a148`
-- `warning`: `#f1c21b`
-- `destructive`: `#da1e28`
-- `info`: `#0f62fe`
+### Action Colors & States
+- `bg-action-primary` & `hover:bg-action-primary-hover`: Main calls to action.
+- `bg-action-secondary` & `hover:bg-action-secondary-hover`: Secondary actions.
+- `bg-action-danger` & `hover:bg-action-danger-hover`: Destructive actions.
+
+### Status Semantic Colors
+- `bg-status-success-subtle text-status-success`: e.g. OFFERS, COMPLETE
+- `bg-status-warning-subtle text-status-warning`: e.g. PENDING, ASSESSMENT
+- `bg-status-error-subtle text-status-error`: e.g. REJECTED, DISMISSED
+- `bg-status-info-subtle text-status-info`: e.g. RECRUITER CONTACT
+- `bg-status-neutral-subtle text-status-neutral`: e.g. INTERVIEW, DEFAULT
 
 ## Components
 - Reusable primitives are located in `src/components/ui/`.
 - Use `Button` variants (`primary`, `secondary`, `tertiary`, `ghost`, `danger`) instead of building custom buttons.
-- Use `Badge` for status indication.
+- Use `Badge` for status indication mapped semantically.
 
 ## Layout
 - **Desktop:** Persistent left sidebar. Content area constrained and centered where appropriate.

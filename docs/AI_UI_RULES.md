@@ -4,8 +4,8 @@ When acting as an AI coding agent modifying the Career Companion frontend, you *
 
 1. **Read Relevant Documentation:** Always review `DESIGN_SYSTEM.md` and existing component files before starting UI work.
 2. **Inspect Existing Components:** Do not reinvent the wheel. Check `src/components/ui/` for existing primitives (e.g., `Button`, `Badge`, `Input`).
-3. **Reuse Existing Tokens:** Always use semantic Tailwind variables (e.g., `bg-surface-1`, `border-border`, `text-muted-foreground`).
-4. **No Arbitrary Visual Values:** Do not invent arbitrary HEX colors, border radii (must be `0px`), or heavy custom `box-shadow` styles.
+3. **Reuse Existing Tokens:** Always use semantic Tailwind variables (e.g., `bg-surface-raised`, `border-border-default`, `text-text-secondary`, `bg-status-success-subtle`). 
+4. **No Arbitrary Visual Values:** **Components consume semantic design tokens. Themes define semantic token values.** Do NOT invent arbitrary HEX colors, raw tailwind colors (`bg-blue-100`, `text-gray-400`), border radii (must be `0px`), or heavy custom `box-shadow` styles. If a specific color logic is needed, use standard semantic status mapped tokens (`status-info`, `status-warning`, etc).
 5. **Check Existing Patterns:** Do not create a new page or modal pattern without verifying how similar layouts are handled (e.g., check `applications.tsx` or `index.tsx`).
 6. **Identify Gaps Before Implementing:** If a component truly doesn't exist, document it and build a generic, reusable version in `src/components/ui/` rather than adding inline hacks.
 7. **Document Additions:** If you add a new primitive or layout pattern, update the documentation.
