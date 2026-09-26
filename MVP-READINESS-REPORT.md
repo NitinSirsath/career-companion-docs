@@ -1,5 +1,7 @@
 # MVP Readiness Report (COM-35)
 
+Historical Sprint 4.5 report. Its idempotency and production-readiness claims must not be treated as current verification. See the [2026-09-26 stabilization audit](docs/engineering/stabilization-audit.md) for reproduced defects, corrections, verification evidence, and remaining rollout gates.
+
 ## E2E Flow
 
 The entire user journey was traced and verified:
