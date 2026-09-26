@@ -1,0 +1,28 @@
+# Sprint 5 planning review — 2026-09-26
+
+Verdict: seven actionable planning findings resolved. COM-37 through COM-41 and the original Gmail Incremental Sync & Reliability goal are preserved. Resolution here means the ticket/runbook text was corrected; the underlying application changes and live verification still belong to future sprint execution.
+
+## Findings and resolutions
+
+| ID / priority | Finding and evidence | Resolution in this pack |
+| --- | --- | --- |
+| R1 / P1 | The original completion order put COM-38's live run before COM-40's UI fixes, while COM-40 waited for COM-38. This could run the preserved dataset before the final worker/browser regression and leave live evidence tied to an older build. | Changed all dependency/closure references to **COM-37 → COM-39 → COM-41 → COM-40 → COM-38**. COM-40 closes independently from local evidence; COM-38 uses that tested coordinated build. |
+| R2 / P2 | COM-38 required successful live AI processing although its mandatory eight-point goal is Gmail incremental ingestion. It also compared effect counts without allowing first-run work to finish during the repeat. | Kept real Gmail mandatory and live Gemini/Discord success supplementary. Require actual downstream state and diagnosis, and correlate in-flight effects by email/job/operation instead of calling every concurrent count change a duplicate. COM-40 still proves the complete local worker/domain/browser flow. |
+| R3 / P1 | Enabling workers in the existing smoke without changing its fixtures would fail: `frontend/scripts/smoke-stabilization.mjs` uses a plaintext placeholder token, no history anchor, and `AI_DAILY_CALL_LIMIT=0`. Real `withGmail` decrypts the token; `runOperation` blocks paid-operation fixtures at zero budget. | COM-40 now specifies encrypted fake credentials via the real helper, a fixture history anchor/history-path assertion and a small nonzero fixture AI allowance through the existing operation ledger. No live secrets or ledger bypass. |
+| R4 / P1 | A URL guard plus unique fixture user does not isolate active workers: they consume all jobs in the named queue. Existing smoke cleanup deletes jobs before stopping the queue and filters only payload `userId`; matching enqueues notifications with payload `actionId`. Daily AI budget state is global and is not cascaded with user deletion. | Require an exclusive smoke DB/no concurrent suite, worker-stop/drain before cleanup, retained fixture action IDs for notification cleanup, and removal of exclusively owned fixture budget state. Explicitly preserve local DB/HTTP access while blocking unexpected provider traffic. |
+| R5 / P1 | The proposed claim scheme fenced heartbeats/finalization but did not specify atomic protection for the email write. Source `backend/src/services/gmailSync.ts:130–141` checks heartbeat then independently upserts, allowing replacement in between. Caller cancellation also cannot retract an already-accepted queue send. | COM-39 now requires short connection-row-locked email persistence, exact attempt/unexpired-lease checks using database time, fresh checkpoint state at acquisition and a pause/replace/resume regression. It distinguishes already-accepted queue work from stale email/checkpoint writes, without an outbox or new table. |
+| R6 / P2 | A candidate repeated on a later history page could count once as persistedNew and again as existing even with unique-ID discovery tracking. The counter equation also lacked a bucket for uncertain insert commits. | COM-41 uses one mutable disposition per unique candidate, retains confirmed insertion attribution across repeat references, handles changed eligibility, and adds `persistenceUnknown` with explicit equations and test cases. |
+| R7 / P1 | The baseline SQL selected stabilization-only columns and `ai_operations` before establishing that those migrations were applied. An older preserved database would abort the snapshot, tempting migration before original-data capture. Migration SQL confirms those fields/tables were added only by `20260926100000_stabilization_claims`. | COM-37/runbook now inspect schema first, capture original identities with the eight-migration core shape, and conditionally include stabilization diagnostics within the same snapshot. Missing fields remain rollout gates; no migration is needed merely to capture the baseline. |
+
+## Review method and verification boundary
+
+Re-read the planning documents against current Gmail service/job/token code, pg-boss worker behavior, AI operation/budget code, smoke harness, notification payload/queue behavior, migration definitions and package scripts. Checked ticket section completeness, local links/file references, command provenance, dependency direction and whitespace. Application suites and live provider checks were not run because this review changes documentation only and must preserve the original database.
+
+Backend/frontend source worktrees remain unchanged. No database access/migration, live Gmail change, source implementation, commit, PR or Linear mutation was performed.
+
+## Remaining execution gates
+
+- COM-37 must measure the original dataset and actual runtime/schema/provider readiness; approximately 1,620 remains the supplied estimate.
+- COM-38 must produce real Gmail history evidence after the final local smoke passes. No document review can fulfill that live requirement.
+- Source comments still use COM-37 for historical unmatched-email work. The supplied five-ticket mapping is retained; authoritative Linear identifier reconciliation remains a conversion gate, not an unresolved local editing task.
+- Recovery, telemetry and browser fixes described in the tickets remain unimplemented. Their acceptance criteria require the listed future regression evidence.
