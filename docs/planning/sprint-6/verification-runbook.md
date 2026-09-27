@@ -107,7 +107,7 @@ Once focused checks pass on a stable implementation, run `npm test` in each repo
 
 ## 6. Extend and run the final Sprint 5 smoke
 
-Start with the completed Sprint 5 harness requirements in [S5-04](../sprint-5/S5-04.md) and its [planning review](../sprint-5/planning-review.md). The currently inspected script's worker-disabled/manual-completion behavior is not sufficient and must not be retained as the acceptance path.
+Start with the completed Sprint 5 harness requirements in [COM-40](../sprint-5/COM-40.md) and its [planning review](../sprint-5/planning-review.md). The currently inspected script's worker-disabled/manual-completion behavior is not sufficient and must not be retained as the acceptance path.
 
 Before running the extended script, select its exclusive disposable target and repeat the guard/provenance checks. Configure environment before backend imports. Keep NODE_ENV=test for explicit startup control, then register real Gmail/email workers. Use a valid fixture history anchor and encrypted fake OAuth token, deterministic provider responses at external boundaries, and a small nonzero AI budget through the real ledger. Verify the actual history.list call. Block unexpected backend/browser network traffic; allow only the verified local database and local application traffic needed by the harness. Real notification delivery stays disabled.
 
