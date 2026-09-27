@@ -6,15 +6,15 @@ This is a future execution procedure, not a verification report. During planning
 
 | Lane | Purpose | Allowed state changes during later execution | Forbidden |
 | --- | --- | --- | --- |
-| Preserved live baseline | COM-37 read-only capture and COM-38 real incremental proof | Normal authenticated sync, controlled synthetic mail received in the owner's mailbox, explicitly designated synthetic application, normal processing of explained new/pending work | Reset, truncate, seed, delete/re-import, bulk state reset, fake provider responses, manually written checkpoints/completion, fault injection or fixture cleanup |
-| Isolated local fixture DB | COM-39 unit/integration/queue failures and COM-40 browser smoke | Synthetic fixture setup/cleanup, process interruption, mocked provider/transport faults, real local queue execution | Real mailbox data/credentials, pointing at the original dataset, claiming real-provider proof |
+| Preserved live baseline | S5-01 read-only capture and S5-02 real incremental proof | Normal authenticated sync, controlled synthetic mail received in the owner's mailbox, explicitly designated synthetic application, normal processing of explained new/pending work | Reset, truncate, seed, delete/re-import, bulk state reset, fake provider responses, manually written checkpoints/completion, fault injection or fixture cleanup |
+| Isolated local fixture DB | S5-03 unit/integration/queue failures and S5-04 browser smoke | Synthetic fixture setup/cleanup, process interruption, mocked provider/transport faults, real local queue execution | Real mailbox data/credentials, pointing at the original dataset, claiming real-provider proof |
 | Isolated restored copy | Backup restore/schema upgrade investigation if deployment prerequisites require it | Explicitly scoped migration rehearsal in a later authorized rollout | Substituting restore/clean-install evidence for incremental proof on the original dataset |
 
 The backend guard requires the exact same `DATABASE_URL` and `TEST_DATABASE_URL`, a local host and a `career_companion_*test` database name. Vitest and the browser harness load `.env.test` with **override enabled**. A matching name alone does not make a database disposable: verify its provenance and contents. Never rename/configure the preserved database to satisfy the guard.
 
 Starting backend `npm run dev` or `npm start` outside test starts Gmail, email and notification workers. Readiness inspection must not accidentally process historical backlog. A backup restoration is only for isolated verification, never a routine rollback over the preserved dataset.
 
-Execution order is COM-37 baseline → COM-39 recovery → COM-41 diagnostics → COM-40 final local worker/browser smoke → COM-38 live Gmail proof on the same build. For the worker-enabled smoke, the existing test DB URL guard is necessary but insufficient: use an exclusively owned smoke DB with no other suite running and no unrelated jobs, because registered workers consume the whole queue. Replace the current harness's plaintext placeholder token, missing history anchor and zero AI allowance with the fixture setup specified in COM-40. Stop handlers before owner/action/job/budget cleanup. None of these fixture operations apply to the preserved lane.
+Execution order is S5-01 baseline → S5-03 recovery → S5-05 diagnostics → S5-04 final local worker/browser smoke → S5-02 live Gmail proof on the same build. For the worker-enabled smoke, the existing test DB URL guard is necessary but insufficient: use an exclusively owned smoke DB with no other suite running and no unrelated jobs, because registered workers consume the whole queue. Replace the current harness's plaintext placeholder token, missing history anchor and zero AI allowance with the fixture setup specified in S5-04. Stop handlers before owner/action/job/budget cleanup. None of these fixture operations apply to the preserved lane.
 
 ## Baseline capture and invariant comparison
 
@@ -86,7 +86,7 @@ Record intended/deployed backend and frontend commits, running API/worker proces
 
 Record non-secret environment decisions: authentication/session route, actual proxy/cookie/HTTPS behavior, same-mailbox grant, retained encryption key, provider configurations, and small AI daily call allowance including pending backlog. `AI_DAILY_CALL_LIMIT=0` blocks new paid calls but does not pause workers or stop Gmail reads; it can leave retryable/failed jobs. Do not use it as a substitute for backlog planning. Completed AI work must remain zero-new-call regardless of budget.
 
-Live Gmail proof is mandatory; successful live Gemini extraction and live Discord delivery are supplementary. Record the chosen live AI policy before running, including consequences for existing pending work. Do not replace the real Gmail adapter or modify production worker startup to manufacture a cheaper test. COM-40 separately proves the full AI/domain/browser path with fixture adapters. Observed processing failures must remain visible and explained; this distinction does not waive an actual application regression.
+Live Gmail proof is mandatory; successful live Gemini extraction and live Discord delivery are supplementary. Record the chosen live AI policy before running, including consequences for existing pending work. Do not replace the real Gmail adapter or modify production worker startup to manufacture a cheaper test. S5-04 separately proves the full AI/domain/browser path with fixture adapters. Observed processing failures must remain visible and explained; this distinction does not waive an actual application regression.
 
 ## API contract reference for the verification path
 
@@ -118,7 +118,7 @@ These are commands to execute later under the stated prerequisites, not results 
 | backend | `npx prisma validate`; `npx prisma migrate status` | Existing release-guide commands; schema/status inspection, not deployment. Select the intended environment explicitly. |
 | frontend | `npm run typecheck`; `npm run lint`; `npm test`; `npm run build` | `tsc -b`, Oxlint, Vitest and Vite/TypeScript build; typecheck/build write local build artifacts. |
 | frontend | `npm test -- src/tests/gmail.test.tsx src/tests/stabilization-ui.test.tsx src/tests/pagination-ux.test.tsx` | Focused component/query behavior. |
-| frontend | `node scripts/smoke-stabilization.mjs` | Existing Puppeteer harness; both repos built, sibling layout, Chrome/`CHROME_BIN`, isolated backend `.env.test`. At inspected HEAD it fakes sync completion; only the COM-40 version proves real local worker behavior. |
+| frontend | `node scripts/smoke-stabilization.mjs` | Existing Puppeteer harness; both repos built, sibling layout, Chrome/`CHROME_BIN`, isolated backend `.env.test`. At inspected HEAD it fakes sync completion; only the S5-04 version proves real local worker behavior. |
 | frontend | `npm run sync-contracts` | Existing copy script from sibling backend; **writes source contracts**. Use only during later implementation if a contract changes, then review diff. It is not a read-only verification command. |
 
 No existing `npm run e2e`, `test:integration`, `sync:verify` or Playwright command was found. New tests can be run through the existing Vitest discovery without inventing scripts. No migrations are required by the default plan. Existing `db:reset`, `db:seed`, `db:migrate` and `format` scripts are not verification shortcuts and must not run on the preserved baseline/in this planning task. If test schema initialization is needed later, use the documented guarded isolated-database setup with explicit target review; it is never a requirement to reset live data.
@@ -139,7 +139,7 @@ Create a **new sanitized report during execution**, keeping protected raw artifa
 | Ingestion result | Pending; history mode, all pages, start/end/duration, dispositions, queue offers, retry/failure/anomaly record |
 | Checkpoint result | Pending; protected H1, affected-row success and checkpointAdvanced; IDs compared as arbitrary-precision decimal strings where needed |
 | Control persistence | Pending; exact one-row query, matching metadata and stable local ID |
-| Processing/browser | Pending; actual visible processing state, completed/deferred/held/failed explanation, optional live AI result and timeline/action if applicable, COM-40 local result reference |
+| Processing/browser | Pending; actual visible processing state, completed/deferred/held/failed explanation, optional live AI result and timeline/action if applicable, S5-04 local result reference |
 | Repeat sync | Pending; correlated second request, same email ID, no new completed-operation AI calls or duplicated domain effects |
 | Original preservation | Pending; zero missing/changed original identities/immutable fields, user choices and completed AI invariant comparisons |
 | Unrelated changes | Pending; list/manifest of new real arrivals and permitted backlog transitions |

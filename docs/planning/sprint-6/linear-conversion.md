@@ -8,7 +8,7 @@ Each linked ticket is the complete ready-to-copy description, with all 21 requir
 
 Attach the shared [overview](README.md), [assessment](architecture-review.md), [verification runbook](verification-runbook.md) and [review resolutions](planning-review.md) as repository-relative links or uploaded documents accessible to the team. When publishing, use verified repository URLs at the final planning revision; do not copy machine-local paths into external tickets. The source prefixes are defined in the assessment.
 
-Validate the actual Linear team/project, available labels, priority scale and estimation scale before creating issues. Preserve the provisional values unless the team re-estimates. Reconcile Sprint 5's supplied COM mappings before creating dependencies: existing source already mentions an unrelated historical COM-37, and this pack does not claim its local mapping is a verified live issue ID. After actual creation, replace local S6 dependency references with returned issue IDs/links. Do not invent them in advance.
+Validate the actual Linear team/project, available labels, priority scale and estimation scale before creating issues. Preserve the provisional values unless the team re-estimates. Reconcile Sprint 5's supplied COM mappings before creating dependencies: existing source already mentions an unrelated historical S5-01, and this pack does not claim its local mapping is a verified live issue ID. After actual creation, replace local S6 dependency references with returned issue IDs/links. Do not invent them in advance.
 
 ## S6-01
 
