@@ -1,5 +1,7 @@
 # Stabilization audit — 2026-09-26
 
+> Current planning note (2026-09-27): this report records the 2026-09-26 inspection and its then-current repository/provider state. Later migrated working-tree implementation and regression fixes are recorded in the [Sprint 5 execution report](../planning/sprint-5/execution-report.md). The [reconciled Sprint 6 contract](../planning/sprint-6/README.md) now supplies the authoritative local five-ticket allocation and preserves unresolved evidence/approval gates. Historical “plans absent,” unimplemented Sprint 5, folder/commit and integration statements below are not current-state assertions. No historical result is rewritten or promoted to live evidence by this note.
+
 Status: implementation and local verification complete; GitHub integration is blocked by repository permissions. Production deployment/provider verification and the original Sprint 5/6 plans remain external gates. This audit does not replace the roadmap.
 
 ## Repository state
