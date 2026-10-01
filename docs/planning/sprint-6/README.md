@@ -6,6 +6,12 @@ This contract combines the detailed requirements from `58c426c^` with the reassi
 
 Read the [baseline assessment](architecture-review.md), five tickets, [verification runbook](verification-runbook.md) and [review record](planning-review.md). The [conversion notes](linear-conversion.md) reference these same ticket bodies without maintaining duplicate requirements.
 
+## Product scope decisions — 2026-10-01
+
+- **Scheduled Gmail sync:** run twice daily at **12:00 AM and 6:00 PM**. Manual sync remains available. No additional heavy scheduled-processing or replay scope is introduced.
+- **AI pipeline hardening:** treat this as reliability work only — retries, idempotency/duplicate-call protection, worker delivery safety, AI-call budget enforcement, and failure recovery. No new AI capabilities, prompts, inference stages, or automatic product decisions.
+- **Email organization:** keep the existing relevance split simple: **Job Related** vs **Totally Irrelevant**. This is not sender/company grouping (for example, all mail from an IBM domain). No new AI-driven mail-family taxonomy is added.
+
 ## A. Sprint 6 goal
 
 A user can inspect an application, distinguish AI inference from their own confirmed status, correct that status safely, and understand the source and timing of recorded application activity.
