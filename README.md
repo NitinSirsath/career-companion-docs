@@ -2,7 +2,7 @@
 
 Central documentation repository for Career Companion including product planning, architecture, engineering decisions, and technical documentation.
 
-Current engineering assessment: [stabilization audit, 2026-09-26](docs/engineering/stabilization-audit.md). Sprint 5 and Sprint 6 remain the product roadmap; audit findings do not create new sprint scope.
+Current engineering assessment: [stabilization audit, 2026-09-26](docs/engineering/stabilization-audit.md). Sprint 5 and Sprint 6 remain the product roadmap; audit findings do not create new sprint scope. Product decision locked 2026-10-01: scheduled Gmail sync is limited to twice daily (12:00 AM and 6:00 PM); manual sync remains available, and no heavier scheduled-processing scope is added.
 
 Local planning pack: [Sprint 5 — Gmail Incremental Sync & Reliability](docs/planning/sprint-5/README.md), including COM-37 through COM-41, architecture evidence, preserved-dataset verification and Linear conversion notes. Engineering implementation and automated validation are recorded in the [Sprint 5 execution report](docs/planning/sprint-5/execution-report.md); live-provider validation remains explicitly unverified.
 
