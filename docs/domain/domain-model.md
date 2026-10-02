@@ -1,10 +1,12 @@
 # Career Companion — Domain Model
 
-**Version:** 1.1
-**Status:** Sprint 2 Implemented  
-**Last Updated:** 2026-09-12
+**Version:** 1.3
+**Status:** Sprint 6, BYO AI and the MCP feature implemented (local engineering; see the execution reports)
+**Last Updated:** 2026-10-02
 
 ### Version History / Implementation Notes
+- **v1.3 (MCP feature, ADR-0002):** `IntegrationToken` and `ExternalSubmission` (§4.8), the `AUTOMATION_SUBMITTED` event, `submittedVia` on applications, and their ownership triggers. Automatic application creation is allowed for automation submissions only; Gmail never creates applications.
+- **v1.2 (Sprint 6):** Canonical status read fields, the `userStatusRevision` manual-correction token and owned set/change/clear semantics (§4.5). Implemented history is recording-ordered processing events with bounded owned source-email evidence; no `occurredAt` exists in the implemented schema (§4.6 "Implemented history boundary").
 - **v1.1 (Sprint 2):** Implemented `GmailConnection` and `Email` schemas. `GmailConnection` includes encrypted token fields and sync status. `Email` intentionally omits `snippet` and `body` (privacy decision: only metadata headers `Subject`, `From`, `Date` are ingested); `threadId` is implemented as a dedicated column.
 
 ## 1. Purpose
@@ -37,6 +39,9 @@ The model is intentionally production-minded but limited to the current MVP. It 
 - `Application` — current job application state.
 - `ApplicationEvent` — historical recruitment/application occurrence.
 - `Action` — user-facing obligation or required action.
+- `AIConfiguration` — the user's one active AI provider setup (ADR-0001): provider, sealed key, model choices, access state, consent.
+- `IntegrationToken` — a per-user bearer token for the MCP endpoint (ADR-0002); only its hash is stored.
+- `ExternalSubmission` — evidence that the user's own automation reported a confirmed submission (ADR-0002).
 
 ### Infrastructure boundary
 
@@ -117,9 +122,29 @@ This entity records the **latest AI processing state and validated output** for 
 - MVP keeps one current `AIProcessingResult` per Email.
 - A retry resets the current result to `PENDING`; MVP does not retain complete attempt history.
 - `AIProcessingResult` therefore represents the **latest processing state**, not an audit log of every AI attempt.
-- Raw Gemini responses are never persisted.
+- Raw provider responses and provider error text are never persisted (any provider).
+- `provider` and `model` record which of the user's provider and models produced the result (from the operation ledger), so results stay explainable across provider switches.
 - `extractedData` is validated staging output for domain promotion, not a UI-facing query model.
 - Prompt/version tracking and full AI observability are deferred beyond MVP.
+
+### 4.4a AIConfiguration and AI usage (ADR-0001)
+
+One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted with the user).
+
+| Field | Meaning |
+| --- | --- |
+| `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`). The catalog is code, not data. |
+| `encryptedApiKey` | The user's provider key as AES-256-GCM ciphertext bound to the user. Write-only: never returned, logged or sent anywhere except to the catalog's endpoint for that provider. |
+| `fastModel`, `detailedModel` | `null` follows the recommended model; otherwise a tested catalog model for that role. |
+| `accessIssue`, `accessIssueModel` | Why access cannot be used: needs attention (key rejected, account/billing, model unavailable, key unreadable) or limited (rate limited, provider unavailable). |
+| `cooldownUntil`, `consecutiveFailures` | Per-user provider cooldown. |
+| `verifiedAt`, `lastCheckedAt` | Content-free verification results. |
+| `consentDisclosure`, `consentedAt` | Which data-use text the user agreed to, and when. |
+| `revision` | Incremented on every save. Job-side state writes apply only to the revision they resolved. |
+
+`ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications. These are not provider billing data.
+
+Access is one of four states, derived from these facts: **Not set up**, **Ready**, **Needs attention**, **Limited**. While access is not Ready, emails needing AI wait as `PENDING`; this is not a processing failure.
 
 ### 4.5 Application
 
@@ -135,14 +160,18 @@ This entity records the **latest AI processing state and validated output** for 
 | `aiStatus` | Enum | No | Latest AI-derived application state. |
 | `userStatus` | Enum | No | Explicit user-confirmed status. |
 | `userStatusSetAt` | DateTime | No | Timestamp for the current explicit user confirmation. |
+| `userStatusRevision` | Int | Yes | Manual-correction revision, default 0. Changed only by a user set/change/clear; never by AI. |
 | `appliedAt` | DateTime | No | Application date when reliable evidence exists; distinct from `createdAt`. |
 | `createdAt` | DateTime | Yes | Record creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
 
 #### Application status rules
 
-- Effective status is conceptually `userStatus ?? aiStatus`.
-- AI may update `aiStatus` but must not overwrite `userStatus`.
+- Effective status is `userStatus ?? aiStatus`. Every application response carries derived (not persisted) `effectiveStatus`, `statusSource` (`USER` whenever `userStatus` is set, even when it equals AI; `AI` when only `aiStatus` is set; `UNKNOWN` when both are null) and `hasStatusConflict` (both set and different). A null effective status is a valid unknown, never defaulted to Applied.
+- AI may update `aiStatus` but must never write `userStatus`, `userStatusSetAt` or `userStatusRevision`. AI/user disagreement is informational only.
+- Manual correction (`PATCH /api/applications/:id/status`, approved D2 2026-10-02): one transaction locks the owned application row, compares `expectedUserStatusRevision` **before** no-op detection (a stale request is 409 even if its value equals the latest), then: a current same-value request changes nothing (revision, `userStatusSetAt`, `updatedAt` kept); a changed value sets `userStatus`, a server-generated `userStatusSetAt` and increments the revision once; clearing sets `userStatus` and `userStatusSetAt` to null and increments once, revealing the persisted AI status (or unknown) without rerunning AI.
+- Provenance is latest-only: the Application holds the current correction and its confirmation time. Clearing removes that time. A full correction audit log is not kept. A legacy user status with a null timestamp stays "confirmation time unknown"; no date is invented.
+- Manual corrections never modify `aiStatus`, create recruitment events, resolve actions, enqueue jobs, call providers or touch AI operation/budget records. Locking is application-only, compatible with matcher's email → application order.
 - A single business uniqueness constraint such as `(userId, companyName, jobTitle)` is intentionally **not** enforced; users may have multiple applications for the same company/role.
 - Company and JobPosting entities are deferred until a concrete MVP requirement requires them.
 - Application status represents broad/current state; detailed occurrences belong to ApplicationEvent.
@@ -178,6 +207,12 @@ The exact final status vocabulary should remain the smallest set required by the
 - `STATUS_CORRECTED` is not treated as a recruitment event. User status provenance is represented on Application through `userStatus` and `userStatusSetAt` for MVP.
 - Event records are historical; Application stores the materialized current state needed by the dashboard.
 
+#### Implemented history boundary (Sprint 6)
+
+The implemented `application_events` table records processing events (for example `EMAIL_PROCESSED`) with `oldState/newState` describing **AI status only**, optional `emailId`, `description`/`provenance` (AI interpretation, not verified source text) and `createdAt`. It has no `occurredAt`, `scheduledAt` or `deadline` columns, and none are inferred. Responses add `recordedAt` (same instant as `createdAt`: when the app recorded it) and a bounded `sourceEmail` `{ id, subject, sender, receivedAt }` that is returned only when the email belongs to the requesting owner; otherwise it is null (and a foreign `emailId` is also nulled). `receivedAt` is shown as "Email date", which may come from a Date header and is not proof of when a recruitment event happened. History is ordered by recording time (`createdAt`, then `id`), not reconstructed chronology. Action responses keep their existing `emailId` link; action source evidence is deferred (D1, 2026-10-02).
+
+**`AUTOMATION_SUBMITTED` (ADR-0002):** one event per linked or created `ExternalSubmission`, keyed by a unique nullable `externalSubmissionId` (SetNull). It leaves `emailId`, `oldState`, `newState`, `description` and `provenance` null. Responses add a bounded, owner-checked `sourceSubmission` `{ platform, destinationHost, submittedAt, confirmationText }` for this type only (null on every other event and `recentEvent`), and `analyzedBy` is null. It is shown as "Submitted via automation", never as AI interpretation or missing email evidence. A backfilled submission keeps recording order and may appear after later emails.
+
 ### 4.7 Action
 
 `Action` represents a user-facing obligation resulting from job-search communication or events.
@@ -206,6 +241,36 @@ The exact final status vocabulary should remain the smallest set required by the
 - MVP deduplicates actions at the application/domain-service layer. No broad `(applicationId, type)` uniqueness constraint is required because multiple legitimate actions of the same type may exist over time.
 - `Action` requires an Application in MVP. Unmatched/ambiguous email processing must be resolved before creating an application-bound action.
 
+### 4.8 IntegrationToken and ExternalSubmission (ADR-0002)
+
+**IntegrationToken** (`integration_tokens`, deleted with the user)
+
+| Field | Meaning |
+| --- | --- |
+| `name` | 1–100 characters, chosen by the user. |
+| `tokenHash` | SHA-256 of the plaintext (unique). The plaintext `ccmcp_` + 43 base64url characters is shown once at creation and never stored. |
+| `displayPrefix` | The first 12 characters, for recognising a token. |
+| `scope` | `submissions:write`, the only scope in v1. |
+| `expiresAt`, `lastUsedAt`, `revokedAt` | Expiry (default 90 days, at most 365), last successful use, and immediate revocation. Revoked rows are kept for the audit trail. At most 5 active tokens per user. |
+
+**ExternalSubmission** (`external_submissions`, deleted with the user)
+
+| Field | Meaning |
+| --- | --- |
+| `source`, `sourceRecordRef` | `AUTOMATION` and `YYYY-MM-DD/HH:MM:SS` from the automation's daily file. Unique per `(userId, source, sourceRecordRef)`: the idempotency key. |
+| `platform`, `company`, `jobTitle`, `submittedAt`, `jobUrl`, `portalJobId`, `destinationHost`, `discoverySource`, `location`, `workMode`, `confirmationText` | The ADR-0002 contract fields, trimmed and canonical (job URL without fragment, credentials or non-job-ID query parameters; confirmation truncated to 300 characters). Never submitted answers, resume data or credentials. |
+| `receivedAt`, `tokenId` | When Career Companion recorded it, and the token used (SetNull). |
+| `matchState` | `NEEDS_REVIEW`, `LINKED`, `CREATED` or `IGNORED`. |
+| `resolvedBy`, `resolvedAt` | `AUTOMATIC` (rule-based, never AI) or `USER`, and when. Both null exactly while `NEEDS_REVIEW` (CHECK). |
+| `applicationId` | The linked or created application (SetNull). |
+
+Rules:
+- A submission is evidence, not a replica: a later call with the same ref never updates it. A user resolution is final in v1.
+- Matching (ADR-0002 §7) uses a company key (the existing normalization after dropping trailing legal-suffix words) and the existing title key. No same-company application → `CREATED`; exactly one same-title application and no untitled one → `LINKED`; anything else, or an empty key → `NEEDS_REVIEW`. The Gmail matcher is unchanged.
+- Created applications get the submitted company, title and location, and `appliedAt = submittedAt`. Linking sets `appliedAt` only when it is empty. `aiStatus`, `userStatus` and `deriveStatus` are never touched.
+- `ApplicationResponse.submittedVia` is `AUTOMATION` when a linked or created submission exists. The UI shows "Applied · via automation" only while `statusSource` is `UNKNOWN`; a user or AI status always wins.
+- Ownership triggers reject: a submission linked to another owner's application or token; a change of a submission's or token's owner; an event whose submission belongs to someone other than the application's owner. Links are checked when set or changed, so SetNull deletions never fail.
+
 ## 5. Relationships
 
 ```text
@@ -214,9 +279,14 @@ User
 ├── 1:N Email
 │   ├── 1:1 AIProcessingResult (current MVP result)
 │   └── N:1 Application (optional; via matchState)
+├── 1:N IntegrationToken
+├── 1:N ExternalSubmission
+│   ├── N:1 IntegrationToken (optional; SetNull)
+│   └── N:1 Application (optional; via matchState)
 └── 1:N Application
     ├── 1:N ApplicationEvent
-    │   └── N:1 Email (optional evidence)
+    │   ├── N:1 Email (optional evidence)
+    │   └── 1:1 ExternalSubmission (optional evidence, AUTOMATION_SUBMITTED)
     └── 1:N Action
         ├── N:1 Email (optional evidence)
         └── N:1 ApplicationEvent (optional provenance)

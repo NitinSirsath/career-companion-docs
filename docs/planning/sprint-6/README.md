@@ -1,10 +1,20 @@
 # Sprint 6 execution contract — User-controlled application status and explainable history
 
+> **Roadmap update (2026-10-02):** Sprint 6 is implementation-complete but not yet accepted. The remaining work — S6-R07, S6-R08, test-evidence repairs, a docs truth pass and the acceptance record (entry gate per owner decision OD-01) — is planned in the [Sprint 6 closeout](closeout/README.md). It starts after the [migration verification gate](../migration-verification/README.md). See the [roadmap](../README.md).
+
+> **Execution update (2026-10-02):** implemented and locally verified — see the [execution report](execution-report.md). D1 = events/recentEvent only (action evidence deferred); D2 approved as written; the live Gmail/original-data entry gate was explicitly kept **open** by the owner; scheduled Gmail sync was left out of this sprint. The downloaded baseline lacked the uncommitted Sprint 5 working tree; only the Sprint 5 pieces Sprint 6 depends on were re-implemented (report §1).
+
 Status: authoritative reconciled **local planning contract**, 2026-09-27. Sprint 6 implementation has not begun. The five ticket bodies below define requirements; this overview defines allocation, shared gates and open decisions. The runbook defines verification. Review/assessment documents retain traceability and evidence boundaries, not a competing allocation. S6-01–S6-05 are local IDs; no Linear identity, state or approval is assumed.
 
 This contract combines the detailed requirements from `58c426c^` with the reassigned scope introduced by `58c426c`. The [reconciliation record](planning-review.md) maps surviving requirements and corrected claims. An unresolved product decision is a visible stop on its affected scope, not permission to guess or silently delete it.
 
 Read the [baseline assessment](architecture-review.md), five tickets, [verification runbook](verification-runbook.md) and [review record](planning-review.md). The [conversion notes](linear-conversion.md) reference these same ticket bodies without maintaining duplicate requirements.
+
+## Product scope decisions — 2026-10-01
+
+- **Scheduled Gmail sync:** run twice daily at **12:00 AM and 6:00 PM**. Manual sync remains available. No additional heavy scheduled-processing or replay scope is introduced.
+- **AI pipeline hardening:** treat this as reliability work only — retries, idempotency/duplicate-call protection, worker delivery safety, AI-call budget enforcement, and failure recovery. No new AI capabilities, prompts, inference stages, or automatic product decisions.
+- **Email organization:** keep the existing relevance split simple: **Job Related** vs **Totally Irrelevant**. This is not sender/company grouping (for example, all mail from an IBM domain). No new AI-driven mail-family taxonomy is added.
 
 ## A. Sprint 6 goal
 
@@ -150,6 +160,8 @@ Use the [migration package](linear-conversion.md). Paste each complete 21-sectio
 | --- | --- | --- |
 | D1 | Does S6-02 add source metadata to action responses/UI, or retain event/recentEvent enrichment and narrow the title? | `58c426c` adds “AI actions” to the title but no action DTO/acceptance requirements; earlier S6-03 defines only events/recentEvent; UF-08 requires action traceability without selecting a surface. Preserve existing associations. Stop on new action API/UI design; do not invent fields/endpoints or silently drop the promise. S6-02/04/05 cannot claim this point complete until decided. |
 | D2 | Approve the already-documented clear/latest-only provenance, dedicated revision/conflict and recording-order history rules, or explicitly request changes. | The earlier overview/tickets require sign-off and no approval record was found. The rules in S6-01/02/04 are the reconciled proposed contract, not evidence that approval occurred. Full correction audit/history reconstruction remains excluded unless scope is explicitly changed. |
+
+**Decision record (owner, 2026-10-02):** D1 — retain event/recentEvent enrichment only; action responses/UI keep their existing association and action source evidence is deferred, so the title's "AI actions" promise is not delivered in this sprint. D2 — approved as written. Entry gate — proceed with implementation while the live Gmail/original-data evidence gate remains open and unpassed.
 
 No new product policy is selected here. The remaining runtime/source-evidence gates are verification work, not invented product decisions. If unavailable evidence necessitates changing an entry gate, that is an explicit owner decision; this contract preserves the existing gate.
 

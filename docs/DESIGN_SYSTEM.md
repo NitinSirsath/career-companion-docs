@@ -59,7 +59,8 @@ Theme switching dynamically updates CSS variables defined in `.theme-*` root cla
 ## Components
 - Reusable primitives are located in `src/components/ui/`.
 - Use `Button` variants (`primary`, `secondary`, `tertiary`, `ghost`, `danger`) instead of building custom buttons.
-- Use `Badge` for status indication mapped semantically.
+- Use `Badge` for status indication mapped semantically. Application status uses the shared `StatusBadge`/`EffectiveStatus` (`src/components/ApplicationStatus.tsx`); a null status renders as an outline "Status unknown" badge.
+- Use `NativeSelect` (`src/components/ui/native-select.tsx`, added Sprint 6) for single-choice fields: a styled native `<select>` with the same square border, token colors and focus ring as `Input`. Keyboard and screen-reader behavior come from the platform; always pair it with a `Label` via `id`/`htmlFor`.
 
 ## Layout
 - **Desktop:** Persistent left sidebar. Content area constrained and centered where appropriate.

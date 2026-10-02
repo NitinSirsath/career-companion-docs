@@ -5,6 +5,8 @@
 **Linear Issue:** [COM-6 — Design High-Level Architecture](https://linear.app/welcome-nitin/issue/COM-6/design-high-level-architecture)
 **Last Updated:** 2026-09-12
 
+> **Historical (noted 2026-10-02):** this Sprint 2 design predates stabilization, Sprint 5 and Sprint 6. Where it describes separate promotion jobs/worker deployment, retry rules, `occurredAt` event chronology or status handling, it does not describe the current implementation. Current boundaries: [MVP architecture](mvp-architecture.md) (§8 jobs, §9 status/evidence), [email AI pipeline](email-ai-pipeline.md) and the [domain model](../domain/domain-model.md).
+
 ---
 
 ## 1. Purpose
@@ -803,7 +805,7 @@ To maintain vendor independence and prevent strong coupling to any single AI SDK
 
 - **RelevanceClassifier:** Interface responsible exclusively for determining whether an email relates to a job search (`isJobSearchRelated`).
 - **EmailAnalyzer:** Interface responsible for extracting structured application data (company, title, status) from relevant emails.
-- **GeminiProvider:** The single implementation of both interfaces for V1. It encapsulates all `@google/genai` usage, model selection, and prompt formatting.
+- **Provider adapters (ADR-0001, implemented 2026-10-02):** one adapter per API protocol (Gemini, OpenAI-compatible, Anthropic) behind a single `createProviderClient` seam. Adapters only translate Career Companion's contracts; they never see users, the database or email states. `bindCapabilities` binds a client and the user's models into the `RelevanceClassifier` and `EmailAnalyzer` interfaces. Each user's own key is resolved per job (`services/ai/access.ts`). *This section's earlier text described a single `GeminiProvider` and a provider factory; neither exists now. The hand-written Gemini schema is gone: every provider's schema is derived from Zod.*
 
 ### Structured Output & Zod Validation
 The system relies on strongly typed contracts. We define expected AI output using Zod schemas (e.g., `EmailRelevanceSchema`). 
@@ -826,5 +828,14 @@ Failures are abstracted into an application-level taxonomy:
 The AI boundary enforces a strict no-logging policy for sensitive data. 
 If an error occurs during classification or extraction, the exception is stripped of any raw email bodies or API keys before being thrown back to the queue worker. 
 
-### Future BYO Extension Point
+### User-Provided AI (implemented)
+
+See [ADR-0001](decisions/ADR-0001-user-provided-ai.md), the [AI capability architecture](ai-capability-architecture.md) and the [email AI pipeline](email-ai-pipeline.md#user-provided-ai-adr-0001-implemented-2026-10-02).
+
+**Error classification:** provider failures are classified as key rejected, account/billing, model unavailable, rate limited, unknown outcome, invalid output or invalid request.
+- Refusals wait (`PENDING`) without using attempts.
+- Unknown outcomes are held.
+- Invalid output can be retried once with the user's approval.
+
+### Future BYO Extension Point (historical)
 This architecture natively supports a "Bring Your Own" (BYO) model or a transition to another provider (e.g., OpenAI or Anthropic) in the future. To support a new provider, one must simply implement the `RelevanceClassifier` and `EmailAnalyzer` interfaces and register the new class within the factory pipeline.

@@ -1,5 +1,7 @@
 # MVP Readiness Report (COM-35)
 
+> **Update 2026-10-02 (Sprint 6):** local engineering evidence now covers canonical user-over-AI status, safe manual correction with revision conflicts, bounded owned source evidence, explicit single-job worker delivery, matching race fixes and a real-worker browser smoke with guarded teardown — see the [Sprint 6 execution report](docs/planning/sprint-6/execution-report.md). This is synthetic/local evidence only. Still **not** established: live Gmail incremental/repeat sync, preservation of the original ~1,620-email dataset, deployed API/worker versions, live Gemini/Discord. Remaining MVP gaps: interview/deadline agenda and date normalization, wrong-match correction/rematching, retention/deletion policy, action source evidence (D1 deferred), automatic scheduled sync (decided out of Sprint 6). Production readiness is not claimed.
+
 Historical Sprint 4.5 report. Its idempotency and production-readiness claims must not be treated as current verification. See the [2026-09-26 stabilization audit](docs/engineering/stabilization-audit.md) for reproduced defects, corrections, verification evidence, and remaining rollout gates.
 
 ## E2E Flow

@@ -72,6 +72,27 @@ Career Companion is a **job-search companion** that gives users complete visibil
 
 ---
 
+## AI Capability — User-Provided AI (Proposed, 2026-10-02)
+
+> Pending review in [ADR-0001](../architecture/decisions/ADR-0001-user-provided-ai.md). Detailed design: [AI capability architecture](../architecture/ai-capability-architecture.md).
+
+AI is what turns Gmail into job-search understanding. Without it, Career Companion can sync and store email metadata, but cannot tell what matters or what to do next.
+
+- **The user brings their own AI, from the provider they already use.** Career Companion supports a small, curated set of providers: Gemini, OpenAI and Claude first, with others such as Kimi added once they pass Career Companion's quality checks. The user's AI account pays for the user's processing. Career Companion does not provide hosted AI or fall back to its own key.
+- **Choice without guesswork.** For each provider, the user sees:
+  - whether it has a free tier
+  - what is sent and how the provider may use it
+  - how to get a key
+
+  Recommended models are preselected, and only models Career Companion has verified can be chosen.
+- **AI setup is part of the product.** It is one onboarding step and one settings area, next to connecting Gmail. It is not a separate app.
+- **The user stays in control.** Career Companion verifies the key before saving it and never shows it again. A per-user AI safety limit bounds how much Career Companion processes in a day. It is Career Companion's own safeguard, not the provider's quota or billing. A sample test on a synthetic email shows what Career Companion will extract.
+- **No AI access does not mean failure.** Without working AI access, emails that need AI wait, visibly, until the user sets up or fixes it. One user's AI limits or problems never affect another user.
+- **No surprises.** Switching provider, model or key never re-processes completed emails. Content is never sent to a provider the user did not choose. Each result shows which provider and model produced it.
+- **Future:** a limited Career Companion–provided AI allowance may be offered later. It is not part of the current product.
+
+---
+
 ## ✅ Application Status Tracking
 
 Application status tracking is a **core MVP capability**.
@@ -125,6 +146,7 @@ Career Companion is NOT being built for:
 - User applies to multiple companies.
 - Recruitment communication primarily happens through email.
 - Most emails are in English.
+- User can obtain an API key from a supported AI provider (Gemini, OpenAI or Claude first) and accepts that their chosen provider account processes their job-search email (proposed, see AI Capability above).
 
 ---
 
@@ -164,7 +186,7 @@ Career Companion is not intended to become:
 - A full email client
 - A full task/project-management application
 - An interview preparation or coaching platform
-- An automatic job-application platform
+- An automatic job-application platform. Career Companion still never applies to jobs. It can receive a record of each application that the user's **own** automation tool submitted (ADR-0002, through MCP), so those applications appear in the dashboard and later emails can attach to them. The submitted answers stay on the user's computer.
 - An advanced job-search analytics platform in the MVP
 - A multi-platform communication hub (such as Outlook, LinkedIn, or other channels) in the MVP
 
@@ -192,3 +214,5 @@ No arbitrary numerical targets are defined at the Product Vision stage. Concrete
 | 0.1     | 2026-08-29 | Initial document. Finalized: Problem Statement, Primary Problems, Desired Outcome, Product Direction, Application Status Tracking, Target User, Out of Scope, Assumptions. |
 | 0.2     | 2026-08-30 | Synchronized Vision Statement and Value Proposition from Linear COM-2 finalized decisions. |
 | 1.0     | 2026-08-30 | Finalized Product Goals, Non-Goals, and Success Metrics. COM-2 completed. |
+| 1.1     | 2026-10-02 | Added proposed "AI Capability — User-Provided AI" direction and matching assumption, pending ADR-0001 review. |
+| 1.2     | 2026-10-02 | Clarified the automatic-application non-goal: Career Companion can receive submissions from the user's own tool (ADR-0002). |

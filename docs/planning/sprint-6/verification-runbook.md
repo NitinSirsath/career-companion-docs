@@ -171,23 +171,23 @@ Preserve the existing safety invariants and extend the lifecycle to meet this co
 
 S6-05 section 7 is the required checklist: existing service/queue/DB boundaries, canonical mapper and owned revision writes, bounded evidence/recording semantics, verified delivery and matching locks, runtime contracts/frozen drafts/recovery, and additive rollout/rollback. Record pass/fail with source/test evidence for each. A generic smoke pass does not close this review. Retain accepted notification, temporal, rematching, retention and operational limits; fixture success does not establish broader MVP readiness.
 
-## 8. Execution record — pending
+## 8. Execution record — 2026-10-02
+
+Full results: [execution report](execution-report.md). Commands used: backend `npm run db:generate`, `typecheck`, `lint`, `build`, `node scripts/guarded-migrate.cjs` (the step 3 procedure as a script), `npx vitest run`, `node scripts/verify-migration-preservation.cjs`; frontend `npm run sync-contracts`, `typecheck`, `lint`, `npx vitest run`, `build`, `node scripts/smoke-stabilization.mjs` (and `SMOKE_INJECT=scenario-failure|http-drain|worker-drain`). Lanes: `career_companion_sprint6_{test,smoke_test,fresh_test,upgrade_test}`, newly created, synthetic only.
 
 | Evidence | Current state |
 | --- | --- |
-| Engineering baseline and prior Sprint 5 evidence | Linked in assessment/execution report; uncommitted files are the baseline, not new S6 results |
-| Entry evidence approval and D1/D2 decisions | Pending |
-| Actual deployed API/worker versions and integrated baseline approval | Not verified by this documentation task; retained entry gate |
-| Final implementation commit IDs / contract sync diff | Pending |
-| Disposable target provenance and guard rejection tests | Pending |
-| Fresh migration / additive upgrade field comparisons | Pending |
-| Focused/full tests, typecheck, lint and builds | Pending |
-| Real-worker browser scenarios and sanitized artifacts | Pending |
-| S6-03 actual delivery and matching-concurrency matrix | Pending |
-| S6-05 final architecture boundary review | Pending |
-| Manual/replay provider and job accounting | Pending |
-| Teardown and residual fixture/job check | Pending |
-| Original-data preservation and live Gmail evidence from Sprint 5 | Unverified/unavailable here; retained gate |
-| Rollout/rollback and remaining product limitations documented | Pending |
-
-Record commands, start/end, selected revisions, pass/fail, sanitized diagnostics and artifact paths when executed. A document link/section/syntax check is not a runtime feature test. Saving this pack completes planning corrections only.
+| Engineering baseline and prior Sprint 5 evidence | Downloaded GitHub-main folders without the Sprint 5 working tree; required Sprint 5 pieces re-implemented and verified (report §1). No Git used |
+| Entry evidence approval and D1/D2 decisions | D1 events-only, D2 approved; entry gate kept open by owner |
+| Actual deployed API/worker versions and integrated baseline approval | Not verified (no deployment access) |
+| Final implementation commit IDs / contract sync diff | No commits (Git not used). Contracts synced; final sync reports 0 changed files |
+| Disposable target provenance and guard rejection tests | Pass: four rejection cases refused before the Prisma CLI |
+| Fresh migration / additive upgrade field comparisons | Pass (synthetic ~1,620 emails; all pre-existing rows identical by row-digest comparison) |
+| Focused/full tests, typecheck, lint and builds | Pass: backend 236, frontend 90; 0 lint errors (after review fixes R01–R05) |
+| Real-worker browser scenarios and sanitized artifacts | Pass for the browser scenarios listed in the [execution report coverage map](execution-report.md#coverage-map-for-the-runbook-6-scenarios). S6-03 matching races, retry/terminal delivery outcomes, delayed list GET, invalid PATCH body, dropped 201/failed creation read, escaped text, failed history/action sections, narrow-viewport keyboard and non-default themes are covered only by component/backend tests or not at all, as marked there. No screenshots retained |
+| S6-03 actual delivery and matching-concurrency matrix | Pass; one race confirmed and fixed |
+| S6-05 final architecture boundary review | Pass (report §5) |
+| Manual/replay provider and job accounting | Pass: zero changes for manual set and clear; replay made no provider call |
+| Teardown and residual fixture/job check | Pass: handler-completion drain of browser- and Node-originated writes and an active worker before cleanup; harness-recorded residue 0/0/0; failed-run teardown safe; HTTP- and worker-drain failures quarantined |
+| Original-data preservation and live Gmail evidence from Sprint 5 | **Unverified/unavailable; gate open** |
+| Rollout/rollback and remaining product limitations documented | Backend STABILIZATION/README, frontend README, architecture and domain docs updated |

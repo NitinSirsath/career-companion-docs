@@ -75,6 +75,7 @@ Privacy boundaries: IDs/sender/subject/timestamps and encrypted OAuth tokens are
 - **Pagination:** Offset pages can shift under concurrent inserts/status changes. Stable ordering prevents tie ambiguity, not snapshot inconsistency. Search/general filtering and total counts are not part of the existing contract.
 - **Privacy:** Agree retention/deletion policy before wider public release. Structured extraction is not anonymous data merely because raw bodies are absent.
 - **Roadmap access:** Original Sprint 5 and Sprint 6 acceptance criteria are absent from the repositories; available Linear URL opens a sign-in screen. No sprint scope or Linear status was invented or changed.
+  - *Clarification (2026-10-02):* no authoritative historical Sprint 6 ticket set existed at audit time. The later local Sprint 6 contract in `docs/planning/sprint-6/` was reconciled on 2026-09-27 and executed on 2026-10-02 ([execution report](../planning/sprint-6/execution-report.md)); this dated audit is otherwise preserved unchanged.
 
 ## Deferred work and stopping rule
 

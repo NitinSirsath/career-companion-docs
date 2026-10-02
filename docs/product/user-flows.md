@@ -2,7 +2,7 @@
 
 > **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
-> **Last Updated:** 2026-08-30
+> **Last Updated:** 2026-10-02 (UF-11 to UF-13 added for ADR-0002)
 
 ---
 
@@ -254,6 +254,8 @@ The dashboard should distinguish **no data**, **data still processing**, and **d
 
 The system should preserve uncertainty rather than invent missing application details.
 
+**Implemented behavior (Sprint 6, 2026-10-02):** list and detail show one effective status with its source ("Set by you", "Inferred by AI", or a neutral "Status unknown"), plus "AI suggests …" when AI disagrees. The timeline is listed in the order the app recorded events. Each entry shows "Recorded" time; when an owned source email exists it shows its subject, sender and a separate "Email date" (or "Email date unknown"), otherwise "Source email unavailable". AI state changes are labelled "AI status" (no arrow when unchanged) and description/provenance are labelled "AI interpretation (not verified source text)". All metadata renders as text. Application, history and actions load, fail and retry independently; a history or action failure never blocks status editing. Event occurrence dates, agenda and Gmail deep links from history are not provided.
+
 ---
 
 ### UF-08 — Review and Act on Required Follow-up
@@ -312,6 +314,84 @@ Actions should remain traceable to the underlying job-search evidence that cause
 - Multiple users/devices attempt updates concurrently.
 
 User-confirmed status must not be silently overwritten by subsequent AI processing. Detailed status precedence and transition rules belong to the data/domain design phase.
+
+**Implemented behavior (Sprint 6, 2026-10-02):** "Change status" on the application detail opens an inline editor offering the seven statuses and "Use AI status (clear my status)". The editor explains that clearing uses the latest stored AI status without rerunning AI, and that a status change does not complete actions or send notifications. Opening the editor freezes the application, draft and base revision; background refresh may show "This status changed after you started editing" but never changes the draft or its revision.
+
+- **Save** sends the frozen revision once; duplicate clicks are blocked and the request is never retried automatically. Success closes the editor, announces "Status saved." and returns focus.
+- **409 conflict** keeps the draft and shows the current status. Only "Use current version" captures the new revision before another deliberate save.
+- **Timeout, lost response, 5xx or malformed success** may have committed: the app re-reads the application and asks the user to review it. If that read fails, "Save outcome unknown" stays visible and Save stays disabled until "Retry loading status" succeeds. No path resends the PATCH with a fresh revision.
+- **400** keeps the draft editable; **404** marks the application unavailable; **401** follows the normal login recovery.
+- A malformed application response shows a recoverable load error and disables editing; retained earlier data is labelled as not refreshed. Navigating away during a save applies the result only to the original application.
+- **Add Application:** if creation's response is lost, times out, fails with 5xx or is malformed, the draft is kept, "Creation outcome unknown" is shown, Save is blocked and the owned list is refreshed. Neither a similar entry nor a missing entry proves the outcome; the user can review applications, retry the refresh, or deliberately "Create anyway". There is no automatic resubmission or deduplication.
+
+### UF-10 — Set Up or Switch the AI Provider (ADR-0001)
+
+**Entry point:** "AI Provider" in the navigation, or the AI notice on the dashboard and Gmail page ("AI is not set up", a key or billing problem, or a pause).
+
+**User intent:** Let Career Companion read job emails with the user's own AI account, knowing what is sent and what it costs.
+
+**Main flow:**
+
+1. User chooses a provider from the curated cards: name, "Free tier available" or "Requires paid API billing", a one-line data-use summary. The page notes that an app subscription is not an API key.
+2. The guided steps link to the provider's key and billing pages. A paid-only provider says so before the key is pasted.
+3. User pastes the key into a password field that is never prefilled.
+4. Recommended models are shown per role. "Advanced" offers only tested models.
+5. The page states the Career Companion safety limit (its own safeguard, not the provider's quota) and exactly what is sent. The user confirms consent for this provider.
+6. **Save and verify:** a content-free check with the provider.
+   - **Verified:** saved, Ready; waiting emails resume.
+   - **Rejected:** nothing saved; the provider-specific cause and one fix are shown, and the key field is cleared.
+   - **Inconclusive:** saved, Ready, shown as not yet confirmed.
+7. Optional: "Try a sample email" runs both AI steps on a built-in example email, never the user's mail, and shows the result. It costs a few tokens and is not stored.
+
+**End state:** one active provider setup. The status shows provider, models, access state with one fix, Career Companion's own counts and the safety limit.
+
+**Edge/error states:**
+
+- **Switching provider** uses the same flow with a new key and consent. The current setup keeps working until the new key is verified. Completed emails are not reprocessed and keep their own provenance.
+- **Remove** deletes the setup and key. New emails wait; processed data stays.
+- **Needs attention** (key rejected, billing or permission, model unavailable, key unreadable) or **Limited** (provider rate limit or outage, Career Companion's daily safety limit, paused): emails wait as `PENDING`, shown as "Waiting for AI". They resume after the fix, or on the next sync after a pause.
+- **Retry anyway:** an email whose AI step had an uncertain or unusable outcome is never retried automatically. "Manual Retry" explains where the earlier attempt went and that one more attempt may be charged again. It names the new provider if the user switched. Only "Retry anyway" sends exactly one more attempt.
+
+### UF-11 — Connect the User's Own Automation (ADR-0002)
+
+**Entry point:** "Automation" in the navigation.
+
+**User intent:** Let the user's own job-application automation tell Career Companion about each application it submits.
+
+**Main flow:**
+
+1. User names a token (for example the computer it is used on) and chooses an expiry (30, 90, 180 or 365 days; default 90).
+2. Career Companion shows the token once, with a copy button and a warning that it will not be shown again. "Done, I saved it" removes it from the page.
+3. The page shows the MCP server URL and the setup steps: add the server to the AI client's user-level settings with the `Authorization: Bearer` header (never in a repository file), allow the one tool, and turn on "Career Companion sync" in the automation profile.
+4. The list shows each token's name, prefix, status (active, expired, revoked), last use and expiry.
+
+**Edge/error states:**
+
+- **At most 5 active tokens:** creating a sixth is refused with a message; revoke one first.
+- **Expiring soon:** in a token's last 14 days the list warns that the automation will stop syncing without an error when it expires.
+- **Revoke** asks for confirmation and takes effect at once; the row stays listed.
+- **Outcome unknown** (timeout or lost response): the list is refreshed and the user is told to revoke any new token that appears, because its value cannot be shown again. Nothing is resent automatically.
+
+### UF-12 — Automation Reports a Submission (system flow, ADR-0002)
+
+**Trigger:** the user's automation agent appends an `applied` entry to its daily file after the site confirmed the submission, and calls `record_application_submission` once with values copied from the entry.
+
+**Flow:**
+
+1. Career Companion identifies the user from the token only.
+2. A repeat of the same `sourceRecordRef` returns `already_recorded`; nothing changes.
+3. The submission is matched conservatively: no application at that company → a new application is created (`appliedAt` = submission time); exactly one with the same title and none untitled → linked; anything else → waits for review.
+4. A linked or created submission adds a "Submitted via automation" timeline entry. The application shows "Applied · via automation" until a user or AI status exists.
+
+**Never:** submitted answers, resume, credentials, `skipped` or `needs_user` entries. Unknown fields are rejected (`invalid_input`, naming the field). A failure never blocks applying; the daily file stays the source of truth and a day can be replayed safely.
+
+### UF-13 — Review an Uncertain Automation Submission (ADR-0002)
+
+**Entry point:** "Automation submissions to review" on the dashboard, next to the email review panels.
+
+**Main flow:** each card shows company, title, platform, destination, location, work mode, submission and recording times, the confirmation text and, for an `http`/`https` URL only, a link to the posting. The user links it to an existing application (choose, then "Link"), creates a new application from it, or ignores it.
+
+**Rules:** the decision is final. Linking sets the application date only if it is empty. If two decisions race, only one applies; the other is told the submission was already resolved. If the outcome is unknown, the list is refreshed and nothing is resent automatically.
 
 ---
 
@@ -375,7 +455,7 @@ Failure of Gmail or the AI provider should not unnecessarily destroy already per
 
 These flows intentionally do **not** include:
 
-- Applying to jobs automatically
+- Applying to jobs automatically (Career Companion only receives submissions reported by the user's own automation, UF-12)
 - Job discovery/job-board aggregation
 - Resume generation or optimization
 - Interview coaching
@@ -423,3 +503,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 |---------|------|-------|
 | 0.1 | 2026-08-30 | Initial COM-4 user-flow definition. |
 | 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
+| 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |

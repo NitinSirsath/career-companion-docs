@@ -114,3 +114,8 @@ Both P2 review findings above are resolved in the uncommitted files.
 - Added backend regressions for processing/failure before queue acknowledgment, plus frontend component coverage for accepted retry with lost response and the manual-retry transport timeout.
 - Validation: 20 focused backend tests and 17 focused frontend tests passed; both typechecks passed; affected backend lint and frontend lint passed (existing frontend warnings remain). No broad suite or live-provider rerun was needed for these two targeted fixes.
 - No commits, pushes or deployment were performed.
+
+
+## Baseline reconciliation — 2026-10-02
+
+The Sprint 6 execution started from downloaded GitHub-main folders that do **not** contain the uncommitted Sprint 5 changes described above (backend baseline 177 tests). Only the Sprint 5 items Sprint 6 depends on were re-implemented and verified: safe manual email retry, email-worker retry/exhaustion outcomes with sanitized errors, the 15-second client deadline with abort forwarding, the authenticated-shell bounded refresh (including retry-on-settle), and the real-worker browser harness. Gmail fencing/transport/telemetry (G1–G4), the crash harness and snapshot tooling remain absent from that baseline; they are recorded as proposed follow-up [S5-FU-01](follow-up-gmail-reliability.md) (not started). See the [Sprint 6 execution report](../sprint-6/execution-report.md) §1. Live Gmail and original-data evidence remain unverified.
