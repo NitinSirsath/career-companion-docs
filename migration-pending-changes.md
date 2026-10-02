@@ -51,3 +51,17 @@ This file tracks changes made on the personal PC that need to be migrated or rec
 2. **AI Tool Docs**: Minor updates to `ai/github.md` and `ai/linear.md`.
 
 ---
+
+## Date: 2026-10-03 (Local time)
+**Change:** Patch smoke test to correctly navigate UI tabs and improve timeout diagnostics.
+**Commit:** `test: patch smoke test to click Irrelevant tab and capture screenshot on timeout` (in `career-companion-frontend`)
+
+**Files Modified:**
+- `career-companion-frontend/scripts/smoke-stabilization.mjs`
+- `career-companion-frontend/.gitignore`
+
+**Logic Changed:**
+1. **smoke-stabilization.mjs**: Added a `.catch()` block to `hasText` to automatically capture `smoke-timeout.png` and dump page text to the console upon a `TimeoutError`. Added clicks on the `Irrelevant` tab before searching for 'Audit email 0' because the UI defaults to the Job Related tab where the test emails don't appear.
+2. **.gitignore**: Ignored `smoke-timeout.png`.
+
+---
