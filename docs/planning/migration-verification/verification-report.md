@@ -27,10 +27,12 @@ Repos: backend `career-companion-backend` · frontend `career-companion-frontend
 | MV-10, MV-09 | Old credentials `spurge-rental` | Replaced PostgreSQL URI in env files with `career_companion` | MV-09 Passed, MV-10 reached actual test failure |
 | MV-11 | Missing BYO AI env key | Injected `AI_CREDENTIAL_ENCRYPTION_KEY` | MV-11 Passed |
 | MV-10 | Test script desync with UI tabs | Patched `smoke-stabilization.mjs` to click the 'Irrelevant' tab | MV-10 Passed |
+| MV-12/13 | UI showed past date for AI budget limit | Cleared legacy 'budget exhausted' text from 26 rows in DB | Emails are now cleanly in PENDING state |
 
 ## Tickets raised
 | Defect | Evidence | Ticket (existing or new ID) |
 | --- | --- | --- |
+| Architectural Gap | No automated recovery for emails stalled by AI daily budget limits | COM-97 |
 | MV-10 Smoke Timeout | `TimeoutError` in S5 real sync during smoke | *Pending review* |
 
 ## Gate
