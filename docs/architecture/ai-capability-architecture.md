@@ -1,5 +1,7 @@
 # AI Capability Architecture — User-Provided AI
 
+> Implemented 2026-10-03: pending work can resume on manual or scheduled Gmail sync (S7-05, 00:00/18:00 Asia/Kolkata with startup catch-up). Existing AI access, cooldown, safety-limit and paid-call uncertainty guards remain in force. Google cancellation/bounds do not change AI-provider call behavior.
+
 | Field | Value |
 | --- | --- |
 | Status | **Accepted design (2026-10-02); implemented locally 2026-10-02, not released.** Decision record: [ADR-0001](decisions/ADR-0001-user-provided-ai.md). The implementation follows this design; the decisions this document left open (§15) are recorded in the [BYO AI plan §14](../planning/byo-ai/README.md#14-engineering-decisions-and-complexity-review) and the [execution report](../planning/byo-ai/execution-report.md). No provider is certified yet ([provider evaluation](../ai/provider-evaluation.md)). |

@@ -279,3 +279,7 @@ Frontend folder: `npm run sync-contracts` (expect 0 changed), `npm run typecheck
 - Docs in §7.11 updated.
 - One focused commit (or a short series) in the backend repo; no unrelated changes.
 - Evidence recorded in the Sprint 7 `execution-report.md` and in a dated execution section of this file.
+
+## Office implementation — 2026-10-03
+
+S5-FU-01 fencing/crash recovery and minimal events are implemented locally; [Sprint 7 evidence](../sprint-7/execution-report.md) includes two real SIGKILL/redelivery runs. S5-FU-02 delivers FU-2, FU-4.3, cancellation in FU-4.2 and the remaining REQUEST_TIMEOUT/NETWORK_ERROR/CANCELLED/quota categories; [Sprint 8 evidence](../sprint-8/execution-report.md) records loopback transport checks. Expanded telemetry/snapshots remain deferred. Original sections above are historical/target records where this dated implementation supersedes them.

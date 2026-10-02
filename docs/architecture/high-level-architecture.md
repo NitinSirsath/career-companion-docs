@@ -1,5 +1,7 @@
 # Career Companion — High-Level Architecture
 
+> Office implementation 2026-10-03: `/health` is HTTP liveness; `/ready` reports the running process's in-memory worker registration and does not probe PostgreSQL/provider health. S7-04 retries registration then exits nonzero. ADR-0004 still owns deployment/load-balancer policy.
+
 **Version:** 0.5
 **Status:** Sprint 2 Implemented
 **Linear Issue:** [COM-6 — Design High-Level Architecture](https://linear.app/welcome-nitin/issue/COM-6/design-high-level-architecture)

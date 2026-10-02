@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — remote/live acceptance pending; [evidence](execution-report.md) (2026-10-03) |
 | Phase / sprint | Sprint 7 — order 3 of 6 |
 | Repository | career-companion-backend (date parser at the matcher boundary, one additive migration, action responses, Discord message); career-companion-frontend (Action Center and application detail display, synced contract) |
 | Size / priority | M (a migration, a shared-contract change, a UI change and lane re-runs) / removes false "Overdue" items from the main dashboard and from Discord |

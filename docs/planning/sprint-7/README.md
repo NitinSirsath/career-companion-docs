@@ -1,6 +1,6 @@
 # Sprint 7 — Reliable Gmail ingestion
 
-Status: **planned, not started (local plan, 2026-10-02).** Starts only after the [migration verification gate](../migration-verification/README.md) and the [Sprint 6 closeout](../sprint-6/closeout/README.md). Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
+Status: **implemented locally on the office laptop (2026-10-03); remote CI and live scheduled-use acceptance pending.** The owner authorized continuation from GitHub independently of personal-Mac verification. See [execution evidence](execution-report.md). Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
 
 | Field | Value |
 | --- | --- |
@@ -80,12 +80,12 @@ flowchart TD
 ## 7. Exit criteria
 
 - [ ] S7-01: CI runs on every push and pull request in backend and frontend and is green on main; `engines` and `.nvmrc` are set; no doc claims CI that does not exist.
-- [ ] S7-02: a regression test with a stale `lastSyncedAt` proves every INBOX message since the last successful sync (up to 30 days) is ingested; the Gmail page says so when the cap cut mail.
-- [ ] S7-03: yearless or unclear deadlines are never stored as a past year; date-only deadlines show without an invented time, in the UI and in Discord.
-- [ ] S7-04: a worker start failure retries and then exits non-zero; readiness reports registered workers; the placeholder health test is replaced.
-- [ ] S5-FU-01: the SIGKILL/redelivery regression passes in its own crash lane; a superseded or disconnected attempt cannot insert, advance the checkpoint or log success.
+- [x] S7-02 (local evidence): a regression test with a stale `lastSyncedAt` proves every INBOX message since the last successful sync (up to 30 days) is ingested; the Gmail page says so when the cap cut mail.
+- [x] S7-03 (local evidence): yearless or unclear deadlines are never stored as a past year; date-only deadlines show without an invented time, in the UI and in Discord.
+- [x] S7-04 (local evidence): a worker start failure retries and then exits non-zero; readiness reports registered workers; the placeholder health test is replaced.
+- [x] S5-FU-01 (local evidence): the SIGKILL/redelivery regression passes in its own crash lane; a superseded or disconnected attempt cannot insert, advance the checkpoint or log success.
 - [ ] S7-05: scheduled runs at 00:00 and 18:00 in the decided timezone sync every connected user once, skip busy ones, catch up once after a missed slot, and resume emails waiting for AI; the Gmail page shows last and next sync; **observed on two real days of use**, not only in tests.
-- [ ] Full backend and frontend suites, the migration lanes (if a migration was added) and the smoke pass; results and counts are recorded in a dated `execution-report.md` in this folder. Nothing synthetic is called live evidence.
+- [x] Local backend and frontend suites, the migration lanes (if a migration was added) and the smoke pass; results and counts are recorded in a dated `execution-report.md` in this folder. Nothing synthetic is called live evidence.
 
 ## 8. Risks
 

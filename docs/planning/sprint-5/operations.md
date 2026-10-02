@@ -2,7 +2,11 @@
 
 Use the existing application logs, PostgreSQL queue/domain state and AI ledger. Ingestion completion and AI/application completion are different milestones. Select the intended environment explicitly; never run fixture commands or blanket reset/deletion/replay against a preserved dataset.
 
-## Correlation and counters
+## Implemented evidence boundary — 2026-10-03
+
+Delivered: `gmail_sync_started` and exactly one terminal completed/failed/superseded event per handled delivery, with request/attempt/job IDs, trigger, retry metadata, duration and checkpoint certainty; completions include window/gap and ingestion counts. All fixed failure categories below are implemented. `/ready` reports in-memory registration only, not database/provider health. The `gmail_sync_queued`, `gmail_sync_job_outcome`, queue-wait/mode fields, detailed counter equations and snapshot commands below remain target documentation, not shipped tooling. See [Sprint 7](../sprint-7/execution-report.md) and [Sprint 8](../sprint-8/execution-report.md) evidence.
+
+## Target correlation and counters
 
 `gmail_sync_queued` links user/request/job. `gmail_sync_started` adds the unique attempt, retry count/limit, queue wait and mode. The attempt ends with `gmail_sync_completed`, `gmail_sync_failed`, or `gmail_sync_superseded`; missing terminal logs plus an expired active job/lease indicate interruption. `gmail_sync_job_outcome` explains retry scheduling, exhaustion or terminal acknowledgment. An acknowledged obsolete/auth job is **not** successful ingestion. `worker_registered` proves registration in that process, not ongoing health.
 
@@ -62,7 +66,7 @@ Inspect schema first on an older deployment: queue/AI/lease tables may not exist
 | FAILED email with safe resumable ledger | Resolve underlying outage/budget first, then use authenticated manual retry. Cooldown/exhausted/terminal claims remain held. |
 | Queue retries exhausted / stale PROCESSING after process death | Inspect actual job and operation state. Never use a blanket SQL state reset. A stale paid-operation claim is intentionally not reclaimed automatically. |
 
-The four-minute ingestion budget bounds new work and propagates cancellation. Individual Google/OAuth calls have a 15-second bound and no SDK retries; one reactive 401 refresh is allowed within the same budget. Short database cleanup transactions may finish after cancellation; report this as bounded cleanup, not an exact wall-clock 240-second process guarantee. Row locks and attempt checks prevent late publication. Queue sends accepted before cancellation can still run; durable AI/domain idempotency guards their effects.
+The four-minute ingestion budget bounds new work and propagates cancellation. Gmail data calls have a 15-second bound, OAuth token/cert calls 10 seconds, revoke 5 seconds; SDK retries are disabled. Stored expiry enables proactive refresh; known-expiry 401 revokes without refresh and quota 403 does neither. Legacy null-expiry rows retain one bounded reactive 401/403 refresh/replay until an expiry is saved. Workers propagate pg-boss cancellation; the original signal is checked before SDK-internal refresh/replay. Short database cleanup transactions may finish after cancellation; report this as bounded cleanup, not an exact wall-clock 240-second process guarantee. Row locks and attempt checks prevent late publication. Queue sends accepted before cancellation can still run; durable AI/domain idempotency guards their effects.
 
 ## Verification commands
 

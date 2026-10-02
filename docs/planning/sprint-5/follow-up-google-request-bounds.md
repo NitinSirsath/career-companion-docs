@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — [evidence](../sprint-8/execution-report.md), remote acceptance pending (2026-10-03) |
 | Phase / sprint | Sprint 8 — order 4 of 4 |
 | Repository | career-companion-backend (main). career-companion-frontend: no code change (contract check only). Docs repo: doc updates. |
 | Size / priority | M / an unattended sync or email job must fail within a known time, never hang on Google |
@@ -212,3 +212,11 @@ TEST_ENV_FILE=.env.smoke.test TEST_DATABASE_URL='<smoke URL>' node scripts/guard
 ## OD-15 implementation decision — 2026-10-03
 
 Under the owner's explicit delegation of routine engineering choices, use nullable stored access-token expiry and the SDK's normal proactive refresh. Known-expiry 401 revokes without reactive refresh; known-expiry quota 403 does not refresh or revoke. Legacy null-expiry rows keep bounded reactive refresh until their first successful token update. This is an additive, no-backfill migration, applied only to newly created local fixture databases for verification. No production/user-data reset. The 15 s data, 10 s OAuth, 5 s revoke and 240 s attempt constants are retained. This records an engineering decision under that delegation, not a separate owner review of a new product policy.
+
+## Resolution — 2026-10-03
+
+Implemented the OD-15 recommendation under the owner's engineering delegation. Migration `20261003020000_gmail_access_token_expiry` adds one nullable timestamp with no backfill/index. The sole OAuth factory sets transport timeouts and `retryConfig.retry = 0`. A request interceptor checks the original cancellation signal even for SDK-internal refresh/replay: the installed gaxios replaces an already-aborted signal while preparing request options. Gmail call sites also check before each request. Sync uses one absolute attempt deadline, checks again inside owned write transactions, and passes the same signal through data/refresh calls. Email workers pass their signal to Gmail fetches only. Existing credential compare-and-swap and auth revocation remain intact.
+
+28 real-SDK loopback tests cover data failures/hangs, OAuth/revoke/cert bounds, legacy and proactive refresh, known-expiry 401/403, pre/mid-call cancellation, request categories, callbacks and checkpoint preservation. The timeout distinction uses gaxios's prepared signal reason because node-fetch wraps it as AbortError. Rate-limit reasons `dailyLimitExceeded`, `rateLimitExceeded`, and `userRateLimitExceeded` were checked against [Google's Gmail error documentation](https://developers.google.com/workspace/gmail/api/guides/handle-errors) on 2026-10-03; no raw provider message/cause is retained.
+
+Full backend: 54 files / 767 tests. Frontend: 17 files / 182 tests, zero contract changes. Typechecks, lint (no errors; existing warnings) and builds pass. Guarded migration plus all three fresh/upgrade lanes pass. Browser smoke with fixture providers passed, 14 AI calls and residue zero. Live Google verification and GitHub CI are not claimed. See the Sprint 8 report for final source-control and acceptance status.

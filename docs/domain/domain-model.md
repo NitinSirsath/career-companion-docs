@@ -1,5 +1,7 @@
 # Career Companion — Domain Model
 
+> Implemented S7-03 deadline rule (2026-10-03): the code uses `deadline` and nullable `deadlinePrecision` (DATE/DATETIME). Supported ISO/English dates are parsed against receivedAt; unclear/relative/invalid text becomes null. Date-only overdue follows the calendar day; legacy precision stays null and no historical deadline is rewritten.
+
 **Version:** 1.3
 **Status:** Sprint 6, BYO AI and the MCP feature implemented (local engineering; see the execution reports)
 **Last Updated:** 2026-10-02

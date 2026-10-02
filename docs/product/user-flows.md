@@ -151,7 +151,7 @@ A partial sync must not be represented as a fully completed sync.
 - Individual messages fail processing while other messages continue.
 - Sync/retry processing is interrupted.
 
-The flow defines the required product behavior; the underlying mechanism for detecting new Gmail messages is an architecture decision for a later phase.
+Implemented 2026-10-03: detection uses manual sync plus twice-daily scheduled sync at 00:00 and 18:00 Asia/Kolkata, with startup/missed-slot catch-up while the backend runs.
 
 ---
 

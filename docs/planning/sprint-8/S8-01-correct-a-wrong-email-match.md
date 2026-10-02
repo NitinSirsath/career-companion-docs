@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — [evidence](execution-report.md), remote/live acceptance pending (2026-10-03) |
 | Phase / sprint | Sprint 8 — order 1 of 4 |
 | Repository | career-companion-backend (matcher, email/action/application/Gmail routes and services, notification job, one additive migration, shared contracts); career-companion-frontend (synced contracts, API client, Gmail page, application detail); career-companion-docs (ADR-0003 first, then domain model, user flows, architecture notes) |
 | Size / priority | L / data correctness: a wrong match can be fixed from the UI |

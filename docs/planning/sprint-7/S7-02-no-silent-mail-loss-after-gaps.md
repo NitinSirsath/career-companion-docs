@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — remote/live acceptance pending; [evidence](execution-report.md) (2026-10-03) |
 | Phase / sprint | Sprint 7 — order 2 of 6 |
 | Repository | career-companion-backend (Gmail sync service, one additive migration, Gmail status route and shared contract); career-companion-frontend (synced contract, Gmail page notice and settings copy) |
 | Size / priority | M (a migration, a shared-contract change, a UI change and lane re-runs) / stop silent loss of job mail at the start of the golden path |

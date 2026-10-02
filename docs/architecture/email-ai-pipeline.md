@@ -1,5 +1,7 @@
 # Email AI Pipeline Architecture
 
+> Implemented 2026-10-03: AI actionDeadline/followUpDate remain free text; the matcher stores dates only under S7-03 explicit parsing/precision rules. Manual and twice-daily scheduled Gmail sync (00:00/18:00 Asia/Kolkata, startup catch-up) reoffer pending work through existing per-user AI access/ledger checks.
+
 This document describes the email intelligence pipeline introduced in Sprint 3 (COM-27).
 
 ## Two-Stage AI Pipeline

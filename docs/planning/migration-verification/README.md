@@ -1,5 +1,7 @@
 # Migration and verification gate (Phase 0)
 
+> Office workflow update 2026-10-03: the owner says personal-Mac migration/reconciliation was pushed to GitHub and authorizes office development from those repositories. This historical personal-Mac checklist is not a prerequisite for office implementation. S7-02 now covers checkpoint gaps up to 30 days automatically, so an interim 30-day lookback is not required solely to avoid gaps. S7-04 replaces the startup manual-restart workaround with bounded retry and `/ready`; real mailbox/original-data verification remains separate.
+
 Status: **planned, not started (local checklist, 2026-10-02).** Phase 0 is not a sprint. MV-01..MV-16 are local IDs; no Linear identity, state or estimate is assumed. Step 1 of the [roadmap](../README.md#2-order-of-work).
 
 Source: [State audit 2026-10-02](../state-audit-2026-10-02.md) PLAT-01..PLAT-04, PLAT-06, PLAT-07, PLAT-12, PLAT-14, PLAT-19, PLAT-20, TEST-01, TEST-02, TEST-05, TEST-10, TEST-14, MCPB-01, MCPB-03, MCPB-04, MCPF-01, MCPF-02, MCPF-04, MCPF-06, MCPF-16, AIB-14, AIF-17, AIF-18, S56-10, S56-23, DOCS-09, DOCS-23; roadmap OD-01, OD-02, OD-03, OD-11, OD-13.

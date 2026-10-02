@@ -1,5 +1,7 @@
 # User-provided AI (BYO AI) — implementation plan
 
+> Office update 2026-10-03: S7-05 scheduled Gmail sync is implemented locally (00:00/18:00 Asia/Kolkata, startup catch-up), so pending work is reoffered without a manual sync once user AI access is ready. This does not certify any provider; AI-15 live evidence/disclosure approval remains pending.
+
 | Field | Value |
 | --- | --- |
 | Status | **Implemented locally 2026-10-02 (AI-00 to AI-14, AI-16); not released.** Live certification (AI-15) and the release run (AI-17) wait for real provider keys and the owner's data-use approval; AI-18 follows one stable release. See the [execution report](execution-report.md). |

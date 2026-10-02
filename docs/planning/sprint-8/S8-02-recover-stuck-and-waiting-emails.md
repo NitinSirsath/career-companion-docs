@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — [evidence](execution-report.md), remote/live acceptance pending (2026-10-03) |
 | Phase / sprint | Sprint 8 (provisional) — order 2 of 4 |
 | Repository | career-companion-frontend (main part: row label, row action, bounded polling, tests); career-companion-backend (small: one computed field on `GET /api/gmail/messages`, one constant, shared contract, tests). No migration. |
 | Size / priority | S / the owner can recover a stuck email without editing the database |

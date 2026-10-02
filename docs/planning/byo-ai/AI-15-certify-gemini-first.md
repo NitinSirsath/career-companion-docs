@@ -215,3 +215,7 @@ Smoke: run once, because the consent version changes. The seed stores the old li
 - [ ] Docs updated per §12.
 - [ ] Focused commits: runner fix; reports and thresholds; mapping; catalog and approval.
 - [ ] Evidence (reports, mapping table, approval, decisions) recorded in the Sprint 8 `execution-report.md`. No fixture or synthetic result is called live evidence.
+
+## Office implementation status — 2026-10-03
+
+Evaluation-runner accounting and bounds are implemented and tested. Live certification is blocked by unavailable evaluation credentials and remaining AI-19/disclosure prerequisites; Gemini stays hidden. See [provider evaluation](../../ai/provider-evaluation.md#office-certification-check--2026-10-03) and [Sprint 8 evidence](../sprint-8/execution-report.md). No model mapping, consent version or quality threshold was changed.

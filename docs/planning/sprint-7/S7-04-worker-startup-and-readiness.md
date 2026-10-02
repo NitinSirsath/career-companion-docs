@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — remote/live acceptance pending; [evidence](execution-report.md) (2026-10-03) |
 | Phase / sprint | Sprint 7 — order 4 of 6 |
 | Repository | career-companion-backend (docs repo: doc updates only; no frontend change) |
 | Size / priority | S / reliability fix at the start of the golden path; must land before S7-05 |

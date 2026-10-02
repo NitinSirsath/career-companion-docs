@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Planned — not started (local ticket, 2026-10-02) |
+| Status | Implemented locally — remote/live acceptance pending; [evidence](execution-report.md) (2026-10-03) |
 | Phase / sprint | Sprint 7 — order 6 of 6 (last) |
 | Repository | career-companion-backend (main); career-companion-frontend (Gmail page last/next sync, status refetch); shared contracts (`src/contracts/gmail.ts`) |
 | Size / priority | M / last in Sprint 7; delivers the locked 2026-10-01 product decision |
