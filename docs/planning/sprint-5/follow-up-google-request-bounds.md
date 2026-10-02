@@ -208,3 +208,7 @@ TEST_ENV_FILE=.env.smoke.test TEST_DATABASE_URL='<smoke URL>' node scripts/guard
 - [ ] Docs updated per §12.
 - [ ] Focused commits in the backend repo (OD-02).
 - [ ] Evidence (test counts, lane output, smoke result, decision) is recorded in the Sprint 8 `execution-report.md`.
+
+## OD-15 implementation decision — 2026-10-03
+
+Under the owner's explicit delegation of routine engineering choices, use nullable stored access-token expiry and the SDK's normal proactive refresh. Known-expiry 401 revokes without reactive refresh; known-expiry quota 403 does not refresh or revoke. Legacy null-expiry rows keep bounded reactive refresh until their first successful token update. This is an additive, no-backfill migration, applied only to newly created local fixture databases for verification. No production/user-data reset. The 15 s data, 10 s OAuth, 5 s revoke and 240 s attempt constants are retained. This records an engineering decision under that delegation, not a separate owner review of a new product policy.
