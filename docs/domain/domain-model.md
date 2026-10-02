@@ -429,3 +429,7 @@ Gmail integration     → GmailConnection
 ```
 
 This model is intended to provide a stable foundation for COM-6 High-Level Architecture without prematurely locking implementation-specific database or API details.
+
+### Action deadline precision (Sprint 7 implementation)
+
+Actions now store nullable `deadlinePrecision` (`DATE` or `DATETIME`). DATE is a UTC-midnight calendar date displayed without a time; it becomes overdue after that day in the viewer's local calendar. DATETIME is an explicit-zone instant. Null precision means an unchanged legacy value. New ambiguous deadlines remain null. Missing years are inferred from the email's received UTC date with a one-day allowance, never the processing year; see Sprint 7 S7-03. No existing action is backfilled.

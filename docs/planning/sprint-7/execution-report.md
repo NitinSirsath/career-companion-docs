@@ -34,3 +34,9 @@ Added migration `20261002160000_gmail_unscanned_gap` (two nullable columns, no b
 The real API/PostgreSQL/pg-boss/browser smoke passed with fixture Gmail/AI, 14 AI calls, outbound blocked and residue 0. Its first run exposed an outdated pagination step: fixtures are IRRELEVANT but the newer UI defaults to Job Related. The harness now selects Irrelevant before asserting its unchanged 20/6 pagination counts; no product behavior or assertion was weakened.
 
 Gap notices persist across successful uncapped scans and are replaced by newer capped scans. Reconnect uses the old checkpoint. No historical user records were rewritten. Live Gmail gap evidence and remote CI remain pending.
+
+### S7-03 — implemented and locally verified
+
+Chose the additive `DeadlinePrecision` enum/nullable action field rather than a midnight convention. Migration `20261002170000_action_deadline_precision` does not backfill legacy rows. Parsing accepts the documented ISO and English month-name forms, infers missing years from receivedAt with one day of tolerance, and rejects ambiguous/impossible/past-at-receipt text. No AI prompt or extraction contract version changed. All three action API mappings, both UI displays, overdue grouping and Discord preserve precision.
+
+45 parser cases passed under both America/Los_Angeles and Asia/Kolkata. Focused backend: 99 tests, including matcher replay, follow-up, unclear logging and all three action routes. Frontend focused: 37 tests under Los Angeles, plus the application detail date-only assertion. Full backend: 46 files / 682 tests; frontend: 16 files / 166 tests; typechecks, builds and lint passed (existing warnings only). All three fresh/upgrade lanes passed with the new migration. Existing user actions were not read or rewritten.
