@@ -70,3 +70,27 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 - an adapter's request shape changes;
 - an SDK major version changes;
 - a provider announces a deprecation or behavior change.
+
+## Office certification check — 2026-10-03
+
+Runner accounting is implemented locally: refusals are separate from quality,
+rate-limit waits are bounded, partial refused runs are INCONCLUSIVE, and a baseline
+must be a valid PASS. Keep the existing 100% schema-validity floor over answered
+calls, zero critical misses and zero injection failures. No threshold was lowered.
+Installed SDK: @google/genai 2.22.0; contracts remain classification/v2 and
+extraction/v2. Pair A and pair B still need two live runs each; no evaluation key
+is available in this process. Invalid/revoked key, unavailable model, quota,
+billing and region mappings on both models.get and generateContent: **not produced**.
+Gemini remains hidden; no evaluation evidence or disclosure approval was invented.
+
+Google's [deprecation page](https://ai.google.dev/gemini-api/docs/deprecations)
+checked today lists no shutdown date for 2.5 Flash or Flash-Lite, but limits 2.5
+access to prior users. A new project may therefore be unable to certify these
+catalog models. No replacement model was added and retiresOn stays null.
+
+The [current terms](https://ai.google.dev/gemini-api/terms) distinguish unpaid
+content use/human review from projects with active billing, with regional
+exceptions for EEA/Switzerland/UK. The draft disclosure is still unapproved;
+AI-19's corrected send-summary/SDK prerequisites are not present in this checkout.
+Do not bump its version or enable Gemini until those prerequisites, owner text
+review and live evidence are complete.
