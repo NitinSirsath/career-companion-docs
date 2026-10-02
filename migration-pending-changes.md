@@ -34,3 +34,20 @@ This file tracks changes made on the personal PC that need to be migrated or rec
 3. **Tickets**: Created Linear ticket **COM-97** to track the architectural gap for automated recovery of emails stalled by AI daily budget limits.
 
 ---
+
+## Date: 2026-10-03 (Local time)
+**Change:** Simplify Sprint 5 and 6 planning documents into proposed local tickets and clean up AI tool instructions.
+**Commit:** `docs: simplify Sprint 5 and 6 planning docs to proposed tickets`
+
+**Files Modified:**
+- `ai/github.md`
+- `ai/linear.md`
+- `docs/planning/sprint-5/S5-01.md` through `S5-04.md`
+- `docs/planning/sprint-5/S5-05.md` (deleted)
+- `docs/planning/sprint-6/S6-01.md` through `S6-05.md`
+
+**Logic Changed:**
+1. **Planning Docs**: Replaced the extensive historical S5 and S6 specification documents with simplified "proposed local ticket" formats containing Goal, Problem/Gap, Proposed Implementation, and Acceptance Criteria. S5-05 was removed entirely.
+2. **AI Tool Docs**: Minor updates to `ai/github.md` and `ai/linear.md`.
+
+---
