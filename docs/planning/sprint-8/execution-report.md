@@ -2,7 +2,7 @@
 
 Sprint 7 foundations passed local checks (see its execution report). GitHub write access, remote CI and real-day scheduled-use evidence remain pending. The owner authorized implementation independently of personal-Mac verification.
 
-S8-01: ADR-0003 is proposed and committed before code. The owner explicitly approved keeping later thread mail unmatched after unlink on 2026-10-03; ADR-0003 is accepted before correction code. The current matcher lacks the documented S6-R07 rematch guard; this is a concrete correction prerequisite, not grounds to reopen unrelated Sprint 6 work. S8-02 was completed independently while that decision was pending.
+S8-01: ADR-0003 was proposed and committed before code. The owner explicitly approved keeping later thread mail unmatched after unlink on 2026-10-03; ADR-0003 is accepted before correction code. At kickoff the matcher lacked the documented S6-R07 rematch guard; it was implemented as the concrete correction prerequisite, without reopening unrelated Sprint 6 work. S8-02 was completed independently while that decision was pending.
 
 ## S8-02 — stuck-processing recovery
 
@@ -48,3 +48,9 @@ Sync uses one absolute 240 s signal combined with the job's cancellation signal,
 No implementation scope was added for OpenAI/Anthropic, deployment, retention, push Gmail, manual migration repair, expanded telemetry or unrelated Sprint 6 closeout. Concrete prerequisites delivered were the automatic-rematch guard and the visible existing retry entry point. Remaining warnings are documented baseline lint/Vite configuration/bundle warnings, not test failures.
 
 Final regression confirmation: after the last cancellation/checkpoint review, the full 767-test backend suite passed again. The final browser smoke passed with 14 fixture AI calls and all residue counts zero. The real SIGKILL/same-job-redelivery harness also passed again with zero residue against its own guarded database after the new migrations.
+
+## Concurrent GitHub updates reconciled
+
+At the final remote check, frontend main had advanced from `64f14a4` to `fcfb5f7` and docs main from `3a1c8c5` to `047eb62`; backend main stayed `78ac1ee`. Inspected all incoming changes, then merged them normally into the implementation branches without conflicts. Frontend merge `155a1aa` preserves `a51a0d4` (AI-settings refresh/copy only when waiting emails exist); docs merge `3244090` preserves the personal-PC migration ledger. No history rewrite, cherry-pick recreation, archive copy or personal-Mac access was used. Implementation heads before these merges: backend `6af9cd2`, frontend `5c93300`, docs `ae990de`.
+
+Merged-branch verification: frontend contracts unchanged, typecheck/lint/build pass, all 182 tests pass. The browser smoke passed again after the GitHub merge, including S8 move/unlink/restore and the preserved AI-settings behavior: 14 fixture AI calls, outbound blocked and every residue count zero. Backend remains at the fully checked 767-test commit `6af9cd2`. All implementation changes are committed locally; publication is blocked only by repository write access.

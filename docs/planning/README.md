@@ -8,15 +8,15 @@ Source of truth for this plan: a read-only audit of the current code in all thre
 
 | Area | State in the office checkout (2026-10-03) | Evidence today |
 | --- | --- | --- |
-| Sprint 6 (S6-01..S6-05) | Implemented. Review fixes S6-R01..S6-R06 done. S6-R07 rematch guard implemented as the concrete S8-01 prerequisite. S6-R08 partly open (item 3 was fixed by BYO AI). | Old laptop only: backend 621 and frontend 154 tests, three migration lanes, real-worker smoke. |
-| BYO AI (ADR-0001) | AI-00..AI-14 and AI-16 implemented. All three providers are `hidden`: usable in dev and test, never offered in production. AI-15, AI-17, AI-18 open. No live provider call ever made. | Same as above; no live evidence. |
-| MCP (ADR-0002) | MCP-00..MCP-07 and MCP-09 part A implemented and matching ADR-0002. MCP-08 staged as text. MCP-09 part B (Antigravity) not run. Only the official SDK client has called the real `/mcp`. | Same as above; no real-client evidence. |
+| Sprint 6 (S6-01..S6-05) | Implemented. Review fixes S6-R01..S6-R06 done. S6-R07 rematch guard implemented as the concrete S8-01 prerequisite. S6-R08 partly open (item 3 was fixed by BYO AI). | Office backend 767 and frontend 182 tests, three fixture migration lanes and real-worker smoke; live/original-data gates remain open. |
+| BYO AI (ADR-0001) | AI-00..AI-14 and AI-16 implemented. All three providers are `hidden`: usable in dev and test, never offered in production. AI-15, AI-17, AI-18 open. No live provider call ever made. | Office suites and synthetic smoke pass; no live-provider evidence. |
+| MCP (ADR-0002) | MCP-00..MCP-07 and MCP-09 part A implemented and matching ADR-0002. MCP-08 staged as text. MCP-09 part B (Antigravity) not run. Only the official SDK client has called the real `/mcp`. | Office SDK-client browser smoke passes; no Antigravity evidence. |
 | Sprint 5 Gmail reliability (S5-FU-01/S5-FU-02) | Crash fencing, request bounds/cancellation and minimal sync events implemented locally. Expanded counters remain deferred. | Real SIGKILL/redelivery, loopback transports and all three preservation lanes; see execution reports. |
 | Twice-daily scheduled sync (locked 2026-10-01) | Implemented: 00:00/18:00 Asia/Kolkata, startup/missed-slot catch-up. | Local queue tests and smoke pass; two real-day observation pending. |
 | Source control | Existing full-history Git checkouts synchronized from GitHub; local milestone commits on `feat/sprint-7-8-reliability`. Downloads excluded. | Current GitHub account has no repository push permission; publication pending. |
 | CI and deployment | CI workflows implemented locally; deployment remains planned. | Local checks pass; no GitHub CI run or green-on-main claim. |
 
-**Sprint 6 can be called implementation-complete.** The code matches the execution reports, and the audit found no critical or high defect. It cannot yet be called *accepted*: every result was measured on the old laptop only, the live Gmail/original-data entry gate is still open, two review tickets are open, and several Done claims rest on tests that do not prove them.
+**Sprint 6 can be called implementation-complete.** The code matches the execution reports, and the audit found no critical or high defect. It cannot yet be called *accepted*: live Gmail/original-data acceptance is still open; office fixture checks have now been rerun, the S6-R07 prerequisite is implemented, and unrelated closeout work remains separately tracked.
 
 ## 2. Order of work
 

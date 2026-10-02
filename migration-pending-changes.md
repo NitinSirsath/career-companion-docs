@@ -20,3 +20,7 @@ This file tracks changes made on the personal PC that need to be migrated or rec
 
 ---
 *Note for future AI: Read this file during migration and ensure these logical fixes are preserved if the corresponding files were modified in Sprint 7/8.*
+
+## Office reconciliation — 2026-10-03
+
+Preserved through a normal Git merge of frontend `origin/main` at `fcfb5f7` into `feat/sprint-7-8-reliability` (merge `155a1aa`). The underlying AI-settings polling/copy change `a51a0d4` does not conflict with Sprint 8 Gmail stopped-row polling or correction. Docs ledger `047eb62` was merged in `3244090`. No files were copied from Downloads and no commit was rewritten. Final merged-branch verification is recorded in `docs/planning/sprint-8/execution-report.md`.
