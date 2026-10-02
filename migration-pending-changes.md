@@ -20,3 +20,17 @@ This file tracks changes made on the personal PC that need to be migrated or rec
 
 ---
 *Note for future AI: Read this file during migration and ensure these logical fixes are preserved if the corresponding files were modified in Sprint 7/8.*
+
+## Date: 2026-10-03 (Local time)
+**Change:** Record Phase 0 verification outcomes (MV-12, MV-13) and clear legacy DB errors for budget exhaustion.
+**Commit:** `docs: record MV-12/13 DB fix and COM-97 ticket` and `docs: record MV-12 and MV-13 as PASS (verified by owner)`
+
+**Files Modified:**
+- `career-companion-docs/docs/planning/migration-verification/verification-report.md`
+
+**Logic Changed:**
+1. **Verification Report**: Marked MV-12 and MV-13 as `PASS` (Confirmed manually in browser) and updated Gate status.
+2. **Database State**: Manually cleared legacy `"AI daily budget exhausted..."` text from the `processingErrorDetails` column for 26 emails in the local PostgreSQL DB, resetting them to `PENDING` state.
+3. **Tickets**: Created Linear ticket **COM-97** to track the architectural gap for automated recovery of emails stalled by AI daily budget limits.
+
+---
