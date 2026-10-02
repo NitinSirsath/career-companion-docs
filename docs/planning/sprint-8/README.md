@@ -1,6 +1,6 @@
 # Sprint 8 — Correctable and recoverable results (provisional)
 
-Status: **provisional plan, not started (local plan, 2026-10-02).** Re-plan it after Sprint 7 exits and after about two weeks of real daily use. If the owner decides to deploy first (OD-08), the [release track](../README.md#7-release-track-not-scheduled) replaces this sprint. Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
+Status: **local implementation in progress (2026-10-03); see [execution evidence](execution-report.md).** Re-plan it after Sprint 7 exits and after about two weeks of real daily use. If the owner decides to deploy first (OD-08), the [release track](../README.md#7-release-track-not-scheduled) replaces this sprint. Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
 
 | Field | Value |
 | --- | --- |
@@ -61,8 +61,8 @@ AI-15 and S5-FU-02 can run in parallel with S8-01.
 
 ## 7. Exit criteria
 
-- [ ] S8-01: per ADR-0003, a user can move or unlink a matched email (auto-matched or user-matched) and link an ignored one. The old application's effects are retired with a reason, `aiStatus` is recomputed, `userStatus` is untouched, there are no duplicate effects, and no provider is called. Deterministic concurrency tests pass, including later thread mail.
-- [ ] S8-02: a PROCESSING row with no write for 20 minutes (`EMAIL_PROCESSING_STUCK_MS`, S8-02 §4.0) shows "Stopped" and offers Manual Retry; Gmail page polling always ends.
+- [x] S8-01 (local implementation): per ADR-0003, a user can move or unlink a matched email (auto-matched or user-matched) and link an ignored one. The old application's effects are retired with a reason, `aiStatus` is recomputed, `userStatus` is untouched, there are no duplicate effects, and no provider is called. Deterministic concurrency tests pass, including later thread mail.
+- [x] S8-02 (local implementation): a PROCESSING row with no write for 20 minutes (`EMAIL_PROCESSING_STUCK_MS`, S8-02 §4.0) shows "Stopped" and offers Manual Retry; Gmail page polling always ends.
 - [ ] AI-15: the evaluation runner reports rate limits and refusals separately from quality. Gemini has a passing report for every offered model (pair A and pair B, or the recorded alternative), 2 runs each. Each live error-mapping row is observed or recorded as "not produced", and every mapping change has a test row. Gemini has an owner-approved disclosure with a new version, and catalog status `supported`. Or Gemini stays hidden and the reason is recorded.
 - [ ] S5-FU-02: every Gmail and OAuth request has an enforced bound with SDK retries off and cancellation honored; loopback transport tests pass.
 - [ ] CI green on main; the smoke and migration lanes (if a migration was added) pass; a dated `execution-report.md` in this folder records counts. No fixture result is called live evidence.

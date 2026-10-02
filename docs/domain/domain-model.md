@@ -433,3 +433,14 @@ This model is intended to provide a stable foundation for COM-6 High-Level Archi
 ### Action deadline precision (Sprint 7 implementation)
 
 Actions now store nullable `deadlinePrecision` (`DATE` or `DATETIME`). DATE is a UTC-midnight calendar date displayed without a time; it becomes overdue after that day in the viewer's local calendar. DATETIME is an explicit-zone instant. Null precision means an unchanged legacy value. New ambiguous deadlines remain null. Missing years are inferred from the email's received UTC date with a one-day allowance, never the processing year; see Sprint 7 S7-03. No existing action is backfilled.
+
+### Email link correction (ADR-0003)
+
+MATCHED mail can move or unlink; IGNORED mail can link to an owned application.
+Old effects are retired with time and reason, never deleted. Retired actions are
+excluded from active lists/counts/notifications; events remain marked in the
+timeline and are excluded from recent evidence. Source aiStatus is recomputed
+from still-linked email results and may decrease to null. User status fields are
+untouched. Reactivation reuses unique target effects and preserves handled status.
+A confirmed thread decision wins over automatic evidence; after unlink or ignore,
+future thread mail remains UNMATCHED for review. See ADR-0003 for conflict rules.

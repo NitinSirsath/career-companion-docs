@@ -222,3 +222,7 @@ The smoke is a regression check; it has no correction step. Browser behavior is 
 - [ ] Behavior checked by hand on the dev database: move, unlink and move back from the Gmail page and the detail page, keyboard only. Live evidence is recorded only from real daily use; fixture results are not called live.
 - [ ] §12 docs updated. Focused commits in this order: ADR-0003 (docs), backend, frontend sync and UI, then the §12 doc updates (docs).
 - [ ] Evidence recorded in the Sprint 8 execution report. Any defect outside this scope is recorded there and raised with the owner, not fixed here.
+
+## Implementation record — 2026-10-03
+
+Implemented locally under accepted ADR-0003. See [execution evidence](execution-report.md#s8-01--correction-and-retained-history) for tests, mutation checks, preservation lanes, browser behavior and remaining remote/live acceptance.

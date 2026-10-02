@@ -13,3 +13,5 @@ Recent work, all implemented locally on 2026-10-02 without git, with evidence me
 - [ADR-0002 — automation submissions via MCP](docs/architecture/decisions/ADR-0002-automation-submissions-via-mcp.md), [plan](docs/planning/mcp-feature/README.md) and [execution report](docs/planning/mcp-feature/execution-report.md): MCP-00..MCP-07 and MCP-09 part A implemented; MCP-08 staged; Antigravity (MCP-09 part B) not yet verified.
 
 Earlier records: [Sprint 5 — Gmail Incremental Sync & Reliability](docs/planning/sprint-5/README.md). Its Gmail reliability work is absent from the current code and is replanned as [S5-FU-01](docs/planning/sprint-5/follow-up-gmail-reliability.md) (Sprint 7) and [S5-FU-02](docs/planning/sprint-5/follow-up-google-request-bounds.md) (Sprint 8). The [stabilization audit of 2026-09-26](docs/engineering/stabilization-audit.md) is a dated historical assessment.
+
+- [ADR-0003: correcting email matches](docs/architecture/decisions/ADR-0003-correcting-email-matches.md) — accepted 2026-10-03; preserves retired history and user overrides.

@@ -504,3 +504,14 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 0.1 | 2026-08-30 | Initial COM-4 user-flow definition. |
 | 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
 | 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |
+
+## UF-14 — Correct a wrong email match
+
+Choose Change link on a matched/ignored Gmail row, or Wrong application? on an
+active email timeline event. Select an existing owned application (paged choices)
+or unlink a matched email. Review the consequences and save once. A move retires
+the old evidence/action, preserves handled work and user status choices, and sends
+no notification. Unlink leaves later thread mail for manual review. On a conflict
+or uncertain response, lists refresh and the dialog blocks another save until the
+user closes it and checks the current link. Retired actions cannot be changed;
+action controls refresh their lists after an error as well as after success.
