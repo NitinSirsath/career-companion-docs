@@ -26,3 +26,11 @@ Baseline passed: backend 43 files / 621 tests; frontend 15 files / 155 tests; bo
 Added backend test and migration-lanes jobs, frontend check and contract-drift jobs, Node 24 pins and engines, fixture env template, expanded script lint, and frontend package/tab naming. Current public remotes and default branches were verified through GitHub API. Official Actions releases are checkout v7.0.1 and setup-node v7.0.0; workflows use v7. The lockfiles changed only root metadata. Fixed script-local crypto name collisions found by expanded lint and removed raw transport error text from the MCP diagnostic's connect failure. Retained the unrelated tracked placeholder script instead of deleting it.
 
 CI is configured but has not run on GitHub; no green-on-main claim, branch protection change or live-provider test. README rollout claims remain unchanged pending publication. Browser smoke remains manual and requires Chrome, both builds and a dedicated smoke database. The backend build still includes tests and the guard's dist/utils/testDatabase module.
+
+### S7-02 — implemented and locally verified; live evidence pending
+
+Added migration `20261002160000_gmail_unscanned_gap` (two nullable columns, no backfill). Backend 44 files / 633 tests; frontend 15 files / 158 tests; both typechecks/builds and lint (0 errors) passed. Focused Gmail tests: 53 backend, 11 UI. All three fresh/upgrade migration lanes passed after the migration. A five-day gap regression failed before the fix (four-day-old mail was missing); restoring the old age filter also failed it. Both were restored and the passing implementation retained.
+
+The real API/PostgreSQL/pg-boss/browser smoke passed with fixture Gmail/AI, 14 AI calls, outbound blocked and residue 0. Its first run exposed an outdated pagination step: fixtures are IRRELEVANT but the newer UI defaults to Job Related. The harness now selects Irrelevant before asserting its unchanged 20/6 pagination counts; no product behavior or assertion was weakened.
+
+Gap notices persist across successful uncapped scans and are replaced by newer capped scans. Reconnect uses the old checkpoint. No historical user records were rewritten. Live Gmail gap evidence and remote CI remain pending.
