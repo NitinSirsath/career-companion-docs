@@ -1,0 +1,20 @@
+{
+  "event": "ai_migration_preservation_verified",
+  "fresh": {
+    "unsealedKeyRejected": true,
+    "oneConfigurationPerUser": true
+  },
+  "upgrade": {
+    "syntheticRows": {
+      "users": 3,
+      "emails": 600,
+      "aiResults": 100,
+      "aiOperations": 600,
+      "aiCallBudgets": 1
+    },
+    "unchangedTables": 5,
+    "ledgerRowsBackfilledGemini": 500,
+    "ledgerRowsNeverClaimed": 100,
+    "triggersAndUniqueIndexesUnchanged": true
+  }
+}

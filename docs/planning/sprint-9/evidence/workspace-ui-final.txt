@@ -1,0 +1,22 @@
+
+> career-companion-frontend@0.0.0 test
+> vitest run src/tests/action-queue.test.tsx
+
+
+ RUN  v5.0.0 /private/tmp/claude-501/-Users-spurge-rental-Downloads-docs/8472a241-e50b-41f8-9bcf-4a75ed0fd02a/scratchpad/career-companion-frontend
+
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  02:51:42
+   Duration  2.10s (import 43%, tests 23%, transform 17%, environment 16%)
+

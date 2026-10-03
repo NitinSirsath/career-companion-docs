@@ -201,26 +201,26 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 **Main flow:**
 
-1. User opens the dashboard.
-2. Career Companion loads tracked applications and recent relevant activity.
-3. Dashboard presents current application states.
-4. Dashboard surfaces items requiring action.
-5. Dashboard surfaces upcoming interviews and pending assessments when available.
-6. Dashboard surfaces recent important recruiter/application communication.
-7. User can select an application or actionable item for more detail.
+1. User opens the dashboard and sees full-dataset pending-action counts for All, Overdue, Today, Later, Undated and Snoozed. All excludes future-snoozed work; total pending includes it. Archived applications are omitted.
+2. The owner selects a bucket and browses bounded pages. DATE deadlines remain due throughout the visible local day; timed deadlines become overdue after their instant. The display timezone is shown; it does not change the Gmail schedule.
+3. Complete and Dismiss reuse existing action updates. Counts and related application views refresh; an uncertain response is reconciled by reading, without automatic write replay.
+4. Review counts link to the existing unmatched, ambiguous and automation-submission review controls. Categories are not summed into a count of unique applications.
+5. Input coverage shows connection, last successful sync, known gaps, AI access and emails waiting to start. It explicitly leaves processing completeness unknown: PROCESSING and FAILED mail are not included in the waiting count. Errors never become zero coverage.
+6. On Applications, the owner searches literal company/job-title substrings and optionally filters by effective status (manual status takes precedence over AI). Filtering occurs before pagination. Controls stay local to this list; refresh/navigation does not promise saved searches or URL persistence.
+7. The owner follows existing application and Gmail links for details. The Agenda shows tentative, confirmed and retired interview/assessment candidates; an action deadline is not a confirmed interview appointment.
 
-**End state:** User has a consolidated view of what has happened, what is active, and what requires attention.
+**End state:** Stored work and review needs are visible with explicit limits on input coverage.
 
 **Edge/error states:**
 
-- No Gmail connection exists.
-- Sync is still in progress.
-- No job-related emails have been found.
-- Some application data is incomplete.
-- Dashboard data cannot be loaded.
-- Individual records fail to load while the rest of the dashboard remains available.
+- “No stored pending actions” describes only stored work. A selected empty bucket does not imply the whole workload is empty.
+- A failed action/summary/coverage read has its own error state and can be retried with Refresh workspace.
+- A successful sync, READY AI and zero waiting mail still cannot prove every email finished processing.
+- Deadline transitions outside the selected page refresh full counts. Focus/visibility restoration handles sleep; timers stop while hidden.
+- Empty later pages recover to page one after completion/correction. Search changes reset pagination and ignore superseded results.
+- A status correction removes a now-nonmatching cached result even if the next read fails; it does not invent a destination page.
 
-The dashboard should distinguish **no data**, **data still processing**, and **data failed to load** rather than presenting them as the same state.
+Implementation evidence and API details: [Sprint 9](../planning/sprint-9/README.md).
 
 ---
 
@@ -515,3 +515,31 @@ no notification. Unlink leaves later thread mail for manual review. On a conflic
 or uncertain response, lists refresh and the dialog blocks another save until the
 user closes it and checks the current link. Retired actions cannot be changed;
 action controls refresh their lists after an error as well as after success.
+
+### Agenda — local Sprint 10 implementation
+
+Open Agenda, choose Upcoming, Past, Needs review or History and optionally active/archived/all applications. Date-only entries show no invented time; timed entries show source and display zones. Original suggestions and source evidence remain visible after user edits. Historical extraction/v2 mail may have no agenda coverage; new v3 extraction is default-off pending qualification.
+
+Review a tentative candidate, supply explicit missing date/time/zone and confirm it. A date alone may be confirmed as date-only. A later reschedule or cancellation remains a separate review candidate: cancel the old item and confirm the replacement deliberately. Moving/unlinking its email retires the old effect; history remains readable and restoration preserves user decisions. Stale/uncertain writes refresh current data and require the owner to close/review before another save. No calendar write, meeting join or reminder is sent.
+
+### Personal follow-through — local Sprint 11 implementation
+
+From an active application, Add follow-up with a description and optional date or timed deadline. Personal follow-ups are labelled separately from email-derived work. Editing is revision checked; email-derived descriptions/deadlines remain evidence. On uncertain creation, keep the draft and use Check saved follow-up. A missing receipt is not proof of failure; any deliberate retry keeps the same request identity and payload.
+
+Snooze a pending action to an explicit future instant. Its original deadline remains visible and unchanged; it appears in Snoozed until expiry, then returns through normal reads. Unsnooze immediately or complete/dismiss it. No scheduled send or catch-up notification occurs.
+
+Archive an application after reviewing the visibility explanation. Default application/workspace/agenda views omit it, while the Archived filter and owned detail retain all history and linked mail. Restore before new personal work, edits or explicit intake links. Restore does not rewrite status, resubmit MCP receipts or replay notifications. Sends already in flight cannot be recalled.
+
+Local evidence: [S10](../planning/sprint-10/execution-report.md), [S11](../planning/sprint-11/execution-report.md). Owner trials and real Gmail/MCP acceptance remain deferred.
+
+### Applications — pre-migration discovery completion
+
+Open Applications to see recorded applications across their lifecycle, whether manually added, email-linked or recorded through automation. Search company/job title, filter effective status, submission source and visibility, then sort by newest added, applied date newest/oldest or company. Applied dates that are not known are labelled explicitly and sort last; added/recorded dates do not substitute for a submission date.
+
+Choose Via automation to find recorded submissions even after their status advances. No user/AI status includes automation-reported submissions that have no canonical status yet. The existing “Applied · via automation” presentation describes a reported submission; selecting the Applied status filter instead means user/AI status APPLIED. User status continues to override AI status; automation never overwrites either.
+
+Open a card for evidence, status correction, actions, agenda and personal follow-ups. Return to Applications to retain the current search, filters, sort and page. Reloading or leaving this route resets that view state. Archived applications remain available through visibility and detail; restore retains existing history/receipt identity.
+
+Refresh applications to reread stored results after external intake. Retry a failed read with the current filters, or Clear filters after no matches. Unmatched automation submissions remain in Automation review until resolved; its existing link is visible beside discovery controls. Reads never submit an application, sync mail or call AI.
+
+Local tickets and contract: [AD-01..03](../planning/application-discovery/README.md), [API/display semantics](../planning/application-discovery/api-contracts.md). No separate Applied tab, frontend MCP read API or schema migration is introduced. Real automation-client/owner acceptance remains a separate validation layer.

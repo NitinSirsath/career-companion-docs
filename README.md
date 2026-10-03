@@ -1,17 +1,23 @@
 # Career Companion Documentation
 
-Central documentation repository for Career Companion including product planning, architecture, engineering decisions, and technical documentation.
+Current local work: [Application discovery completion — AD-01..03](docs/planning/application-discovery/README.md), extending the verified Sprint 9–11 scratchpad before migration.
 
-**Start here: [planning index and roadmap](docs/planning/README.md)** (updated 2026-10-03). It gives the current state, the order of work (migration verification → Sprint 6 closeout → Sprint 7 → Sprint 8), every open ticket, owner decisions and what is out of scope. Its evidence base is the [state audit of 2026-10-02](docs/planning/state-audit-2026-10-02.md). All planning IDs are local; no Linear state is assumed.
+**Sprint 7/8/9 implementation is complete locally. Real-world acceptance is pending.** This repository now contains the local future-sprint plan, dated 2026-10-03.
 
-Product decision locked 2026-10-01: scheduled Gmail sync runs twice daily (12:00 AM and 6:00 PM); manual sync remains available, and no heavier scheduled-processing scope is added. Implemented locally by [S7-05](docs/planning/sprint-7/S7-05-twice-daily-scheduled-sync.md): 00:00/18:00 Asia/Kolkata, startup/missed-slot catch-up while the backend runs. Two real-day observation remains pending.
+Start with the [planning index](docs/planning/README.md), then the [future product direction](docs/planning/future-sprints/README.md), [completed-state review](docs/planning/future-sprints/completed-state-review.md), [architecture](docs/planning/future-sprints/architecture.md) and [acceptance/decisions](docs/planning/future-sprints/acceptance-and-decisions.md).
 
-Recent work, all implemented locally on 2026-10-02 without git, with evidence measured on the old laptop only (re-run in the [migration verification gate](docs/planning/migration-verification/README.md)):
+## Product sprints
 
-- [Sprint 6 — User-controlled application status and explainable history](docs/planning/sprint-6/README.md): implemented ([execution report](docs/planning/sprint-6/execution-report.md)); D1 events-only, D2 approved. Not yet accepted: the live Gmail/original-data entry gate remains open, and the remaining work is in the [Sprint 6 closeout](docs/planning/sprint-6/closeout/README.md).
-- [ADR-0001 — user-provided AI](docs/architecture/decisions/ADR-0001-user-provided-ai.md), with the [AI capability architecture](docs/architecture/ai-capability-architecture.md), [plan](docs/planning/byo-ai/README.md), [issues](docs/planning/byo-ai/issues.md) and [execution report](docs/planning/byo-ai/execution-report.md). Not released: all providers stay hidden until certified ([provider evaluation](docs/ai/provider-evaluation.md)) and their data-use text is approved.
-- [ADR-0002 — automation submissions via MCP](docs/architecture/decisions/ADR-0002-automation-submissions-via-mcp.md), [plan](docs/planning/mcp-feature/README.md) and [execution report](docs/planning/mcp-feature/execution-report.md): MCP-00..MCP-07 and MCP-09 part A implemented; MCP-08 staged; Antigravity (MCP-09 part B) not yet verified.
+- [Sprint 9 — Daily job-search workspace](docs/planning/sprint-9/README.md): complete action counts, honest coverage and application search.
+- [Sprint 10 — Interview and assessment agenda](docs/planning/sprint-10/README.md): explicit temporal evidence, uncertainty and user confirmation.
+- [Sprint 11 — Personal follow-through](docs/planning/sprint-11/README.md): personal follow-ups, in-app snooze and reversible archive.
 
-Earlier records: [Sprint 5 — Gmail Incremental Sync & Reliability](docs/planning/sprint-5/README.md). Its Gmail reliability follow-ups are now implemented locally through [S5-FU-01](docs/planning/sprint-5/follow-up-gmail-reliability.md) (Sprint 7) and [S5-FU-02](docs/planning/sprint-5/follow-up-google-request-bounds.md) (Sprint 8). The [stabilization audit of 2026-09-26](docs/engineering/stabilization-audit.md) is a dated historical assessment.
+Each has four local tickets. Sprint 9 is implemented and verified locally ([execution report](docs/planning/sprint-9/execution-report.md)); Sprint 10/11 are implemented locally; see [Sprint 10 evidence](docs/planning/sprint-10/execution-report.md) and [Sprint 11 evidence](docs/planning/sprint-11/execution-report.md). Live qualification and owner acceptance remain deferred.
 
-- [ADR-0003: correcting email matches](docs/architecture/decisions/ADR-0003-correcting-email-matches.md) — accepted 2026-10-03; preserves retired history and user overrides.
+## Completed foundation and evidence
+
+[Sprint 7 execution](docs/planning/sprint-7/execution-report.md) and [Sprint 8 execution](docs/planning/sprint-8/execution-report.md) record 767 backend tests, 182 frontend tests, builds, migration checks, browser smoke and crash recovery. These are recorded implementation results, not rerun for the planning delivery. Live Gmail/scheduled-use, Gemini certification, original-data preservation and real automation-client acceptance remain separately tracked.
+
+The completed office checkouts are the source baseline. Downloads artifacts are excluded. This workflow uses local docs/tickets and no GitHub or external tracker operations.
+
+Earlier foundations remain documented: [Sprint 6](docs/planning/sprint-6/README.md), [BYO AI / ADR-0001](docs/architecture/decisions/ADR-0001-user-provided-ai.md), [MCP / ADR-0002](docs/architecture/decisions/ADR-0002-automation-submissions-via-mcp.md), and [accepted correction policy / ADR-0003](docs/architecture/decisions/ADR-0003-correcting-email-matches.md). The new [agenda ADR-0005](docs/architecture/decisions/ADR-0005-job-search-agenda.md) is proposed only; ADR-0004 remains reserved for hosting.

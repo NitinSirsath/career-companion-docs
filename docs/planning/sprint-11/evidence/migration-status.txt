@@ -1,0 +1,26 @@
+{
+  "event": "migration_preservation_verified",
+  "fresh": {
+    "migrationsApplied": 21,
+    "newApplicationRevision": 0,
+    "ownershipTriggers": 4
+  },
+  "upgrade": {
+    "syntheticRows": {
+      "users": 3,
+      "applications": 72,
+      "emails": 1620,
+      "events": 162,
+      "actions": 162,
+      "aiResults": 162,
+      "aiOperations": 162
+    },
+    "unchangedTables": 7,
+    "applicationsAtRevisionZero": 72,
+    "legacyUnknownConfirmationTimes": 24,
+    "triggersAndUniqueIndexesUnchanged": true,
+    "crossOwnerRejected": true,
+    "duplicateEffectRejected": true,
+    "ownerChangeRejected": true
+  }
+}

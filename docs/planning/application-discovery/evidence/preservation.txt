@@ -1,0 +1,27 @@
+backend: 6af9cd2, feat/sprint-7-8-reliability; no staged changes; diff --check passed
+  208 baseline files retained; 3 scoped existing files changed; all other baseline hashes unchanged
+  src/contracts/application.ts
+  src/services/application.ts
+  src/tests/mcp-endpoint.test.ts
+frontend: 155a1aa, feat/sprint-7-8-reliability; no staged changes; diff --check passed
+  109 baseline files retained; 9 scoped existing files changed; all other baseline hashes unchanged
+  scripts/smoke-stabilization.mjs
+  src/api/client.ts
+  src/components/ApplicationStatus.tsx
+  src/contracts/application.ts
+  src/lib/applicationCache.ts
+  src/routes/applications.tsx
+  src/tests/applications.test.tsx
+  src/tests/automation-status.test.tsx
+  src/tests/status-correction.test.tsx
+docs: 1e98ae4, feat/sprint-7-8-reliability; no staged changes; diff --check passed
+  193 baseline files retained; 6 scoped existing files changed; all other baseline hashes unchanged
+  docs/planning/future-sprints/architecture.md
+  docs/planning/sprint-9/api-contracts.md
+  README.md
+  docs/planning/README.md
+  docs/product/product-vision.md
+  docs/product/user-flows.md
+All 13 shared contracts match byte-for-byte.
+All original schema/migration/MCP runtime/intake hashes and all Sprint 9-11 execution reports/evidence are unchanged.
+No file removed; no commit/branch change/staging. No migration command, push, PR, Linear operation or new checkout performed.

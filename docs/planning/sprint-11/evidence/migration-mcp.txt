@@ -1,0 +1,35 @@
+{
+  "event": "mcp_migration_preservation_verified",
+  "fresh": {
+    "foreignApplicationRejected": true,
+    "foreignTokenRejected": true,
+    "linkToForeignApplicationRejected": true,
+    "ownerChangeRejected": true,
+    "tokenOwnerChangeRejected": true,
+    "eventOnForeignApplicationRejected": true,
+    "duplicateRefRejected": true,
+    "unresolvedWithResolverRejected": true,
+    "resolvedWithoutResolverRejected": true,
+    "badRefRejected": true,
+    "plaintextTokenRejected": true,
+    "secondEventForSubmissionRejected": true,
+    "applicationDeletionKeepsSubmission": true,
+    "tokenDeletionKeepsSubmission": true,
+    "userDeletionCascades": true
+  },
+  "upgrade": {
+    "syntheticRows": {
+      "users": 3,
+      "applications": 60,
+      "emails": 600,
+      "aiResults": 600,
+      "events": 401,
+      "actions": 100,
+      "aiConfigurations": 1
+    },
+    "unchangedTables": 7,
+    "existingTriggersAndUniqueIndexesUnchanged": true,
+    "newEventColumnNullOnExistingRows": true,
+    "crossOwnerRejectedAfterUpgrade": true
+  }
+}

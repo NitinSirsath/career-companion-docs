@@ -229,3 +229,9 @@ These are not designed now. Each is additive.
 - **Local, read-only answer viewer:** a stdio MCP server inside the automation, limited to `applied/**/applications.md`, so the user's own AI host can show submitted answers without them leaving the laptop.
 - **Deterministic backfill:** a REST import endpoint or script reusing the same submission service.
 - **Unlink and re-resolve:** an explicit user action with event history.
+
+## Accepted Sprint 11 archive extension — 2026-10-03
+
+OD-20 adds reversible visibility without changing MCP receipt identity or the tool surface. Existing receipts replay their original result even while their application is archived. New submissions matching only archived applications go to NEEDS_REVIEW instead of creating a duplicate; the owner can find the application through the Archived filter, restore it, then explicitly link. An explicit link to an archived target returns a restore-required conflict.
+
+Intake retains the externalSubmissions advisory namespace; archive uses emailMatches. Both recheck archive state under the shared application row lock. Never nest both advisory namespaces. Incoming already-linked thread mail continues tracking the archived application. Archive does not delete receipts/events, alter user status or replay notifications on restore. See [S11 execution evidence](../../planning/sprint-11/execution-report.md).

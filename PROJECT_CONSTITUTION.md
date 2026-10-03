@@ -1,4 +1,10 @@
+> Current scope, 2026-10-03: Sprint 10/11 local implementation is now authorized in the verified scratchpad. Preserve Sprint 9 uncommitted work. Historical planning-only restrictions below describe earlier phases; no commit, push, PR, external tracker or real-world acceptance is part of this engineering phase.
+
 # Project Constitution — Career Companion
+
+> Office-laptop planning scope, 2026-10-03: the owner has requested local future planning and tickets after completed Sprint 7/8. Local Markdown and local IDs are the delivery for this task. No GitHub, Linear or Notion operations, Downloads inspection, future application implementation or migrations are authorized in this planning pass. The historical roles/workflow below do not override this specific instruction. See the [current planning index](docs/planning/README.md).
+
+> Sprint 9 execution update, 2026-10-03: the owner subsequently authorized resolving the three architecture review findings and implementing Sprint 9 locally. That scope is complete with uncommitted changes and local verification; [execution evidence](docs/planning/sprint-9/execution-report.md). Historical commit/external-tracker steps do not authorize those operations in this local task. Sprint 10/11 remain planning-only.
 
 ## Purpose
 

@@ -1,0 +1,17 @@
+
+> career-companion-backend@1.0.0 lint
+> eslint src/ scripts/ prisma/seed.ts
+
+
+/private/tmp/claude-501/-Users-spurge-rental-Downloads-docs/8472a241-e50b-41f8-9bcf-4a75ed0fd02a/scratchpad/career-companion-backend/src/tests/gmail.test.ts
+   75:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  555:19  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  557:19  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  559:19  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  561:19  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  563:19  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  570:9   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 7 problems (0 errors, 7 warnings)
+  0 errors and 7 warnings potentially fixable with the `--fix` option.
+

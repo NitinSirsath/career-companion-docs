@@ -1,5 +1,9 @@
 # Product Vision — Career Companion
 
+> Current Applications refinement, 2026-10-03: the existing Applications experience is the home for the full recorded-application lifecycle, including automation submissions. [Local AD-01..03](../planning/application-discovery/README.md) extend implemented S9/S11 discovery through the normal application API. They do not introduce another Applied tab, MCP reads or a schema migration. Earlier proposal notes below remain historical context.
+
+> Future planning update, 2026-10-03: Sprint 7/8 implementation is complete; real-world acceptance remains pending. The [proposed next direction](../planning/future-sprints/README.md) develops the existing daily job-search companion vision through a daily workspace, agenda and personal follow-through. Those future capabilities are not implemented or accepted by this note. See the [current planning index](../planning/README.md) for current engineering status; historical proposal/status text below is not implementation evidence.
+
 > **Status:** Finalized
 > **Linear Issue:** [COM-2 — Define Product Vision](https://linear.app/welcome-nitin/issue/COM-2/define-product-vision)
 > **Last Updated:** 2026-08-30

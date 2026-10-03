@@ -1,0 +1,20 @@
+
+> career-companion-backend@1.0.0 test
+> vitest run src/tests/application-discovery.test.ts src/tests/workspace.test.ts src/tests/application-status.test.ts src/tests/application-evidence.test.ts src/tests/follow-through.test.ts
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.0 /private/tmp/claude-501/-Users-spurge-rental-Downloads-docs/8472a241-e50b-41f8-9bcf-4a75ed0fd02a/scratchpad/career-companion-backend
+
+
+ Test Files  5 passed (5)
+      Tests  64 passed (64)
+   Start at  13:08:35
+   Duration  6.54s (import 50%, tests 43%, transform 6%, setup 1%)
+
+     Import  104 modules were evaluated 360 times · 3.05s total, 50% of tracked time
+             ~2.17s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+

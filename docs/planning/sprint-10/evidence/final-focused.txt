@@ -1,0 +1,16 @@
+
+> career-companion-backend@1.0.0 test
+> vitest run src/tests/agenda.test.ts src/tests/ai-pipeline-integration.test.ts
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.0 /private/tmp/claude-501/-Users-spurge-rental-Downloads-docs/8472a241-e50b-41f8-9bcf-4a75ed0fd02a/scratchpad/career-companion-backend
+
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  11:53:47
+   Duration  2.07s (import 49%, tests 40%, transform 9%, setup 1%)
+

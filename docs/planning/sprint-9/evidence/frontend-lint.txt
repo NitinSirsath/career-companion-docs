@@ -1,0 +1,26 @@
+
+> career-companion-frontend@0.0.0 lint
+> oxlint
+
+src/routes/__root.tsx:24:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/api/auth.ts:21:12: warning eslint(no-unused-vars): Catch parameter 'err' is caught but never used. help: Consider handling this error.
+src/main.tsx:18:10: warning react(only-export-components): Fast refresh only works when a file has exports. Move your component(s) to a separate file.
+src/components/ThemeProvider.tsx:76:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/routes/applications.tsx:26:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.tsx:76:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.tsx:282:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/automation.tsx:13:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/index.tsx:20:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/index.tsx:98:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/index.tsx:172:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/ai.tsx:22:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:26:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:39:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:51:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:74:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:128:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:192:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/applications.$id.tsx:203:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/gmail.tsx:49:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
+src/routes/gmail.tsx:61:7: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/routes/login.tsx:14:10: warning react(only-export-components): Fast refresh only works when a file only exports components. Move your component(s) to a separate file.
