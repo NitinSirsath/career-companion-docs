@@ -10,6 +10,8 @@ This document defines how Linear is used as the source of truth for project exec
 
 Linear is the **single source of truth for project execution**. All work must be tracked here before it is started. Nothing is built without a corresponding Linear issue.
 
+If Linear is temporarily unavailable or work must begin in a genuinely offline environment, a clearly marked temporary local work identifier may be used as an exception. The work must be reconciled to a real Linear issue before completion, with the Linear issue becoming the authoritative execution record.
+
 ---
 
 ## Structure Conventions
