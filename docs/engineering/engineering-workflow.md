@@ -16,6 +16,7 @@ The workflow complements the architecture defined in COM-6; it does not redefine
 - **Notion** — project knowledge and durable documentation/reference; it does not replace Linear or GitHub.
 - **ChatGPT** — product, architecture, technical decision, and mentoring partner.
 - **Antigravity** — primary implementation environment and AI-assisted coding environment.
+- **Development Modes** — defines environment selection, account boundaries, handoffs, and mode-specific implementation responsibilities; it does not override the constitution's accountability or completion requirements.
 
 ## 3. Git Workflow
 
@@ -25,7 +26,7 @@ The workflow complements the architecture defined in COM-6; it does not redefine
 
 ### Working branches
 
-Create a short-lived branch from `main` for meaningful work.
+Create a short-lived branch from `main` for repository changes. All repository changes, including documentation and maintenance changes, use a branch and reviewed PR for integration into `main`.
 
 Recommended naming:
 
@@ -50,7 +51,7 @@ Branches should correspond to a Linear issue when the work is issue-driven.
 8. Record completion/implementation notes in Linear.
 9. Delete the short-lived branch when no longer needed.
 
-Small, low-risk documentation-only changes may be committed directly to `main` when a PR would add unnecessary overhead.
+No repository change bypasses the PR integration rule. Office-local work may defer PR creation until transfer to an authorized environment, but it must still reach `main` through a reviewed PR.
 
 ## 4. Commit Conventions
 
@@ -100,7 +101,7 @@ These notes should make the issue understandable later without depending on chat
 
 ## 6. Pull Request Workflow
 
-A pull request should be used for meaningful changes that benefit from explicit review.
+A pull request is required for repository changes before integration into `main`.
 
 PR descriptions should include, as appropriate:
 
@@ -120,7 +121,7 @@ Review should verify:
 - tests are appropriate
 - documentation is updated when the change creates durable knowledge
 
-AI-assisted review is encouraged, but the developer remains responsible for the final decision and merge. A solo project does not require pretending that an AI review is a second human reviewer.
+AI-assisted review is encouraged and may be mandatory for AI-generated changes under the project's review gate. Review is not a substitute for verification. The developer remains responsible for the final decision and merge.
 
 ## 7. Definition of Done
 
@@ -137,7 +138,7 @@ A change is considered done when applicable requirements are satisfied and:
 - the change is merged into `main`
 - useful implementation notes are recorded in Linear
 
-Not every item requires a separate ceremony. The level of validation should match the risk and scope of the change.
+Not every item requires a separate ceremony. The level of validation should match the risk and scope of the change. Required checks that cannot run remain explicitly unverified and do not silently count as passes.
 
 ## 8. CI/CD Workflow
 
@@ -191,6 +192,11 @@ Notion should be updated when a decision or piece of knowledge is useful beyond 
 
 ## 11. AI-Assisted Development
 
+AI-generated changes require appropriate verification and review regardless of the tool or model used, including ChatGPT, Codex, Fable, Gemini, Antigravity, Claude, or future tools.
+
+For every AI-generated PR, the verification record should identify the tested revision, commands/results, behavioral evidence, and outstanding or unavailable checks. Material corrections require re-verification and review of the latest PR head.
+
+
 AI tools may be used for implementation, review, exploration, and documentation, but generated output is not automatically considered correct.
 
 The developer remains responsible for:
@@ -201,6 +207,8 @@ The developer remains responsible for:
 - reviewing security/privacy implications
 - running the required validation
 - making the final merge decision
+
+Merge approval does not authorize deployment, production/live-data changes, paid AI-provider calls, or external job submissions.
 
 AI should accelerate engineering work, not replace engineering judgment.
 

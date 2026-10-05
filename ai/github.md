@@ -26,21 +26,23 @@ This document defines how GitHub is used within Career Companion. It describes t
 
 ## Pull Request Process
 
-> **STRICT WARNING (Environment Specific):** 
-> The development workflow requires strict adherence to Pull Request rules **ONLY when developing on the personal PC**. When developing on the office PC, do not enforce this PR process unless explicitly directed.
+The project-wide rule is that repository changes are integrated into `main` through a reviewed pull request. This applies in every development mode.
 
-When on the **personal PC**:
 - Development must NOT happen directly on the `main` branch.
-- Every Linear issue must have its own dedicated feature branch (e.g., `feature/COM-123-short-desc`).
-- Once development and local verification are complete, you MUST open a Pull Request (PR) for the branch.
-- A PR must be reviewed and pass CI (if configured) before being merged into `main`. Do not push directly to `main`.
-- Merge the PR only after the associated Linear ticket is ready to move to `Done` or `In Review`.
+- Use the project's conventional branch prefixes: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, or `chore/`.
+- Every issue-driven change should have a corresponding Linear issue before work begins.
+- Office-local work may be developed on a local branch when remote mutation is prohibited, but the work must be transferred to an authorized environment and integrated through a PR before reaching `main`.
+- Company GitHub credentials must never perform Career Companion remote mutations, including API commits, branch mutations, PR mutations, reviews, merges, or force-pushes.
+- Never install personal GitHub credentials on an office machine to bypass company restrictions.
+- Before a remote mutation, verify the actual authenticated GitHub user/app, repository, target branch, and permitted operation.
+- A PR must be reviewed and required verification must pass before merge. Checks that cannot run remain **unverified**; they are not treated as passes.
+- The developer owns the final merge decision.
 
----
+For Prompt-Only / Remote Repository Mode, repository read access, write access, command execution, and database access are separate capabilities. If the required capability is unavailable, stop at investigation/specification or hand off to an approved environment rather than claiming implementation or verification.
 
 ## Branch Protection Rules
 
-> _To be defined. This section will describe which branches are protected and what rules apply._
+The repository workflow requires PR-based integration even where GitHub branch protection is not technically enabled. Protection settings should enforce the documented policy when the repository configuration supports them.
 
 ---
 

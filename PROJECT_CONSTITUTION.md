@@ -41,9 +41,11 @@ Responsible for product thinking, architecture, technical decisions, trade-off a
 
 ### Implementation — Gemini + Antigravity
 
-Responsible for scoped implementation, code exploration, testing, and implementation reporting.
+Gemini + Antigravity remains the primary implementation environment for Career Companion.
 
-AI-generated output must be verified before it is considered correct.
+Other approved AI tools (including ChatGPT, Codex, Fable, Claude, and future tools) may assist with repository analysis, implementation, review, documentation, or orchestration when the applicable development mode and access boundaries permit it.
+
+AI-generated output must be verified before it is considered correct, regardless of which tool or model generated it.
 
 ### Project Execution — Linear
 
@@ -65,6 +67,8 @@ The standard workflow is:
 
 **Define → Understand → Plan → Implement → Verify → Review → Commit → Close**
 
+Environment selection, account boundaries, handoffs, and mode-specific implementation responsibilities are defined by `DEVELOPMENT-MODES.md`. They must not weaken the accountability, security, verification, or completion requirements in this constitution.
+
 1. **Define** — requirement, scope, acceptance criteria.
 2. **Understand** — read existing architecture and trace the affected boundary.
 3. **Plan** — identify data flow, files/modules, contracts, risks, and verification.
@@ -81,6 +85,8 @@ https://app.notion.com/p/3e0a98abb650818097d6d72462c8ea6a?pvs=204
 
 ## AI-Assisted Development Rules
 
+AI-generated changes require appropriate verification and review regardless of tool or model.
+
 When using Antigravity/Gemini:
 
 - Diagnose before modifying code.
@@ -91,6 +97,9 @@ When using Antigravity/Gemini:
 - Implement only the accepted fix.
 - Verify actual behavior, not only compilation.
 - If verification fails, diagnose the new failure boundary before making another change.
+- Record the exact revision tested and distinguish unavailable checks from passed checks.
+- After material corrections, re-run relevant verification and review the updated change.
+- Do not treat repository access as proof of terminal, database, deployment, or external-service access.
 
 ---
 
@@ -140,7 +149,7 @@ A task is complete when:
 - focused changes are committed
 - useful implementation and verification notes are recorded in Linear
 
-Code compiling alone is not sufficient evidence of completion.
+Code compiling alone is not sufficient evidence of completion. Required verification that cannot be performed remains unverified and must be resolved or explicitly accepted by the developer before merge.
 
 ---
 
