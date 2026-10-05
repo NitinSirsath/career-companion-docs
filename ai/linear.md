@@ -10,6 +10,8 @@ This document defines how Linear is used as the source of truth for project exec
 
 Linear is the **single source of truth for project execution**. All work must be tracked here before it is started. Nothing is built without a corresponding Linear issue.
 
+If Linear is temporarily unavailable or work must begin in a genuinely offline environment, a clearly marked temporary local work identifier may be used as an exception. The work must be reconciled to a real Linear issue before completion, with the Linear issue becoming the authoritative execution record.
+
 ---
 
 ## Structure Conventions
@@ -27,7 +29,15 @@ Linear is the **single source of truth for project execution**. All work must be
 
 ## Issue Lifecycle
 
-> _To be defined. This section will describe the states an issue moves through from creation to completion (e.g. Todo → In Progress → In Review → Done)._
+All issues must transition through the following states to accurately reflect progress. Do not skip states unless explicitly instructed, and do not leave issues in `Todo` if work has begun or is awaiting verification.
+
+- **Todo / Backlog**: Work has not yet begun. Future tickets and unverified ideas live here.
+- **In Progress**: Active development is occurring on the issue. Move the ticket here when you begin investigating or coding.
+- **In Review**: Implementation is complete, but pending external verification (e.g., manual smoke tests, QA, stakeholder approval, or blocked Phase 0 tests like BYO AI and MCP). Move tickets here if you are waiting for the owner to perform manual checks.
+- **Done**: The code is merged, verification is completely finished, and all acceptance criteria are provably met.
+- **Canceled**: The ticket is no longer relevant, was a duplicate, or the decision was made not to pursue it.
+
+*Agent instruction: Always update the issue state in Linear to match reality. If an implementation is blocked awaiting manual user review, move it to `In Review`.*
 
 ---
 
@@ -45,4 +55,12 @@ Linear is the **single source of truth for project execution**. All work must be
 
 ## Integration with AI Agents
 
-> _To be defined. This section will describe how Gemini/Antigravity reference and update Linear issues during implementation._
+AI agents must reference the real Linear issue for issue-driven work and keep its state aligned with reality.
+
+For temporary offline/local exceptions:
+- preserve the local identifier and map it to the real Linear issue during reconciliation;
+- do not mark an issue Done based only on unpublished local work;
+- record implementation and verification evidence in Linear before completion;
+- distinguish unpublished local state from GitHub-published revisions.
+
+Gemini/Antigravity remains the primary implementation environment under the Project Constitution, while other approved agents may assist within the development-mode boundaries.

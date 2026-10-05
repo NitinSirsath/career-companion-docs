@@ -58,6 +58,8 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 
 ## Current status
 
+A batch triage evaluation is **NOT RUN**. `AI_TRIAGE_BATCH_ENABLED` stays off until a PASS is recorded here.
+
 | Provider | Models (candidates) | Evaluation | Error mapping | Disclosure | Status |
 | --- | --- | --- | --- | --- | --- |
 | Google Gemini | gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Not run (baseline pending a real key) | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |

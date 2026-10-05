@@ -24,3 +24,49 @@ This file tracks changes made on the personal PC that need to be migrated or rec
 ## Office reconciliation — 2026-10-03
 
 Preserved through a normal Git merge of frontend `origin/main` at `fcfb5f7` into `feat/sprint-7-8-reliability` (merge `155a1aa`). The underlying AI-settings polling/copy change `a51a0d4` does not conflict with Sprint 8 Gmail stopped-row polling or correction. Docs ledger `047eb62` was merged in `3244090`. No files were copied from Downloads and no commit was rewritten. Final merged-branch verification is recorded in `docs/planning/sprint-8/execution-report.md`.
+
+## Date: 2026-10-03 (Local time)
+**Change:** Record Phase 0 verification outcomes (MV-12, MV-13) and clear legacy DB errors for budget exhaustion.
+**Commit:** `docs: record MV-12/13 DB fix and COM-97 ticket` and `docs: record MV-12 and MV-13 as PASS (verified by owner)`
+
+**Files Modified:**
+- `career-companion-docs/docs/planning/migration-verification/verification-report.md`
+
+**Logic Changed:**
+1. **Verification Report**: Marked MV-12 and MV-13 as `PASS` (Confirmed manually in browser) and updated Gate status.
+2. **Database State**: Manually cleared legacy `"AI daily budget exhausted..."` text from the `processingErrorDetails` column for 26 emails in the local PostgreSQL DB, resetting them to `PENDING` state.
+3. **Tickets**: Created Linear ticket **COM-97** to track the architectural gap for automated recovery of emails stalled by AI daily budget limits.
+
+---
+
+## Date: 2026-10-03 (Local time)
+**Change:** Simplify Sprint 5 and 6 planning documents into proposed local tickets and clean up AI tool instructions.
+**Commit:** `docs: simplify Sprint 5 and 6 planning docs to proposed tickets`
+
+**Files Modified:**
+- `ai/github.md`
+- `ai/linear.md`
+- `docs/planning/sprint-5/S5-01.md` through `S5-04.md`
+- `docs/planning/sprint-5/S5-05.md` (deleted)
+- `docs/planning/sprint-6/S6-01.md` through `S6-05.md`
+
+**Logic Changed:**
+1. **Planning Docs**: Replaced the extensive historical S5 and S6 specification documents with simplified "proposed local ticket" formats containing Goal, Problem/Gap, Proposed Implementation, and Acceptance Criteria. S5-05 was removed entirely.
+2. **AI Tool Docs**: Minor updates to `ai/github.md` and `ai/linear.md`.
+
+---
+
+## Date: 2026-10-03 (Local time)
+**Change:** Patch smoke test to correctly navigate UI tabs and improve timeout diagnostics.
+**Commit:** `test: patch smoke test to click Irrelevant tab and capture screenshot on timeout` (in `career-companion-frontend`)
+
+**Files Modified:**
+- `career-companion-frontend/scripts/smoke-stabilization.mjs`
+- `career-companion-frontend/.gitignore`
+
+**Logic Changed:**
+1. **smoke-stabilization.mjs**: Added a `.catch()` block to `hasText` to automatically capture `smoke-timeout.png` and dump page text to the console upon a `TimeoutError`. Added clicks on the `Irrelevant` tab before searching for 'Audit email 0' because the UI defaults to the Job Related tab where the test emails don't appear.
+2. **.gitignore**: Ignored `smoke-timeout.png`.
+
+---
+

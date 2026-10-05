@@ -218,6 +218,7 @@ Each capability has one Career Companion-owned definition:
 - output schema (Zod, the single source of truth)
 - role (`fast` for screening, `detailed` for analysis)
 - input limits
+- Contracts in use: `classification/v2`, `extraction/v2`, `relevance-batch/v1`.
 
 Prompts move out of the Gemini implementation into these definitions with **text and versions unchanged**, so no completed result is invalidated.
 
@@ -405,12 +406,12 @@ The operation ledger stays as it is:
 - completed results reused
 - unknown outcomes held
 
-`AIProcessingResult` records provider and model. Logs record tokens. No new execution-log table.
+`AIProcessingResult` records provider and model. Logs record tokens. The `ai_batches` table records each batch execution, and `ai_operations.batchId` links batch claims to that batch.
 
 ### 9.2 Safety limit, counts and cooldown
 
 - **Safety limit, per user.**
-  - The existing daily call limit, keyed by user instead of global.
+  - The existing daily call limit, keyed by user instead of global. One batch call reserves one daily-limit unit.
   - It is an application safety control: it bounds how many AI calls Career Companion makes for one user per day, so a defect or loop cannot run unbounded.
   - It does not represent, mirror or predict provider quota, billing or rate limits. Those reach Career Companion only as provider refusals (§9.3).
   - A global value of zero remains the operational kill switch.

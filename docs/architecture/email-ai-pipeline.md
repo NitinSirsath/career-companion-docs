@@ -68,7 +68,7 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 ## User-provided AI (ADR-0001, implemented 2026-10-02)
 
 - **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI or Claude, from the code catalog). There is no Career Companion key and no fallback to another provider.
-- **Provider-neutral contracts:** \`classification/v2\` and \`extraction/v2\` (prompt, Zod schema, role, input bounds) are owned by Career Companion. Each adapter derives its schema dialect from Zod. Every result is validated with the same Zod schema.
+- **Provider-neutral contracts:** \`classification/v2\`, \`extraction/v2\` and \`relevance-batch/v1\` (prompt, Zod schema, role, input bounds) are owned by Career Companion. Each adapter derives its schema dialect from Zod. Every result is validated with the same Zod schema.
 - **Access resolution:**
   - lazy, at most once per job, after completed-result adoption and the deterministic filter;
   - without usable access the email returns to \`PENDING\`, with no error fields, an acknowledged job (its delivery withdrawn), and no attempt used.
@@ -78,3 +78,37 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 - **User-approved retry:** each approval (\`approvedRetries\`) permits exactly one call beyond the attempt limit, for unknown, unusable, stale or exhausted operations.
 - **Provenance:** each operation records the provider and model at claim time. \`AIProcessingResult.provider/model\` come from the operation that produced the result, so a result reused after a provider switch keeps its own provenance.
 - **Resuming:** \`reofferPendingEmails\` (newest first, at most 100, only when access is ready) runs at the end of every sync and after a successful save or "Check again". Gmail also syncs at 00:00 and 18:00 Asia/Kolkata while the backend is running, with startup and missed-slot catch-up. Scheduling uses the same sync-end re-offer; there is no separate AI resume timer.
+
+
+## Batched relevance triage (COM-125)
+
+When `AI_TRIAGE_BATCH_ENABLED` is on, initial relevance triage can run in batches. It is off by default.
+
+- `AI_TRIAGE_BATCH_ENABLED`: exactly `true` turns it on. Unset, empty or `false` keeps it off. Any other value fails startup.
+- `AI_TRIAGE_BATCH_SIZE`: default 20. Allowed range is 1-25.
+- Owner decisions on 2026-10-05:
+  - **D1:** send sender, subject, Gmail labels and preview, with preview limited to 1,000 characters.
+  - **D2:** use batch size 20, with 1-25 allowed.
+  - **D3:** a failed or timed-out batch holds all its emails for user approval.
+
+The batch contract is `relevance-batch/v1`. It uses the user's fast model and allows at most 4,096 output tokens.
+
+Each item has a key `e1` through `eN`, bounded sender, subject, labels and preview. Sender is limited to 512 characters, subject to 1,000, labels to 30 and preview to 1,000. No Gmail or database IDs are sent. Each item is untrusted content.
+
+Results are matched by key. A missing, duplicate, unknown-key or invalid answer never marks an email `IRRELEVANT`. Missing or duplicate results are undecided. The attempt is used and the email is tried again later. After 3 attempts, the email is `FAILED` and the user can approve one retry.
+
+A whole-batch failure is handled as follows:
+- A refusal releases every claim, restores the attempt and leaves emails `PENDING`.
+- Invalid output makes all emails `FAILED`. The user can approve a retry.
+- Invalid request makes all emails `FAILED` for operator review.
+- Timeout or unknown outcome makes all emails `FAILED`. The user can approve a retry.
+- Unknown outcomes are never resent automatically.
+- An approved retry uses the existing `POST /api/emails/:id/retry` route and runs one batch-of-one call.
+
+The `relevance-triage-job` queue uses pg-boss policy `stately` with key `triage:<userId>`. There can be at most one queued and one running triage job per user. A job starts 10 seconds after it is queued. A run stops starting new batches after 180 seconds and queues a follow-up. Job expiry is 300 seconds and the job has 3 retries.
+
+With the flag on, sync and re-offer route emails with no AI result and no classification record to triage. Other emails stay on the per-email job. The Promotions, Social and Spam filter still runs first with no AI call. If Gmail metadata fails for one email, that email goes to the per-email job. An email already classified by a batch keeps that result if the flag is later turned off.
+
+`RELEVANT` and `UNCERTAIN` emails go to the existing extraction step with no second classification call. Extraction is unchanged and uses one call per job email.
+
+Logs hold IDs and counts only.
