@@ -76,6 +76,7 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 - **User-approved retry:** each approval (\`approvedRetries\`) permits exactly one call beyond the attempt limit, for unknown, unusable, stale or exhausted operations.
 - **Provenance:** each operation records the provider and model at claim time. \`AIProcessingResult.provider/model\` come from the operation that produced the result, so a result reused after a provider switch keeps its own provenance.
 - **Resuming:** \`reofferPendingEmails\` (newest first, at most 100, only when access is ready) runs at the end of every sync and after a successful save or "Check again". There is no scheduler.
+
 ## Batched relevance triage (COM-125)
 
 When `AI_TRIAGE_BATCH_ENABLED` is on, initial relevance triage can run in batches. It is off by default.
@@ -101,7 +102,7 @@ A whole-batch failure is handled as follows:
 - Unknown outcomes are never resent automatically.
 - An approved retry uses the existing `POST /api/emails/:id/retry` route and runs one batch-of-one call.
 
-The `relevance-triage-job` queue uses pg-boss policy `stately` with key `triage:<userId>:`. There can be at most one queued and one running triage job per user. A job starts 10 seconds after it is queued. A run stops starting new batches after 180 seconds and queues a follow-up. Job expiry is 300 seconds and the job has 3 retries.
+The `relevance-triage-job` queue uses pg-boss policy `stately` with key `triage:<userId>`. There can be at most one queued and one running triage job per user. A job starts 10 seconds after it is queued. A run stops starting new batches after 180 seconds and queues a follow-up. Job expiry is 300 seconds and the job has 3 retries.
 
 With the flag on, sync and re-offer route emails with no AI result and no classification record to triage. Other emails stay on the per-email job. The Promotions, Social and Spam filter still runs first with no AI call. If Gmail metadata fails for one email, that email goes to the per-email job. An email already classified by a batch keeps that result if the flag is later turned off.
 
