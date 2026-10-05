@@ -55,4 +55,12 @@ All issues must transition through the following states to accurately reflect pr
 
 ## Integration with AI Agents
 
-> _To be defined. This section will describe how Gemini/Antigravity reference and update Linear issues during implementation._
+AI agents must reference the real Linear issue for issue-driven work and keep its state aligned with reality.
+
+For temporary offline/local exceptions:
+- preserve the local identifier and map it to the real Linear issue during reconciliation;
+- do not mark an issue Done based only on unpublished local work;
+- record implementation and verification evidence in Linear before completion;
+- distinguish unpublished local state from GitHub-published revisions.
+
+Gemini/Antigravity remains the primary implementation environment under the Project Constitution, while other approved agents may assist within the development-mode boundaries.
