@@ -411,7 +411,7 @@ Career Companion's application MCP interface remains a write-only submission int
 
 ### Source-of-truth reconciliation
 
-GitHub is authoritative for published repository revisions. Linear is authoritative for project execution state. Local branches, local tickets, scratchpads, and databases are not authoritative until reconciled to the appropriate source of truth.
+GitHub is authoritative for published repository revisions. Linear is authoritative for project execution tracking. Each local checkout is authoritative for its own unpublished commits and uncommitted work. Each database is authoritative for its actual applied schema and records. Reconciliation must preserve these boundaries and must not overwrite unpublished work or imply that database state belongs in GitHub.
 
 The core principle is:
 
