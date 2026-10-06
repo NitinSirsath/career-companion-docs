@@ -131,7 +131,7 @@ Contracts: `classification/v3` (per-email) and `relevance-batch/v2` (batch) are 
 
 ### New mails only
 
-Every sync change applies to newly synced email only. Older email is never re-classified, re-processed, backfilled or reset.
+Every automatic sync change applies to newly synced email only. Sync, deploys and re-offers never re-classify, re-process, backfill or reset older email. The one exception is a retry the user approves for a held email; it runs on that email's original contract version.
 
 - Each email keeps the relevance contract version of its first classification record. An email with no classification record yet starts on the current version.
 - The older prompts stay byte-for-byte unchanged (fingerprint tests) so emails that started on them finish on them, including after a user-approved retry.
