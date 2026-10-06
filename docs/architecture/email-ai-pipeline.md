@@ -88,7 +88,7 @@ When `AI_TRIAGE_BATCH_ENABLED` is on, initial relevance triage can run in batche
   - **D2:** use batch size 20, with 1-25 allowed.
   - **D3:** a failed or timed-out batch holds all its emails for user approval.
 
-The batch contract is `relevance-batch/v1`. It uses the user's fast model and allows at most 4,096 output tokens.
+The batch contract is `relevance-batch/v2` (strict rules, COM-133); emails that started on `relevance-batch/v1` stay on it. It uses the user's fast model and allows at most 4,096 output tokens.
 
 Each item has a key `e1` through `eN`, bounded sender, subject, labels and preview. Sender is limited to 512 characters, subject to 1,000, labels to 30 and preview to 1,000. No Gmail or database IDs are sent. Each item is untrusted content.
 
@@ -109,3 +109,34 @@ With the flag on, sync and re-offer route emails with no AI result and no classi
 `RELEVANT` and `UNCERTAIN` emails go to the existing extraction step with no second classification call. Extraction is unchanged and uses one call per job email.
 
 Logs hold IDs and counts only.
+
+## Strict relevance rules (COM-133, 2026-10-06)
+
+**Relevant** means a person or company is communicating with the user about a specific role or the user's application:
+- a recruiter, hiring manager or company reaching out;
+- interview communication, or an assessment or test invitation;
+- an application confirmation or status update, a rejection or an offer;
+- a follow-up about the user's application;
+- a specific job opportunity sent to the user personally.
+
+**Irrelevant** includes every platform-generated job discovery email: job alerts, recommended jobs ("jobs you may like", "you may be a fit"), sponsored or promoted jobs, generic job listings, and marketing or newsletters from job platforms. Personal and transactional email stays Irrelevant.
+
+**LinkedIn:** a message or InMail where a named person reaches out about a specific role is Relevant. LinkedIn job alerts, recommendations and sponsored jobs are Irrelevant. The model decides from content, not only the sender address.
+
+Contracts: `classification/v3` (per-email) and `relevance-batch/v2` (batch) are current. `classification/v2` and `relevance-batch/v1` are frozen for emails that started on them.
+
+- **Categories:** the strict prompts offer only `RECRUITER`, `INTERVIEW`, `ASSESSMENT`, `OFFER`, `REJECTION` and `FOLLOW_UP`. `NEWSLETTER` and `SPAM` stay in the enum for older results.
+- **Pre-filter:** under the strict rules, Gmail's Social label no longer drops mail from a linkedin.com sender; the AI decides. Promotions and Spam are unchanged. Emails on the older rules keep the old label rule.
+- **Example models:** Gemini 3.5 Flash-Lite (fast) and Gemini 3.8 Flash (detailed). Google limits Gemini 2.5 models to projects that used them before.
+
+### New mails only
+
+Every automatic sync change applies to newly synced email only. Sync, deploys and re-offers never re-classify, re-process, backfill or reset older email. The one exception is a retry the user approves for a held email; it runs on that email's original contract version.
+
+- Each email keeps the relevance contract version of its first classification record. An email with no classification record yet starts on the current version.
+- The older prompts stay byte-for-byte unchanged (fingerprint tests) so emails that started on them finish on them, including after a user-approved retry.
+- A batch never mixes versions, and an email is never claimed under a second version.
+- Already-classified emails keep their results. Job alerts marked Relevant before COM-133 stay Relevant.
+- Backend tests 46–51 in `src/tests/ai-triage.test.ts` enforce this. Do not weaken or remove them.
+
+A future ticket will split Relevant into sections (direct contact, application events, job discovery). Until then, job discovery email is Irrelevant.

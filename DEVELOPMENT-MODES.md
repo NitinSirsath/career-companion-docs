@@ -18,7 +18,7 @@ These rules apply to all development modes. Where an older document conflicts wi
    - Use the project's conventional branch prefixes: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, or `chore/`.
 
 2. **All repository changes must reach `main` through a reviewed pull request.**
-   - Direct commits, pushes, API writes, or force-pushes to `main` are prohibited by this workflow.
+   - Direct commits, pushes, API writes, or force-pushes to `main` are prohibited by this workflow. Since 2026-10-06 GitHub enforces this with the **Protect main** ruleset on all three repositories (see `ai/github.md`).
    - Office-local work may defer PR creation until the work is transferred to an authorized personal environment, but it may not bypass the integration rule.
    - The PR must identify what changed, why it changed, the exact verification performed, and any remaining unverified checks.
 
@@ -29,6 +29,8 @@ These rules apply to all development modes. Where an older document conflicts wi
 
 5. **AI-generated changes require verification and appropriate review regardless of tool or model.**
    - This applies to ChatGPT, Codex, Fable, Gemini, Antigravity, Claude, and future AI tools.
+   - AI tools and connectors open draft PRs only. They never merge.
+   - Check an AI tool's claim about a commit, branch or merge on GitHub before acting on it.
    - The developer remains responsible for the final merge decision.
 
 6. **Never commit secrets or sensitive runtime data.**
