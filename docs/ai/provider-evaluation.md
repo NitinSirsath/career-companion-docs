@@ -11,7 +11,7 @@ A provider/model pair is offered to users only after it passes Career Companion'
 ## How to run an evaluation
 
 ```bash
-AI_EVAL_API_KEY=<key in the shell only> npm run ai:eval -- --provider gemini --fast gemini-2.5-flash-lite --detailed gemini-2.5-flash --runs 2
+AI_EVAL_API_KEY=<key in the shell only> npm run ai:eval -- --provider gemini --fast gemini-3.5-flash-lite --detailed gemini-3.8-flash --runs 2
 ```
 
 - Run from the backend folder.
@@ -19,11 +19,25 @@ AI_EVAL_API_KEY=<key in the shell only> npm run ai:eval -- --provider gemini --f
 - No database, Gmail or ledger is touched. The runner refuses to start when `NODE_ENV=production`.
 - A report is written to `src/eval/ai/reports/<date>_<provider>_<fast>_<detailed>.json`. It contains synthetic data, metrics and error kinds only; commit it.
 - Compare against the Gemini baseline with `--baseline <report.json>`.
+- `--triage batch --batch-size <1-25>` checks relevance only, in batches (no extraction calls).
+- Google limits Gemini 2.5 models to projects that used them before. A new key gets `404 NOT_FOUND` (`MODEL_UNAVAILABLE`) for them, so use the Gemini 3 models above.
+
+## CI evaluation (COM-136)
+
+The backend workflow `.github/workflows/ai-eval.yml` runs the evaluation on GitHub Actions.
+
+- **When:** on pull requests that change `src/services/ai/`, `src/eval/ai/` or `src/contracts/aiCatalog.ts`, and manually with "Run workflow". It never runs for pull requests from forks.
+- **What:** Gemini, batch mode, `--fast gemini-3.5-flash-lite --detailed gemini-3.8-flash --triage batch --batch-size 22 --runs 1`. Relevance and category only.
+- **Cost:** 2 requests per run, about 4,800 input and 2,000 output tokens. The report's token totals over-count in batch mode because each email repeats its batch's usage.
+- **Key:** repository secret `GEMINI_EVAL_API_KEY`, created in its own Google Cloud project so it never shares the app's free-tier limits. It only ever receives the synthetic dataset.
+- **Report:** downloadable from the run as the artifact `ai-eval-report`.
+- **Quota used up:** the run ends `INCONCLUSIVE` (red) after at most three rate-limit waits. It is not a required check, so merging still works. Re-run the job after the daily limit resets.
 
 ## Dataset
 
-41 hand-written synthetic emails in `src/eval/ai/dataset/`:
-- recruiter 4, application received 3, interview 6, assessment 4, offer 3, rejection 4, follow-up 3, job alerts 3, irrelevant 7, adversarial 4 (prompt injection, non-English, long thread, spam posing as a recruiter);
+44 hand-written synthetic emails in `src/eval/ai/dataset/`:
+- recruiter 5 (including a LinkedIn InMail), application received 3, interview 6, assessment 4, offer 3, rejection 4, follow-up 3, job alerts 5 (including LinkedIn recommended and sponsored jobs), irrelevant 7, adversarial 4 (prompt injection, non-English, long thread, spam posing as a recruiter);
+- since COM-133, job alerts and job-platform newsletters are expected `IRRELEVANT`;
 - fictitious companies and people, reserved domains only (enforced by a CI test);
 - case 1 is the built-in sample email used by the user's "Try a sample email".
 
@@ -58,11 +72,11 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 
 ## Current status
 
-A batch triage evaluation is **NOT RUN**. `AI_TRIAGE_BATCH_ENABLED` stays off until a PASS is recorded here.
+**Batch relevance evaluation (CI, 2026-10-06):** PASS for `relevance-batch/v2` on `gemini-3.5-flash-lite`, 44 cases, 1 run: relevance 100%, 0 critical misses, category 96%, p95 latency 2.6 s. Extraction was not part of this run. `AI_TRIAGE_BATCH_ENABLED` stays off until the owner decides to turn it on.
 
 | Provider | Models (candidates) | Evaluation | Error mapping | Disclosure | Status |
 | --- | --- | --- | --- | --- | --- |
-| Google Gemini | gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Not run (baseline pending a real key) | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
+| Google Gemini | gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed), gemini-3.5-flash-lite (fast), gemini-3.8-flash (fast, detailed) | Batch relevance PASS on gemini-3.5-flash-lite (CI, 2026-10-06); full evaluation not run | "Model not available to the key" observed live: 404 `NOT_FOUND` → `MODEL_UNAVAILABLE` (2.5 models, new key). Other rows not confirmed live | Draft, needs owner approval | hidden |
 | OpenAI | gpt-5-nano (fast), gpt-5-mini (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 | Anthropic Claude | claude-haiku-4-5-20251001 (fast, detailed; tool mode), claude-sonnet-5-5 (detailed; native JSON schema) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 
