@@ -212,6 +212,8 @@ Merge approval does not authorize deployment, production/live-data changes, paid
 
 AI should accelerate engineering work, not replace engineering judgment.
 
+Code standards (where code goes, which pattern to copy): [How we build Career Companion](code-standards.md).
+
 ## 12. Scope and Process Discipline
 
 Career Companion follows a production-minded but incremental process.
