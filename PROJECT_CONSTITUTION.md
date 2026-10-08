@@ -103,6 +103,8 @@ When using Antigravity/Gemini:
 
 ---
 
+Code standards (where code goes, which pattern to copy): [How we build Career Companion](docs/engineering/code-standards.md).
+
 ## Golden Path Verification
 
 Critical product flows must have repeatable verification paths.
