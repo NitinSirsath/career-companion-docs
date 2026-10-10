@@ -4,16 +4,16 @@ Read this before writing or reviewing code. Each code repo's `AGENTS.md` has the
 
 ## 1. Backend
 
-1. **Routes** (`src/routes/`): HTTP only. Read the session user, validate input with the contract schema, call one service function, and send the result. No database queries, no business rules, no error JSON. Copy `routes/ai.ts`. *Today: `gmail.ts`, `auth.ts` and `email.ts` query the database (COM-155).*
-2. **Services** (`src/services/`): all business rules, as plain exported functions. No classes with static methods. Group by area (`services/ai/`). *Today: 6 class-based services (COM-155).*
-3. **Errors**: for expected failures (not found, conflict, not allowed, invalid), services throw `AppError(status, code, message, details?)` from `src/errors.ts`. The central handler (`middleware/error.ts`) sends `{ error: { code, message, details? } }`. Routes don't catch errors to build responses. Internal errors used for control flow (Gmail sync, AI providers) stay as they are, and MCP keeps its own mapping because it is a different protocol. *Today: 5+ error classes mapped in 7 places; until COM-155, reuse the area's existing error class and don't add new ones.*
-4. **Background work**: files in `src/jobs/` only register pg-boss workers and call services. Services queue work with the `enqueue…` functions in `services/queue.ts`, never by importing from `jobs/`. *Today: 3 services import job files (COM-155).*
-5. **One direction**: Gmail sync → queue → AI processing → matching → actions and agenda (the golden path). A step never calls back up the chain. Steps shared by both sides, such as re-offering waiting emails, live in the queue module. *Today: AI settings calls Gmail sync (COM-155).*
+1. **Routes** (`src/routes/`): HTTP only. Read the session user, validate input with the contract schema, call one service function, and send the result. No database queries, no business rules, no error JSON. Copy `routes/ai.ts`.
+2. **Services** (`src/services/`): all business rules, as plain exported functions. No classes with static methods. Group by area (`services/ai/`).
+3. **Errors**: for expected failures (not found, conflict, not allowed, invalid), services throw `AppError(status, code, message, details?)` from `src/errors.ts`. The central handler (`middleware/error.ts`) sends `{ error: { code, message, details? } }`. Routes don't catch errors to build responses. Internal errors used for control flow (Gmail sync, AI providers) stay as they are, and MCP keeps its own mapping because it is a different protocol.
+4. **Background work**: files in `src/jobs/` only register pg-boss workers and call services. Services queue work with the `enqueue…` functions in `services/enqueue.ts`, never by importing from `jobs/`. Copy `jobs/notificationJob.ts`.
+5. **One direction**: Gmail sync → queue → AI processing → matching → actions and agenda (the golden path). A step never calls back up the chain. Steps shared by both sides, such as re-offering waiting emails, live in `services/ai/offer.ts`.
 6. **Contracts** (`src/contracts/`): Zod schemas and types for every request and response. Change them only in the backend; the frontend copies them with `npm run sync-contracts`. Cross-cutting API rules live in the [API contracts doc](../architecture/api-contracts.md).
-7. **Config**: only `src/utils/config.ts` reads `process.env`. It parses and validates each variable once and exports small getters (read at call time, so tests can still change env). *Today: 28 variables read in 21 files (COM-155).*
+7. **Config**: only `src/utils/config.ts` reads `process.env`. It parses and validates each variable once and exports small getters (read at call time, so tests can still change env).
 8. **Logs**: `logEvent`, `logWarn`, `logError` and `logDebug` from `src/utils/log.ts`. On a failure, pass the error as the third argument of `logError`. Log events, not data: IDs, counts and outcomes. Never log keys, tokens, request or response bodies, or email content. Raw `console.*` fails lint.
 9. **Integrations**: follow the AI provider shape (`services/ai/providers/`): one adapter per outside service behind one function, and the adapter never sees users or the database.
-10. **Tests**: `src/tests/<area>.test.ts` in kebab-case. API tests go through HTTP (supertest), with shared setup in `src/tests/helpers/`. *Today: 5 camelCase file names (COM-155).*
+10. **Tests**: `src/tests/<area>.test.ts` in kebab-case. API tests go through HTTP (supertest), with shared setup in `src/tests/helpers/`.
 
 ## 2. Frontend
 
