@@ -107,6 +107,8 @@ If new evidence indicates that an existing decision should change:
 
 **Important: “AI says it is done” is never evidence of completion.** Evidence should come from actual verification (tests, inspection, project-state verification).
 
+Code standards (where code goes, which pattern to copy): [How we build Career Companion](../engineering/code-standards.md).
+
 ## 8. AI Disagreement Protocol
 
 When ChatGPT and Antigravity disagree:
