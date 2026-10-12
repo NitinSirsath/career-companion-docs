@@ -398,7 +398,7 @@ Career Companion deploys exclusively on AWS. This section defines the complete c
 
 **Cloud provider:** Amazon Web Services (AWS)  
 **Primary region:** To be selected at project start (e.g. `ap-south-1` Mumbai or `us-east-1` N. Virginia)  
-**Environments:** Local development and Production only. Staging is explicitly deferred.
+**Environments:** Local development and Production only. Staging is explicitly deferred. Local development supports prod mode (real Google sign-in and Gmail) and dev mode (a mail sandbox replacing Gmail for manual testing; see [Dev mode and the mail sandbox](../engineering/dev-mode.md)). Dev mode is prohibited in production and never contains real Gmail data.
 
 ### 9.2 Deployment Topology
 
