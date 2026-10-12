@@ -11,6 +11,7 @@ Collection endpoints should use the shared pagination helpers:
 - Canonical implementation: `career-companion-backend/src/utils/pagination.ts`.
 - Default and maximum `limit`: 20.
 - Do not introduce cursor pagination without an explicit architecture decision.
+- **The one exception:** `GET /api/mailbox/threads` (the live Gmail inbox) pages by Gmail's own token. Gmail offers no offsets, and nothing is stored that an offset could count. It takes `pageToken` and answers `{ "items": [], "nextPageToken": null }`; `nextPageToken` is null on the last page. No other endpoint may copy this shape.
 
 Paginated responses use:
 
@@ -73,7 +74,26 @@ Only persist or expose data required for the product behavior.
 
 Gmail and email-related APIs should avoid exposing raw message bodies, credentials, or unrelated email data when structured job-search information is sufficient.
 
+Email text is returned by exactly one endpoint, `GET /api/mailbox/threads/:threadId`, and only to the signed-in owner of the mailbox. It is fetched from Gmail for that request and never stored, cached or logged. Every `/api/mailbox` response carries `Cache-Control: no-store`. Attachments are always sent as a file download, with the file name taken from Gmail and never from the request.
+
 Ownership checks must happen before disclosing user-owned email-derived information.
+
+## Conversations and mailbox (mail-first walkthrough)
+
+Schemas: `src/contracts/conversation.ts` and `src/contracts/mailbox.ts` in the backend.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/conversations` | One page of job-mail conversations (offset envelope). Filters: `q`, `request` (`open`, `replied`, `done`, `none`), `category`, `application` (`any`, `none` or an application ID), `unseen=true`, `sort` (`attention` by default, or `newest`). No email text. |
+| `GET /api/conversations/:key` | One conversation with what the AI read from each of its emails. `:key` is the Gmail thread ID, or the ID of any email of the conversation. |
+| `POST /api/conversations/:key/seen` | Ends the New mark. Safe to repeat. |
+| `PATCH /api/conversations/:key/request` | The user's answer to the newest request: `{ emailId, state }` with `DONE` or `OPEN`. `emailId` names the request the user saw; a newer request answers 409 `REQUEST_CHANGED`. |
+| `POST /api/conversations/:key/application` | Gives the conversation its application: `{}` (from what the AI read), `{ companyName?, jobTitle? }`, or `{ applicationId }`. Errors: 400 `COMPANY_REQUIRED`, 409 `APPLICATION_CHOICE_REQUIRED` (with `details.candidates`), 409 `CONVERSATION_LINKED`, 409 `CONVERSATION_NOT_LINKABLE`, 409 `APPLICATION_ARCHIVED`. Pressing twice never makes two applications. |
+| `GET /api/mailbox/threads` | One page of the live Gmail inbox (token paging, see Pagination). Marks the threads that are job-mail conversations. |
+| `GET /api/mailbox/threads/:threadId` | One thread read live, with each message's text, labels and attachment names. The user's own messages are included; drafts are not. |
+| `GET /api/mailbox/messages/:messageId/attachments/:partId` | One attached file, as a download. |
+
+Mailbox errors: 409 `GMAIL_NOT_CONNECTED`, 404 `NOT_FOUND`, 502 `GMAIL_UNAVAILABLE`, 413 `ATTACHMENT_TOO_LARGE`.
 
 ## Verification
 

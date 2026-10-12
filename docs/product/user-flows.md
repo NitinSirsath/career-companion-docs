@@ -2,7 +2,7 @@
 
 > **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
-> **Last Updated:** 2026-10-02 (UF-11 to UF-13 added for ADR-0002)
+> **Last Updated:** 2026-10-11 (UF-14 to UF-16 added for the mail-first walkthrough; UF-06 and UF-13 updated)
 
 ---
 
@@ -195,6 +195,8 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 ### UF-06 — View Job Search Dashboard
 
+> **Changed 2026-10-11:** the Mails page (UF-14) is now the page the user lands on and does this flow's job. The Dashboard stays in the navigation and shows "Coming soon" until analytics are built. The Agenda page is hidden for now. The text below is the original flow, kept for history.
+
 **Entry point:** Authenticated user with available job-search data opens the dashboard.
 
 **User intent:** Quickly understand the current state of their job search without manually reviewing Gmail.
@@ -256,6 +258,8 @@ The system should preserve uncertainty rather than invent missing application de
 
 **Implemented behavior (Sprint 6, 2026-10-02):** list and detail show one effective status with its source ("Set by you", "Inferred by AI", or a neutral "Status unknown"), plus "AI suggests …" when AI disagrees. The timeline is listed in the order the app recorded events. Each entry shows "Recorded" time; when an owned source email exists it shows its subject, sender and a separate "Email date" (or "Email date unknown"), otherwise "Source email unavailable". AI state changes are labelled "AI status" (no arrow when unchanged) and description/provenance are labelled "AI interpretation (not verified source text)". All metadata renders as text. Application, history and actions load, fail and retry independently; a history or action failure never blocks status editing. Event occurrence dates, agenda and Gmail deep links from history are not provided.
 
+**Changed 2026-10-11:** the application page also lists the application's conversations, and each mail in the timeline has an "Open mail" link to the mail's details page (UF-16).
+
 ---
 
 ### UF-08 — Review and Act on Required Follow-up
@@ -267,7 +271,7 @@ The system should preserve uncertainty rather than invent missing application de
 **Main flow:**
 
 1. Career Companion creates or updates an actionable item from relevant communication.
-2. The action is surfaced on the dashboard or application context.
+2. The action is surfaced on the Mails page (UF-14), whether or not the mail has an application yet, and on the application.
 3. User opens the action.
 4. User sees the reason for the action and available deadline/date information.
 5. User reviews the associated application/email context.
@@ -326,7 +330,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 ### UF-10 — Set Up or Switch the AI Provider (ADR-0001)
 
-**Entry point:** "AI Provider" in the navigation, or the AI notice on the dashboard and Gmail page ("AI is not set up", a key or billing problem, or a pause).
+**Entry point:** "AI Provider" in the navigation, or the AI notice on the Mails page and Gmail page ("AI is not set up", a key or billing problem, or a pause).
 
 **User intent:** Let Career Companion read job emails with the user's own AI account, knowing what is sent and what it costs.
 
@@ -387,11 +391,83 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 ### UF-13 — Review an Uncertain Automation Submission (ADR-0002)
 
-**Entry point:** "Automation submissions to review" on the dashboard, next to the email review panels.
+**Entry point:** "Automation submissions to review" at the top of the Automation page (moved from the old dashboard on 2026-10-11).
 
 **Main flow:** each card shows company, title, platform, destination, location, work mode, submission and recording times, the confirmation text and, for an `http`/`https` URL only, a link to the posting. The user links it to an existing application (choose, then "Link"), creates a new application from it, or ignores it.
 
 **Rules:** the decision is final. Linking sets the application date only if it is empty. If two decisions race, only one applies; the other is told the submission was already resolved. If the outcome is unknown, the list is refreshed and nothing is resent automatically.
+
+---
+
+### UF-14 — See New Job Mail and What It Needs (Mails page)
+
+**Entry point:** the user opens Career Companion. The Mails page is the home page.
+
+**User intent:** see every job mail, what it asks for, and which application it belongs to, without setting anything up first.
+
+**Main flow:**
+
+1. The **Job mails** tab lists one row per conversation (a Gmail thread of job-related mail), with open requests first.
+2. Each row shows the subject, sender and company, the type of mail (Recruiter, Interview, Assessment, Offer, Rejection, Update), and a **New** mark until the user opens it.
+3. The **Action** column shows what the mail asks for, in the AI's words, with a due date when one is known. It works with or without an application. Its state is **Needs action**, **Replied** (the user sent a later message in the thread) or **Done**.
+4. The user marks an action done, reopens it, or, after a reply, asks to be reminded again.
+5. The **Application** column shows the application and its stage, or a **Create application** button.
+6. The user can search, filter by action, type and application, show new mail only, and sort by attention or by date. The filters live in the page address, so Back returns to the same view.
+
+**End state:** the user knows what each job mail needs and has acted on it or left it open on purpose.
+
+**Edge/error states:**
+
+- No job mail yet: the page says so and points to Gmail Sync.
+- AI access is not ready: a notice on the page says so; mail waits and is listed once it has been read.
+- A newer mail replaced the request while the user looked at it: the answer is refused and the row is refreshed.
+
+No label on this page uses an internal pipeline word such as "unmatched" or "processed".
+
+---
+
+### UF-15 — Create an Application from a Mail in One Click
+
+**Entry point:** a conversation with no application shows **Create application**, on the Job mails tab or on the mail's details page.
+
+**Main flow:**
+
+1. The user clicks **Create application**. There is no form: company and role come from what the AI read in the mail.
+2. Career Companion creates the application and links every mail of the conversation to it. The timeline, status and actions follow as for any linked mail.
+3. Other waiting conversations from the same company join the application by the normal matching rules, so the user is not asked again.
+
+**Variations:**
+
+- The user already has one application that fits: the conversation joins it. No second application is made.
+- More than one application fits: the row offers only those applications to choose from.
+- The AI could not read a company name: the row asks for one.
+- Pressing twice never creates two applications.
+
+**End state:** the conversation belongs to an application. Later mail from the same company joins it automatically.
+
+---
+
+### UF-16 — Open a Mail and Read the Conversation
+
+**Entry point:** the user opens a row on the Job mails tab or on the **Gmail** tab, or follows **Open mail** from an application's timeline or its Conversations list.
+
+**Main flow:**
+
+1. Career Companion fetches the conversation from Gmail at that moment and shows every message in order: sender, recipients, date, Gmail labels, the text, and attachments with a download link. The user's own replies are shown as theirs.
+2. For a job mail, a panel beside the conversation shows the action with its buttons, the application or **Create application**, and what the AI read from each mail, labelled as the AI's reading.
+3. For any other mail opened from the Gmail tab, only the conversation is shown, with a note that Career Companion did not analyze it and keeps nothing from it.
+4. **Open in Gmail** and **Reply in Gmail** lead to Gmail. Replying inside the app comes later.
+5. Opening a conversation ends its New mark.
+
+**The Gmail tab** lists the inbox live from Gmail, newest first, with Older and Newer. It is for reading only: no filters, no search, no actions on mail. Rows that are job mail are marked and open with the job panel.
+
+**Privacy:** the mail text is fetched on open, shown and dropped. It is never stored or logged. A sender's HTML cannot run scripts, and pictures from the internet stay blocked until the user asks for them.
+
+**Edge/error states:**
+
+- Gmail is not connected, or access ended: the page says so and links to Gmail Sync. The job panel still shows.
+- The mail is no longer in Gmail, or Gmail cannot be reached: the page says so and offers to try again.
+- A reply sent in Gmail shows in the conversation at once, and as **Replied** on the action after the next sync.
 
 ---
 
@@ -443,6 +519,8 @@ The exact domain model will be defined during data design.
 
 Career Companion should minimize persisted Gmail content and prefer structured job-search information and necessary metadata over permanently storing complete email bodies when possible. Temporary processing data should be distinguishable from persisted application data, and access must remain scoped to the authenticated user.
 
+Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied.
+
 Specific retention periods and storage mechanisms will be defined during security/data design.
 
 ### 4.7 External service failure isolation
@@ -474,7 +552,7 @@ These are outside the MVP boundary established by Product Vision and MVP Scope.
 
 The primary MVP journey is:
 
-**Sign in → First-run onboarding → Connect Gmail → Initial sync → Ongoing email sync → AI processing → Application state/timeline updates → Dashboard → Review application/actions → Manually correct status when necessary**
+**Sign in → First-run onboarding → Connect Gmail → Initial sync → Ongoing email sync → AI processing → Mails page: see what each job mail needs → Create the application in one click (or it links by itself) → Open the mail and reply in Gmail → Review application/actions → Manually correct status when necessary**
 
 The key product outcome is not successful email synchronization by itself. The successful outcome is that the user can understand their job-search state and know what requires attention without manually organizing Gmail.
 
@@ -504,3 +582,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 0.1 | 2026-08-30 | Initial COM-4 user-flow definition. |
 | 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
 | 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |
+| 1.2 | 2026-10-11 | Mail-first walkthrough (COM-158): added UF-14 to UF-16; the Mails page replaces the dashboard as home; the automation review moved to the Automation page. |
