@@ -461,7 +461,7 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 
 **The Gmail tab** lists the inbox live from Gmail, newest first, with Older and Newer. It is for reading only: no filters, no search, no actions on mail. Rows that are job mail are marked and open with the job panel.
 
-**Privacy:** the mail text is fetched on open, shown and dropped. It is never stored or logged. A sender's HTML cannot run scripts, and pictures from the internet stay blocked until the user asks.
+**Privacy:** the mail text is fetched on open, shown and dropped. It is never stored or logged. A sender's HTML cannot run scripts, and pictures from the internet stay blocked until the user asks for them.
 
 **Edge/error states:**
 
