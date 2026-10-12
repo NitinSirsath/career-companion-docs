@@ -1,10 +1,11 @@
 # Career Companion — Domain Model
 
-**Version:** 1.3
-**Status:** Sprint 6, BYO AI and the MCP feature implemented (local engineering; see the execution reports)
-**Last Updated:** 2026-10-02
+**Version:** 1.4
+**Status:** Sprint 6, BYO AI, the MCP feature and the mail-first walkthrough implemented (local engineering; see the execution reports)
+**Last Updated:** 2026-10-11
 
 ### Version History / Implementation Notes
+- **v1.4 (mail-first walkthrough, COM-158):** conversations as a read model over `Email` (§4.3a), the New mark and the user's answer to a request on `Email`, and `OutgoingEmail` (§4.3b). An application can now also be created from a job-mail conversation, by the user's one click (§6).
 - **v1.3 (MCP feature, ADR-0002):** `IntegrationToken` and `ExternalSubmission` (§4.8), the `AUTOMATION_SUBMITTED` event, `submittedVia` on applications, and their ownership triggers. Automatic application creation is allowed for automation submissions only; Gmail never creates applications.
 - **v1.2 (Sprint 6):** Canonical status read fields, the `userStatusRevision` manual-correction token and owned set/change/clear semantics (§4.5). Implemented history is recording-ordered processing events with bounded owned source-email evidence; no `occurredAt` exists in the implemented schema (§4.6 "Implemented history boundary").
 - **v1.1 (Sprint 2):** Implemented `GmailConnection` and `Email` schemas. `GmailConnection` includes encrypted token fields and sync status. `Email` intentionally omits `snippet` and `body` (privacy decision: only metadata headers `Subject`, `From`, `Date` are ingested); `threadId` is implemented as a dedicated column.
@@ -35,6 +36,7 @@ The model is intentionally production-minded but limited to the current MVP. It 
 - `User` — authenticated product user and tenant root.
 - `GmailConnection` — Gmail authorization and sync state for a user.
 - `Email` — minimized Gmail evidence record.
+- `OutgoingEmail` — a note that the user sent a message in a conversation already held: IDs and time only.
 - `AIProcessingResult` — latest persisted AI processing state and validated AI output for an email.
 - `Application` — current job application state.
 - `ApplicationEvent` — historical recruitment/application occurrence.
@@ -91,10 +93,48 @@ OAuth access/refresh credentials are sensitive infrastructure secrets and must n
 | `applicationId` | UUID | No | Nullable FK to Application. |
 | `matchState` | Enum | Yes | `UNMATCHED`, `MATCHED`, `AMBIGUOUS`, `IGNORED`. Makes application matching explicit. |
 | `matchConfirmedBy` | Enum | No | `AI_AUTO`, `USER_CONFIRMED`. Tracks how the match was established. |
+| `threadId` | String | No | Gmail thread ID. Groups emails into a conversation. |
+| `seenAt` | DateTime | No | When the user first opened the email's conversation. Null shows the conversation as new. |
+| `requestUserState` | Enum | No | `DONE`, `OPEN`. Set only by the user, for the request this email makes. Null means the user gave no answer. |
+| `requestUserStateAt` | DateTime | No | When the user gave that answer. |
 | `createdAt` | DateTime | Yes | Creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
 
 Full email bodies should not be retained by default. Raw Gmail content should be treated as source material for processing and minimized according to the project's privacy/retention policy.
+
+### 4.3a Conversation (read model, not a table)
+
+A **conversation** is the set of a user's job-related emails that share a Gmail thread (an email without a thread is a conversation of its own). It is computed on read from `Email`, `AIProcessingResult`, `Action` and `OutgoingEmail`. Nothing new is stored for it.
+
+- **Key:** the Gmail thread ID, or the email's own ID when Gmail gave no thread.
+- **What it shows:** the newest email's subject and sender; type, company and role from the newest email that names them; how many emails it has and how many messages the user sent; the application its emails are matched to.
+- **New mark:** true while any of its emails has no `seenAt`. Opening the conversation sets `seenAt` on all of them.
+- **Request:** the newest email whose AI result asks the user for something (`actionRequired` or `followUpRequired`). It needs no application. Its state is derived:
+
+```text
+DONE     → its application action is completed or dismissed,
+           or it has no action and the user marked it done
+REPLIED  → the user sent a message in the thread after the request arrived,
+           and did not reopen it after that
+OPEN     → otherwise
+```
+
+- The user can mark a request done or open it again. When the request already has an application action, that action is completed or reopened too. A reply alone never completes an action.
+- The rule for what an email asks (`services/emailRequest.ts`) is shared with the matcher, so the conversation list and application actions cannot disagree.
+
+### 4.3b OutgoingEmail
+
+`OutgoingEmail` notes that the user sent a message in a conversation Career Companion already holds. It exists only to show "Replied" and to count the user's messages.
+
+| Attribute | Type | Required | Notes |
+|---|---|---:|---|
+| `id` | UUID | Yes | Primary identifier. |
+| `userId` | UUID | Yes | Tenant ownership. |
+| `gmailMessageId` | String | Yes | Gmail message ID; unique per user. |
+| `threadId` | String | Yes | Gmail thread ID of the conversation. |
+| `sentAt` | DateTime | Yes | When the user sent it. |
+
+No text, subject or recipient is stored. A sent message is never an `Email` row and is never classified, matched or sent to AI. Messages in threads Career Companion does not hold are not recorded.
 
 ### 4.4 AIProcessingResult
 
@@ -240,6 +280,7 @@ The implemented `application_events` table records processing events (for exampl
 - `dueAt` may duplicate an event's `deadline` intentionally: the event records the historical deadline evidence, while the Action stores the operational deadline used for action management.
 - MVP deduplicates actions at the application/domain-service layer. No broad `(applicationId, type)` uniqueness constraint is required because multiple legitimate actions of the same type may exist over time.
 - `Action` requires an Application in MVP. Unmatched/ambiguous email processing must be resolved before creating an application-bound action.
+- What such an email asks is still shown to the user on its conversation before any `Action` exists (§4.3a). If the user marked it done there, the `Action` created later starts as `COMPLETED` and sends no reminder.
 
 ### 4.8 IntegrationToken and ExternalSubmission (ADR-0002)
 
@@ -279,6 +320,7 @@ User
 ├── 1:N Email
 │   ├── 1:1 AIProcessingResult (current MVP result)
 │   └── N:1 Application (optional; via matchState)
+├── 1:N OutgoingEmail (joined to Email by threadId only; no foreign key)
 ├── 1:N IntegrationToken
 ├── 1:N ExternalSubmission
 │   ├── N:1 IntegrationToken (optional; SetNull)
@@ -316,6 +358,15 @@ IGNORED     → email intentionally excluded from application association
 ```
 
 When matching is ambiguous, the system must not silently attach the email to an arbitrary application.
+
+**Creating an application from a conversation (2026-10-11).** A conversation whose emails are `UNMATCHED` or `AMBIGUOUS` can be given its application by the user in one step:
+
+- one application of the user fits the company and role the AI read → the conversation joins it;
+- none fits → a new application is created from that company and role;
+- several fit → the user chooses among those;
+- the AI read no company → the user gives one.
+
+Every waiting email of the conversation is then matched as `USER_CONFIRMED`, and other waiting emails of the same company go through the normal matcher. Gmail sync alone still never creates an application.
 
 ## 7. Status and Event Boundary
 
@@ -367,6 +418,8 @@ Manual status correction therefore does not require AIProcessingResult.
 ## 9. Privacy and Retention
 
 - Raw email bodies should not be persisted unless a concrete MVP requirement requires them.
+- Email text shown on the Mails page is fetched from Gmail when the user opens the mail. It is never stored, cached or logged.
+- Of the user's own sent mail only `OutgoingEmail` is kept: IDs and the sent time.
 - Raw AI model responses must never be persisted in AIProcessingResult.
 - `summary` must remain a brief factual derivative, not a copy of the email body.
 - `extractedData` contains validated structured extraction only and must not become a second email/domain store.
