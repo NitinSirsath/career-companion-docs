@@ -32,7 +32,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 ## 3. Critical MVP Flows
 
-### UF-01 — Sign In with Google
+### UF-01 — Sign In
 
 **Entry point:** User opens Career Companion while unauthenticated.
 
@@ -40,7 +40,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 **Main flow:**
 
-1. User selects **Sign in with Google**.
+1. User selects **Sign in with Google**. (A user who has set a password can instead enter their email and password; see UF-17.)
 2. Career Companion redirects the user to Google authentication.
 3. User authenticates with Google.
 4. Google returns the authentication result.
@@ -57,6 +57,8 @@ System-initiated processing may occur without direct user interaction when new o
 - Authentication callback is invalid or expired.
 - Existing account cannot be loaded.
 - Session creation fails.
+- Email or password is wrong. The answer is the same for a wrong email and a wrong password.
+- Too many wrong tries: sign-in with that email is blocked for up to 15 minutes, and the page says how long.
 
 Career Companion must not treat a failed or cancelled authentication as a successful sign-in.
 
@@ -471,6 +473,28 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 
 ---
 
+### UF-17 — Set a Password and Sign In with It
+
+**Entry point:** A signed-in user opens the **Account** page.
+
+**User intent:** Sign in with email and password as well as with Google.
+
+**Main flow:**
+
+1. The Account page shows the user's email and how they sign in: Google, and whether a password is set.
+2. User enters a new password twice (at least 10 characters) and saves it.
+3. From then on the login page accepts the email and that password.
+4. To change the password, the user also enters the current one. After a change, the user is signed out everywhere else.
+
+**Forgot password:** Career Companion sends no email. The user signs in with Google and sets a new password on the Account page.
+
+**Rules:**
+
+- A new account is created by Google sign-in only. There is no sign-up with a password.
+- Career Companion never shows, logs or returns a password.
+
+---
+
 ## 4. Cross-Flow State Rules
 
 ### 4.1 Authentication state
@@ -583,3 +607,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
 | 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |
 | 1.2 | 2026-10-11 | Mail-first walkthrough (COM-158): added UF-14 to UF-16; the Mails page replaces the dashboard as home; the automation review moved to the Automation page. |
+| 1.3 | 2026-10-12 | Sign-in with email and password (COM-183): UF-01 renamed "Sign In"; added UF-17. Dev mode and its mail sandbox are a testing tool, described in engineering/dev-mode.md, not a user flow. |
