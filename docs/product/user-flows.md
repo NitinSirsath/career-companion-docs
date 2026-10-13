@@ -2,7 +2,7 @@
 
 > **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
-> **Last Updated:** 2026-10-13 (UF-16: reply to a mail from the app; UF-03 names the send permission)
+> **Last Updated:** 2026-10-13 (UF-16: a reply goes to everyone on the mail; the Agenda is in the menu as "Coming soon")
 
 ---
 
@@ -197,7 +197,7 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 ### UF-06 — View Job Search Dashboard
 
-> **Changed 2026-10-11:** the Mails page (UF-14) is now the page the user lands on and does this flow's job. The Dashboard stays in the navigation and shows "Coming soon" until analytics are built. The Agenda page is hidden for now. The text below is the original flow, kept for history.
+> **Changed 2026-10-11:** the Mails page (UF-14) is now the page the user lands on and does this flow's job. The Dashboard stays in the navigation and shows "Coming soon" until analytics are built. The Agenda is in the navigation too and also shows "Coming soon" (2026-10-13); until it is built, each interview and assessment date is shown on its mail. The text below is the original flow, kept for history.
 
 **Entry point:** Authenticated user with available job-search data opens the dashboard.
 
@@ -455,10 +455,12 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 
 **Main flow:**
 
-1. Career Companion fetches the conversation from Gmail at that moment and shows every message in order: sender, recipients, date, Gmail labels, the text, and attachments with a download link. The user's own replies are shown as theirs.
+1. Career Companion fetches the conversation from Gmail at that moment and shows every message in order: sender, recipients, date, Gmail labels, the text, and attachments with a download link. Under the sender, a mail names the other people it went to ("to me, Daniel Okafor · cc Lena Fischer"). The user's own replies are shown as theirs.
 2. For a job mail, a panel beside the conversation shows the action with its buttons, the application or **Create application**, and what the AI read from each mail, labelled as the AI's reading.
 3. For any other mail opened from the Gmail tab, only the conversation is shown, with a note that Career Companion did not analyze it and keeps nothing from it.
-4. **Reply.** Under the conversation the user writes a plain-text reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below. The box shows who it goes to; that cannot be changed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
+4. **Reply.** Under the conversation the user writes a plain-text reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below. The box shows who it goes to; no address can be typed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
+   - **Other people on the mail:** when the mail also went to other people, the reply goes to **all of them** unless the user says not. The box says "Reply to all" with the number of people, the person who wrote in **To** and everyone else in **Cc**. The user's own address is left out.
+   - **Only the sender:** the link **Reply only to <sender>** sends the reply to that person alone; the box then says who will not get it, and **Reply to all** leads back. These are the only two choices: nobody can be added or removed one by one.
 5. Opening a conversation ends its New mark.
 
 **Reply edge states:**
@@ -466,7 +468,7 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 - **Gmail was connected before replying existed:** the box shows **Allow sending**. Google asks once for the permission to send, and the user comes back to the same mail. Nothing the app holds is lost.
 - **Gmail does not answer:** the box says "Could not confirm that your reply was sent" and keeps the text. Nothing is sent again by itself: the user checks the conversation, then chooses **Send again** or not.
 - **Nobody else wrote in the conversation:** there is no reply box. The app never writes to an address the user did not hear from.
-- **Not in this version:** new mail, attachments, CC or reply-all, saved drafts and formatting.
+- **Not in this version:** new mail, attachments, adding or removing single receivers, saved drafts and formatting.
 
 **The Gmail tab** lists the inbox live from Gmail, newest first, with Older and Newer. It has no filters, no search and no actions on the list. A mail is answered from its details page. Rows that are job mail are marked and open with the job panel.
 
@@ -615,3 +617,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |
 | 1.2 | 2026-10-11 | Mail-first walkthrough (COM-158): added UF-14 to UF-16; the Mails page replaces the dashboard as home; the automation review moved to the Automation page. |
 | 1.3 | 2026-10-12 | Sign-in with email and password (COM-183): UF-01 renamed "Sign In"; added UF-17. Dev mode and its mail sandbox are a testing tool, described in engineering/dev-mode.md, not a user flow. |
+| 1.4 | 2026-10-13 | UF-16: reply to a mail from the app (COM-176); a reply goes to everyone on the mail unless the user chooses the sender alone, and a mail names the other people on it. UF-03 names the send permission. The Agenda is back in the navigation as "Coming soon". |
