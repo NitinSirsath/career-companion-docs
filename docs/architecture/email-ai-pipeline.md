@@ -7,7 +7,7 @@ This document describes the email intelligence pipeline introduced in Sprint 3 (
 To process emails securely and cost-effectively, Career Companion employs a two-stage pipeline:
 
 1. **Deterministic Pre-filter:** Before any AI call is made, basic Gmail labels (e.g. \`CATEGORY_PROMOTIONS\`, \`CATEGORY_SOCIAL\`, \`SPAM\`) are used to immediately filter out irrelevant emails without fetching the email body.
-2. **Relevance Classifier:** the user's *fast* model (from their own AI provider; for example Gemini 2.5 Flash-Lite) is used on metadata (subject, sender, snippet) to classify the relevance of the email.
+2. **Relevance Classifier:** the user's *fast* model (from their own AI provider; for example Gemini 3.5 Flash-Lite) is used on metadata (subject, sender, snippet) to classify the relevance of the email.
 3. **Email Analyzer:** If an email is classified as \`RELEVANT\` or \`UNCERTAIN\`, the system securely fetches a bounded email body (up to 8,000 characters) and uses the user's *detailed* model to extract structured job application data.
 
 ## Relevance Threshold
@@ -71,11 +71,14 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
   - lazy, at most once per job, after completed-result adoption and the deterministic filter;
   - without usable access the email returns to \`PENDING\`, with no error fields, an acknowledged job (its delivery withdrawn), and no attempt used.
 - **Per-user limits:** the claim reserves one call against the user's daily safety limit (\`AI_USER_DAILY_CALL_LIMIT\`) and respects the user's cooldown. One user's limit or cooldown never affects another.
-- **Refusals** (key rejected, account or billing, model unavailable, rate limit) release the claim and restore the attempt, and the user's access state records them. A rate limit pauses that user: retry-after bounded to 10 s–1 h, or 60 s doubling to 30 min.
+- **Refusals** (key rejected, account or billing, model unavailable, rate limit, busy provider) release the claim and restore the attempt, and the user's access state records them. A rate limit or a busy provider (the provider answered that it is overloaded; for Gemini a 503 or 504) pauses that user: retry-after bounded to 10 s–1 h, or 60 s doubling to 30 min.
 - **Unknown outcome:** held as \`UNKNOWN\`. The email is \`FAILED\` at once, and that user is paused for 2 minutes (growing to 30).
 - **User-approved retry:** each approval (\`approvedRetries\`) permits exactly one call beyond the attempt limit, for unknown, unusable, stale or exhausted operations.
 - **Provenance:** each operation records the provider and model at claim time. \`AIProcessingResult.provider/model\` come from the operation that produced the result, so a result reused after a provider switch keeps its own provenance.
-- **Resuming:** \`reofferPendingEmails\` (newest first, at most 100, only when access is ready) runs at the end of every sync and after a successful save or "Check again". There is no scheduler.
+- **Resuming:** \`reofferPendingEmails\` (newest first, at most 100, only when access is ready) runs at the end of every sync, after a successful save or "Check again", when a pause ends, and when the user chooses "Read waiting mails now".
+  - **When a pause ends:** the start of a pause queues one delayed job per user (\`ai-resume-job\`) for the moment the pause ends. If the provider is still busy, the first call starts the next, longer pause and queues the next try: one try per pause, not one per mail.
+  - **Read waiting mails now** (\`POST /api/ai/waiting/read\`): ends the running pause and offers the waiting mail at once. Each try is a real call and counts toward the daily safety limit.
+  - Key, billing and model problems, the daily safety limit and a pause set by Career Companion get no automatic try.
 
 ## Batched relevance triage (COM-125)
 
