@@ -64,7 +64,7 @@ The user should be able to open Career Companion and immediately understand:
 
 ## ✅ Product Direction
 
-Career Companion is **NOT** simply a Gmail dashboard. The Mails page has a read-only Gmail tab so the user can read and check a mail without leaving the app; it has no filters, search or actions on mail, and the product's value stays in the Job mails tab, which shows what each job mail needs.
+Career Companion is **NOT** simply a Gmail dashboard. The Mails page has a Gmail tab so the user can read a mail, and reply to it, without leaving the app; it has no filters, no search, no new mail and no other actions on mail, and the product's value stays in the Job mails tab, which shows what each job mail needs.
 
 Career Companion is **NOT** an AI email reader.
 
@@ -217,3 +217,4 @@ No arbitrary numerical targets are defined at the Product Vision stage. Concrete
 | 1.1     | 2026-10-02 | Added proposed "AI Capability — User-Provided AI" direction and matching assumption, pending ADR-0001 review. |
 | 1.2     | 2026-10-02 | Clarified the automatic-application non-goal: Career Companion can receive submissions from the user's own tool (ADR-0002). |
 | 1.3     | 2026-10-11 | One sentence on why the read-only Gmail tab fits "not a Gmail dashboard" (COM-158). |
+| 1.4     | 2026-10-13 | The user can reply to a mail from the app; the Gmail tab is no longer read-only (COM-176). |
