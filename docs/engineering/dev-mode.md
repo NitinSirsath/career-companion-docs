@@ -51,10 +51,8 @@ To go back to prod mode, start the backend with `npm run dev`.
 4. **Mail sandbox** → **Compose**: write a mail to yourself. "From" is any address you type, or one you used before. Send a few: some about jobs, some not. To try a reply to all, put other people in the optional **Cc** line (up to 10 addresses, with commas between them).
 5. The mails show **Not synced yet**. Press **Sync now** (the same sync as on the Gmail Sync page).
 6. After the sync and the AI reading, each mail shows what the app did: **Job mail** with company, role, the requested action and its application, or **Not a job mail**.
-7. Reply in one of two ways:
-   - **From the app:** on the Mails page open the mail, write in the reply box and choose **Send reply**. The reply lands in the sandbox, in the same conversation, and the Mails page shows Replied at once. No real mail is sent. On a mail with people in Cc the box says "Reply to all"; the sandbox shows the sent reply with its To and Cc.
-   - **In the sandbox**, as if written in Gmail itself: open the conversation and **Reply**. A reply is always yours. Sync again: the reply shows **Recorded as your reply**, and the Mails page shows the conversation as Replied.
-8. To continue the conversation as the other person, use **Write next mail from <address>** below the reply box, and sync. The people in Cc stay on that next mail.
+7. Reply **from the app**, as you would with real Gmail: on the Mails page open the mail, write in the reply box and choose **Send reply**. The reply lands in the sandbox, in the same conversation, and the Mails page shows Replied at once. No real mail is sent. On a mail with people in Cc the box says "Reply to all"; the sandbox shows the sent reply with its To and Cc. Nothing in the sandbox itself sends a mail as you.
+8. To continue the conversation as the other person, open it in the sandbox and write in the box **Next mail from <address>**, then sync. The people in Cc stay on that next mail.
 9. **Reset dev data** empties the sandbox mailbox and what the app made from it. It keeps your login, AI settings and the sandbox connection.
 
 ## 5. How it works
