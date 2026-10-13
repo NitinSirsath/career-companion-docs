@@ -51,8 +51,8 @@ To go back to prod mode, start the backend with `npm run dev`.
 4. **Mail sandbox** → **Compose**: write a mail to yourself. "From" is any address you type, or one you used before. Send a few: some about jobs, some not.
 5. The mails show **Not synced yet**. Press **Sync now** (the same sync as on the Gmail Sync page).
 6. After the sync and the AI reading, each mail shows what the app did: **Job mail** with company, role, the requested action and its application, or **Not a job mail**.
-7. Open a conversation and **Reply** as yourself, with real text. Sync again: the reply shows **Recorded as your reply**, and the Mails page shows the conversation as Replied.
-8. Reply again as the other person to continue the conversation, and sync.
+7. Open a conversation and **Reply**, with real text. A reply is always yours. Sync again: the reply shows **Recorded as your reply**, and the Mails page shows the conversation as Replied.
+8. To continue the conversation as the other person, use **Write next mail from <address>** below the reply box, and sync.
 9. **Reset dev data** empties the sandbox mailbox and what the app made from it. It keeps your login, AI settings and the sandbox connection.
 
 ## 5. How it works
