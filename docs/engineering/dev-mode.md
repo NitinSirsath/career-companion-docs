@@ -51,13 +51,15 @@ To go back to prod mode, start the backend with `npm run dev`.
 4. **Mail sandbox** → **Compose**: write a mail to yourself. "From" is any address you type, or one you used before. Send a few: some about jobs, some not.
 5. The mails show **Not synced yet**. Press **Sync now** (the same sync as on the Gmail Sync page).
 6. After the sync and the AI reading, each mail shows what the app did: **Job mail** with company, role, the requested action and its application, or **Not a job mail**.
-7. Open a conversation and **Reply**, with real text. A reply is always yours. Sync again: the reply shows **Recorded as your reply**, and the Mails page shows the conversation as Replied.
+7. Reply in one of two ways:
+   - **From the app:** on the Mails page open the mail, write in the reply box and choose **Send reply**. The reply lands in the sandbox, in the same conversation, and the Mails page shows Replied at once. No real mail is sent.
+   - **In the sandbox**, as if written in Gmail itself: open the conversation and **Reply**. A reply is always yours. Sync again: the reply shows **Recorded as your reply**, and the Mails page shows the conversation as Replied.
 8. To continue the conversation as the other person, use **Write next mail from <address>** below the reply box, and sync.
 9. **Reset dev data** empties the sandbox mailbox and what the app made from it. It keeps your login, AI settings and the sandbox connection.
 
 ## 5. How it works
 
-- Every Gmail call in the backend goes through `withGmail` (`services/gmailClient.ts`). In dev mode it hands the caller a sandbox client (`services/sandbox/gmail.ts`) that answers, from the table `sandbox_messages` and in Gmail's own response shapes, the calls the app makes: `getProfile`, `messages.list`, `messages.get`, `history.list`, `threads.list`, `threads.get`, `labels.list` and `attachments.get`.
+- Every Gmail call in the backend goes through `withGmail` (`services/gmailClient.ts`). In dev mode it hands the caller a sandbox client (`services/sandbox/gmail.ts`) that answers, from the table `sandbox_messages` and in Gmail's own response shapes, the calls the app makes: `getProfile`, `messages.list`, `messages.get`, `messages.send`, `history.list`, `threads.list`, `threads.get`, `labels.list` and `attachments.get`.
 - So `services/gmailSync.ts`, the sync jobs, the Gmail tab and the mail details page are unchanged: manual sync, scheduled sync, the look-back window, the history checkpoint, "new mails only" and the noting of the user's replies all run on sandbox mail.
 - A test fails when the app starts to make a Gmail call the sandbox does not answer.
 - Of the user's own sandbox mail the app keeps what it keeps in prod: message ID, thread ID and sent time. The text stays in the sandbox.

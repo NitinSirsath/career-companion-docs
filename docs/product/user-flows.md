@@ -2,7 +2,7 @@
 
 > **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
-> **Last Updated:** 2026-10-11 (UF-14 to UF-16 added for the mail-first walkthrough; UF-06 and UF-13 updated)
+> **Last Updated:** 2026-10-13 (UF-16: reply to a mail from the app; UF-03 names the send permission)
 
 ---
 
@@ -100,7 +100,7 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 **Main flow:**
 
 1. User chooses to connect Gmail.
-2. Career Companion requests the minimum required Google/Gmail permissions.
+2. Career Companion requests the minimum required Google/Gmail permissions: reading mail, and sending the replies the user writes in the app (UF-16).
 3. User grants consent.
 4. Career Companion securely stores the authorization required for future Gmail access.
 5. Career Companion starts the initial synchronization.
@@ -458,12 +458,19 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 1. Career Companion fetches the conversation from Gmail at that moment and shows every message in order: sender, recipients, date, Gmail labels, the text, and attachments with a download link. The user's own replies are shown as theirs.
 2. For a job mail, a panel beside the conversation shows the action with its buttons, the application or **Create application**, and what the AI read from each mail, labelled as the AI's reading.
 3. For any other mail opened from the Gmail tab, only the conversation is shown, with a note that Career Companion did not analyze it and keeps nothing from it.
-4. **Open in Gmail** and **Reply in Gmail** lead to Gmail. Replying inside the app comes later.
+4. **Reply.** Under the conversation the user writes a plain-text reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below. The box shows who it goes to; that cannot be changed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
 5. Opening a conversation ends its New mark.
 
-**The Gmail tab** lists the inbox live from Gmail, newest first, with Older and Newer. It is for reading only: no filters, no search, no actions on mail. Rows that are job mail are marked and open with the job panel.
+**Reply edge states:**
 
-**Privacy:** the mail text is fetched on open, shown and dropped. It is never stored or logged. A sender's HTML cannot run scripts, and pictures from the internet stay blocked until the user asks for them.
+- **Gmail was connected before replying existed:** the box shows **Allow sending**. Google asks once for the permission to send, and the user comes back to the same mail. Nothing the app holds is lost.
+- **Gmail does not answer:** the box says "Could not confirm that your reply was sent" and keeps the text. Nothing is sent again by itself: the user checks the conversation, then chooses **Send again** or not.
+- **Nobody else wrote in the conversation:** there is no reply box. The app never writes to an address the user did not hear from.
+- **Not in this version:** new mail, attachments, CC or reply-all, saved drafts and formatting.
+
+**The Gmail tab** lists the inbox live from Gmail, newest first, with Older and Newer. It has no filters, no search and no actions on the list. A mail is answered from its details page. Rows that are job mail are marked and open with the job panel.
+
+**Privacy:** the mail text is fetched on open, shown and dropped. It is never stored or logged. A sender's HTML cannot run scripts, and pictures from the internet stay blocked until the user asks for them. The text of a reply goes to Gmail and is not stored or logged by Career Companion either.
 
 **Edge/error states:**
 
@@ -543,7 +550,7 @@ The exact domain model will be defined during data design.
 
 Career Companion should minimize persisted Gmail content and prefer structured job-search information and necessary metadata over permanently storing complete email bodies when possible. Temporary processing data should be distinguishable from persisted application data, and access must remain scoped to the authenticated user.
 
-Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied.
+Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied. Since 2026-10-13 the user can also reply from the app; that text is handed to Gmail and kept nowhere else.
 
 Specific retention periods and storage mechanisms will be defined during security/data design.
 
