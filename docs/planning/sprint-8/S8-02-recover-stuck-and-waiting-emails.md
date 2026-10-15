@@ -1,5 +1,7 @@
 # S8-02 — Recover stuck and waiting emails without an operator
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-03, now on `main`: backend `16f0122`, frontend `e6ddd23`. `GET /api/gmail/messages` returns `processingStuck` for a PROCESSING email with no write for 20 minutes (`EMAIL_PROCESSING_STUCK_MS`). The Gmail page shows "Stopped" with Manual Retry, and its polling ends when no row is still live. Not recorded in this repo: the Sprint 8 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |

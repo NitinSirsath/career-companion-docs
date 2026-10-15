@@ -1,5 +1,7 @@
 # S7-01 — Minimal CI for backend and frontend, with toolchain pins
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-02, now on `main`: backend `12e7a7e`, frontend `78a592b`. Both repos have `ci.yml` (backend jobs `test` and `migration-lanes`, frontend jobs `check` and `contract-drift`), `engines`, `.nvmrc` 24 and the wider lint; the backend has `.env.test.example`. CI is green on `main`. Still missing: neither README says that the browser smoke stays manual. Not recorded in this repo: the proof runs on throwaway branches and the Sprint 7 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |

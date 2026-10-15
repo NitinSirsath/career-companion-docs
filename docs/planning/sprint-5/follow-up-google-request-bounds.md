@@ -1,5 +1,7 @@
 # S5-FU-02 — Bound every Google and Gmail request
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-03, now on backend `main` (`6af9cd2`, migration `20261003020000_gmail_access_token_expiry`). Only `googleTransport.ts` creates an OAuth client, and every Gmail call passes `gmailCallOptions(...)`. The access-token expiry is stored (the OD-15 recommendation). A sync attempt ends with `SyncDeadlineError` or `SyncCancelledError`. Not recorded in this repo: the §4.0 decision record and the Sprint 8 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |

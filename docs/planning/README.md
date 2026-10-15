@@ -2,6 +2,8 @@
 
 Status: **local roadmap, written 2026-10-02, before the move to the owner's personal PC.** Nothing on this page is implemented. All IDs are local; no Linear identity, state, estimate or approval is assumed. Linear sync happens only after the [migration verification gate](migration-verification/README.md) passes and the tickets are reviewed.
 
+> **Status update (2026-10-15):** Parts of this plan are now built. Sprint 7 (S7-01 to S7-05 and S5-FU-01) and S8-01, S8-02 and S5-FU-02 were built on 2026-10-02 and 2026-10-03 and are on backend and frontend `main`; each of those pages has a dated note with its commits. The repos are on GitHub, and CI runs on every push. The tables below are the 2026-10-02 snapshot. This note does not check Phase 0, the Sprint 6 closeout, BYO AI, MCP or AI-15.
+
 Source of truth for this plan: a read-only audit of the current code in all three folders, with every gap re-checked by an independent verifier. The findings and where each one went are in the [state audit](state-audit-2026-10-02.md). Code was treated as the truth; where docs disagree, the docs are wrong and a ticket fixes them.
 
 ## 1. Where things stand

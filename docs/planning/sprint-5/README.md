@@ -2,6 +2,8 @@
 
 > **Roadmap update (2026-10-02):** the Sprint 5 Gmail reliability work is absent from the current code. [S5-FU-01](follow-up-gmail-reliability.md) is rescoped and scheduled in [Sprint 7](../sprint-7/README.md); its transport part moved to [S5-FU-02](follow-up-google-request-bounds.md) (Sprint 8). Ticket status lines below that say "implemented" describe the lost working tree, not the current code. See the [roadmap](../README.md).
 
+> **Status update (2026-10-15):** [S5-FU-01](follow-up-gmail-reliability.md) and [S5-FU-02](follow-up-google-request-bounds.md) are now built. Code from 2026-10-03, now on backend `main` (`dde970e`, `6af9cd2`). Each page has a dated note.
+
 Engineering implementation is present as uncommitted backend/frontend file changes, per the user's instruction. See the [execution report](execution-report.md) for current results, evidence, limitations and review findings. Historical planning documents remain useful background; their fixed 90-day scope, old migration count and ticket filenames are superseded here.
 
 The supplied COM-37–COM-41 list and migrated descriptions disagree. The following sequential mapping preserves every indexed workstream and is **inferred pending Linear confirmation**. No remote ticket was overwritten or transitioned.

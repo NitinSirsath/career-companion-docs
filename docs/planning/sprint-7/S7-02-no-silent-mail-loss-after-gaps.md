@@ -1,5 +1,7 @@
 # S7-02 — Never skip mail when the gap since the last sync is longer than the lookback
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-02, now on `main`: backend `9a05460` (migration `20261002160000_gmail_unscanned_gap`), frontend `3f5dbbd`. After a gap longer than the lookback, a sync scans back to the last successful sync, up to 30 days. A cut is stored as `unscannedFrom` and `unscannedUntil`, and the Gmail page shows it. Not recorded in this repo: the Sprint 7 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |

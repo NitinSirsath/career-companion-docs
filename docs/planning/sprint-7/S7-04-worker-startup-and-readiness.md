@@ -1,5 +1,7 @@
 # S7-04 — Background workers recover or fail loudly, and report readiness
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-02, now on backend `main` (`3dbef63`). `startWorkers` retries only the failed workers, then exits with code 1. `GET /ready` reports worker registration. `/health` is mounted before CORS and the session. The placeholder health test is gone. Not recorded in this repo: the manual checks and the Sprint 7 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |

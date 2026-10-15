@@ -2,6 +2,8 @@
 
 Status: **provisional plan, not started (local plan, 2026-10-02).** Re-plan it after Sprint 7 exits and after about two weeks of real daily use. If the owner decides to deploy first (OD-08), the [release track](../README.md#7-release-track-not-scheduled) replaces this sprint. Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
 
+> **Status update (2026-10-15):** S8-01, S8-02 and S5-FU-02 are built: code from 2026-10-03, now on backend and frontend `main`. Each page has a dated note with its commits. AI-15 is not checked in this note. Still open: ADR-0003, which S8-01 needed first, is not in this repo, and this folder has no execution report, so the exit boxes below stay open.
+
 | Field | Value |
 | --- | --- |
 | Sprint number | 8 |
