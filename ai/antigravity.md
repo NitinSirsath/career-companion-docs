@@ -1,5 +1,7 @@
 # Antigravity — AI Collaboration Reference
 
+> **Skeleton — not filled (2026-10-15).** Antigravity is no longer the project's implementation environment. It is the target client of the automation endpoint (`POST /mcp`, [ADR-0002](../docs/architecture/decisions/ADR-0002-automation-submissions-via-mcp.md)). How AI tools work on the code today: [Development modes](../DEVELOPMENT-MODES.md).
+
 ## Purpose
 
 This document defines how Antigravity (the AI coding environment powered by Gemini) is configured and used within Career Companion. It describes the tools, MCP integrations, skills, and operational rules that govern how Antigravity operates on this project.
@@ -20,8 +22,6 @@ Antigravity is the **implementation environment** for Career Companion. It is wh
 ### Linear MCP
 > _To be defined. This section will describe how the Linear MCP is used within Antigravity._
 
-### Supabase MCP
-> _To be defined. This section will describe how the Supabase MCP is used within Antigravity._
 
 ---
 
