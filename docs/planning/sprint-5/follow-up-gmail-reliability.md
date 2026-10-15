@@ -2,6 +2,8 @@
 
 > **Rescoped for Sprint 7 (2026-10-02):** Sprint 7 executes FU-1, FU-4.1, FU-4.2, FU-4.4 and the minimal sync events in [section 7](#7-sprint-7-scope-rescoped-2026-10-02) below. FU-2 and FU-4.3 moved to [S5-FU-02](follow-up-google-request-bounds.md) (Sprint 8). The FU-3 counter equations, FU-4.5 and FU-5 are deferred ([roadmap §8, Not now](../README.md#8-not-now)); FU-5 depends on OD-13. The §4 order "FU-5 first" is superseded: FU-1 goes first. See the [roadmap](../README.md) and [Sprint 7](../sprint-7/README.md). Sections 1–6 are the original record and stay unchanged; where they differ from section 7, section 7 wins.
 
+> **Status update (2026-10-15):** The Sprint 7 scope (§7) is built. Code from 2026-10-03, now on backend `main` (`dde970e`): Gmail sync attempt fencing and crash recovery. An obsolete delivery logs `gmail_sync_superseded`, a queue-send failure returns 503 `QUEUE_UNAVAILABLE`, and CI runs the crash lane `scripts/test-gmail-crash.cjs` twice. FU-2 and FU-4.3 were built by [S5-FU-02](follow-up-google-request-bounds.md). FU-5 (snapshot tooling) is not built; it stays deferred. Not recorded in this file: the execution section that §6 and §7 ask for. The status rows and the boxes below are the original plan.
+
 | Field | Value |
 | --- | --- |
 | Status | **Proposed follow-up — not started.** Recorded 2026-10-02 at the owner's request. Nothing here is implemented or verified. |
