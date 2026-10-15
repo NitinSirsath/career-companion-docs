@@ -2,6 +2,8 @@
 
 Status: **planned, not started (local plan, 2026-10-02).** Starts only after the [migration verification gate](../migration-verification/README.md) and the [Sprint 6 closeout](../sprint-6/closeout/README.md). Local IDs; no Linear identity, state or estimate is assumed. Part of the [roadmap](../README.md).
 
+> **Status update (2026-10-15):** All six tickets are built: code from 2026-10-02 and 2026-10-03, now on backend and frontend `main`. Each ticket page has a dated note with its commits. CI runs on every push and is green on `main`. The exit boxes below stay open, because this folder has no execution report and no evidence links. Also still open: the S7-01 README line about the manual smoke, and S7-05 "observed on two real days of use".
+
 | Field | Value |
 | --- | --- |
 | Sprint number | 7 |
