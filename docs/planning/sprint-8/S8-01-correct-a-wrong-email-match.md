@@ -1,5 +1,7 @@
 # S8-01 — Let the user correct a wrong email match (ADR-0003 first)
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-03, now on `main`: backend `27c5caa` (migration `20261003010000_retire_match_effects`), frontend `5c93300`. Moving or unlinking an email retires the old effects (`retiredAt`, `EMAIL_MOVED`, `EMAIL_UNLINKED`), and a retired action returns 409 `ACTION_RETIRED`. The Gmail page has "Change link" and the application page has "Wrong application?". Still missing: ADR-0003, which this ticket says comes first, is not in this repo. Not recorded in this repo: the Sprint 8 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |
