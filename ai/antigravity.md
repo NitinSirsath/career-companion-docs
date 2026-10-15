@@ -22,7 +22,6 @@ Antigravity is the **implementation environment** for Career Companion. It is wh
 ### Linear MCP
 > _To be defined. This section will describe how the Linear MCP is used within Antigravity._
 
-
 ---
 
 ## Configured Skills
