@@ -1,5 +1,7 @@
 # S7-03 — Store AI action deadlines only when the date is clear
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-02, now on `main`: backend `5b86eab` (migration `20261002170000_action_deadline_precision`), frontend `44bf66d`. `parseActionDeadline` (`src/utils/actionDeadline.ts`) reads a deadline against the email's received date, and actions store `deadlinePrecision`. Date-only deadlines show without a time on the application page, on the Mails page and in Discord. The Dashboard named below now shows "Coming soon". Not recorded in this repo: the Sprint 7 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |
