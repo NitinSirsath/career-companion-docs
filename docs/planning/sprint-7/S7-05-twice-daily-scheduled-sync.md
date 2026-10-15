@@ -1,5 +1,7 @@
 # S7-05 — Twice-daily scheduled Gmail sync
 
+> **Status update (2026-10-15):** Built. Code from 2026-10-03, now on `main`: backend `513af53`, frontend `50adfda`. A pg-boss schedule runs `0 0,18 * * *` in `Asia/Kolkata` (`GMAIL_SCHEDULED_SYNC_ENABLED`, `GMAIL_SCHEDULED_SYNC_TZ`), with one catch-up after a missed slot. A scheduled sync offers waiting emails to AI again. The Gmail page shows "Last synced" and "Next automatic sync". Not recorded in this repo: the OD-05 outcome, the "observed on two real days of use" check and the Sprint 7 execution report. The status row and the boxes below are the original plan; a box is ticked only when its evidence is linked.
+
 | Field | Value |
 | --- | --- |
 | Status | Planned — not started (local ticket, 2026-10-02) |
