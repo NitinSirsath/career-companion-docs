@@ -197,7 +197,7 @@ An `ExternalSubmission` is evidence, not a replica: it is never updated from a l
 **Positive**
 - Uses MCP for what it is built for: an AI host calling a tool on an external system.
 - No tunnel, no laptop daemon, no Markdown parser, and no new service or infrastructure.
-- Sensitive answers and credentials never leave the laptop. The write-only surface means a prompt-injected agent can at worst create reviewable records; it cannot read data.
+- Sensitive answers and credentials never leave the laptop. The write-only surface means a prompt-injected agent can at worst create applications and link submissions to existing ones (only uncertain matches wait for review); it cannot read data. The user can archive such an application but not delete it. Revoking the token, or `MCP_DAILY_SUBMISSION_LIMIT=0`, stops it. *(Corrected 2026-10-15; it said "create reviewable records".)*
 - Applications now exist before the recruiter's email arrives, so the existing Gmail matcher has something to attach to. It attaches only when the email names the company the same way after normalization, because the Gmail matcher stays exact.
 - MCP is a thin adapter over domain services, so a REST import can be added later without new logic.
 

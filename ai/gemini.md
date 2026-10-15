@@ -1,5 +1,7 @@
 # Gemini — AI Collaboration Reference
 
+> **Skeleton — not filled (2026-10-15).** Gemini does not implement this project. In the product it is one of the AI providers a user can choose with their own key ([ADR-0001](../docs/architecture/decisions/ADR-0001-user-provided-ai.md)). How AI tools work on the code today: [Development modes](../DEVELOPMENT-MODES.md).
+
 ## Purpose
 
 This document defines the role of Gemini (Google's AI model) within Career Companion. It describes what Gemini is responsible for, how it receives tasks, and how its output is validated.

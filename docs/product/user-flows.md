@@ -2,7 +2,7 @@
 
 > **Status:** Finalized
 > **Linear Issue:** COM-4 — Design User Flows
-> **Last Updated:** 2026-10-13 (UF-16: a reply goes to everyone on the mail; the Agenda is in the menu as "Coming soon")
+> **Last Updated:** 2026-10-15 (notes where the app differs from UF-02 to UF-05 and §5)
 
 ---
 
@@ -66,6 +66,8 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 
 ### UF-02 — First-Run / Onboarding
 
+> **Not built (2026-10-15):** there is no first-run screen. After sign-in the user lands on the Mails page (UF-14) and connects Gmail from the Gmail Sync page (UF-03). The text below is the intended flow.
+
 **Entry point:** Authenticated user has not completed initial Career Companion setup.
 
 **User intent:** Understand the setup requirements and connect the Gmail account needed by the product.
@@ -103,7 +105,7 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 2. Career Companion requests the minimum required Google/Gmail permissions: reading mail, and sending the replies the user writes in the app (UF-16).
 3. User grants consent.
 4. Career Companion securely stores the authorization required for future Gmail access.
-5. Career Companion starts the initial synchronization.
+5. Career Companion starts the initial synchronization. *(2026-10-15: connecting does not start a sync. The first sync runs when the user presses Sync Now, or at the next scheduled sync, see UF-04.)*
 6. Gmail messages are retrieved in manageable batches.
 7. Relevant messages are identified for job-search processing.
 8. Relevant messages enter the AI processing pipeline.
@@ -155,6 +157,8 @@ A partial sync must not be represented as a fully completed sync.
 
 The flow defines the required product behavior; the underlying mechanism for detecting new Gmail messages is an architecture decision for a later phase.
 
+> **Built (2026-10-15):** new mail is found by a sync, not detected as it arrives. A sync runs when the user presses Sync Now and by itself twice a day, at 00:00 and 18:00 India time (backend `services/gmailSchedule.ts`); a time missed while the server was off is caught up when it starts.
+
 ---
 
 ### UF-05 — Process a Job-Related Email with AI
@@ -172,7 +176,7 @@ The flow defines the required product behavior; the underlying mechanism for det
 5. AI generates a concise summary when appropriate.
 6. AI determines whether the message requires user action.
 7. If action is required, the required action and relevant deadline/date are extracted when available.
-8. The message is matched to an existing application when evidence supports that match; otherwise it may contribute to a new application candidate.
+8. The message is matched to an existing application when evidence supports that match; otherwise it may contribute to a new application candidate. *(2026-10-15: mail never creates an application by itself. An unmatched job mail waits on the Mails page, where the user creates its application in one click, UF-15.)*
 9. Application state and timeline information are updated when the message represents a meaningful recruitment event.
 10. Processing result is persisted.
 
@@ -575,7 +579,7 @@ These flows intentionally do **not** include:
 - Complex search/filter functionality
 - Full email-client functionality
 - Enterprise/team workflows
-- Discord notifications in the MVP
+- Discord notifications in the MVP *(2026-10-15: Discord notifications exist for one configured user only, `DISCORD_USER_ID`; it is the owner's own tool, not a product feature)*
 
 These are outside the MVP boundary established by Product Vision and MVP Scope.
 
@@ -618,3 +622,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.2 | 2026-10-11 | Mail-first walkthrough (COM-158): added UF-14 to UF-16; the Mails page replaces the dashboard as home; the automation review moved to the Automation page. |
 | 1.3 | 2026-10-12 | Sign-in with email and password (COM-183): UF-01 renamed "Sign In"; added UF-17. Dev mode and its mail sandbox are a testing tool, described in engineering/dev-mode.md, not a user flow. |
 | 1.4 | 2026-10-13 | UF-16: reply to a mail from the app (COM-176); a reply goes to everyone on the mail unless the user chooses the sender alone, and a mail names the other people on it. UF-03 names the send permission. The Agenda is back in the navigation as "Coming soon". |
+| 1.5 | 2026-10-15 | Dated notes where the app differs: no first-run screen (UF-02); connecting does not start a sync (UF-03); sync runs on Sync Now and twice a day (UF-04); mail never creates an application by itself (UF-05); Discord for one configured user (§5). |

@@ -104,4 +104,4 @@ Documentation checks completed on 2026-09-26:
 - Existing Sprint 5 files match their pre-edit SHA-256 hashes. The original root README content is preserved, with a Sprint 6 link appended.
 - Backend and frontend remain clean at the inspected commit IDs; tracked documentation passes `git diff --check`.
 
-The [execution record](verification-runbook.md#8-execution-record--pending) remains pending. No migration, test suite, worker, provider call, commit, PR or Linear operation is implied by a resolved planning finding. Implementation acceptance checkboxes remain open intentionally.
+The [execution record](verification-runbook.md#8-execution-record--2026-10-02) exists (dated 2026-10-02; this link was corrected on 2026-10-15). No migration, test suite, worker, provider call, commit, PR or Linear operation is implied by a resolved planning finding. Implementation acceptance checkboxes remain open intentionally.

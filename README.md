@@ -6,9 +6,11 @@ See the [API Contracts](./docs/architecture/api-contracts.md) document for cross
 
 To test the app by hand with made-up mail, see [Dev mode and the mail sandbox](./docs/engineering/dev-mode.md).
 
+What the product does and how it is built: [product vision](docs/product/product-vision.md), [user flows](docs/product/user-flows.md), [domain model](docs/domain/domain-model.md), [MVP architecture](docs/architecture/mvp-architecture.md) and the [design system](docs/DESIGN_SYSTEM.md).
+
 **Start here: [planning index and roadmap](docs/planning/README.md)** (updated 2026-10-02). It gives the current state, the order of work (migration verification → Sprint 6 closeout → Sprint 7 → Sprint 8), every open ticket, owner decisions and what is out of scope. Its evidence base is the [state audit of 2026-10-02](docs/planning/state-audit-2026-10-02.md). All planning IDs are local; no Linear state is assumed.
 
-Product decision locked 2026-10-01: scheduled Gmail sync runs twice daily (12:00 AM and 6:00 PM); manual sync remains available, and no heavier scheduled-processing scope is added. Not yet implemented: planned as [S7-05](docs/planning/sprint-7/S7-05-twice-daily-scheduled-sync.md).
+Product decision locked 2026-10-01: scheduled Gmail sync runs twice daily (12:00 AM and 6:00 PM); manual sync remains available, and no heavier scheduled-processing scope is added. Built ([S7-05](docs/planning/sprint-7/S7-05-twice-daily-scheduled-sync.md)): backend `services/gmailSchedule.ts`, India time by default.
 
 Recent work, all implemented locally on 2026-10-02 without git, with evidence measured on the old laptop only (re-run in the [migration verification gate](docs/planning/migration-verification/README.md)):
 

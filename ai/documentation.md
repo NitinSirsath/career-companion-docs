@@ -1,5 +1,7 @@
 # Documentation — Standards & Conventions
 
+> **Skeleton — not filled (2026-10-15).** The rules in use today are the [planning rules](../docs/planning/README.md#10-planning-rules-from-now-on) (IDs, when a box may be ticked, evidence words, the ticket template) and, for Linear, [ai/linear.md](linear.md).
+
 ## Purpose
 
 This document defines the standards, conventions, and processes for maintaining the Career Companion documentation repository. It describes what belongs here, how documents are structured, and how they are updated over time.

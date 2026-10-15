@@ -21,8 +21,8 @@ If Linear is down, or the work must start offline, use a clearly marked temporar
 | What | Value |
 |---|---|
 | Team | Career Companion, issue key `COM` |
-| Labels that exist | `Improvement`, `Bug` |
-| Labels that do not exist | `Product`, `Documentation` (checked 14 Oct 2026). Use `Improvement` instead |
+| Labels for new issues | `Improvement` or `Bug` only |
+| Older labels | `Product`, `Documentation`, `Engineering`, `backend` and `frontend` exist on older issues (checked 15 Oct 2026). Leave them there; never add them to a new issue |
 | Statuses | Backlog, Todo, In Progress, In Review, Done, Canceled |
 | Priorities | High, Medium, Low for new issues. Do not use Urgent. Older issues under COM-158 and COM-183 carry Urgent; leave them as they are |
 | Links | Sub-issue (parent), Related, Blocked by, Duplicate |
