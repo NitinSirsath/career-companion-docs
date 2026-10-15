@@ -77,7 +77,9 @@ What runs today (no deployment pipeline yet):
 | backend | `migration-lanes` | every push and PR | yes |
 | backend | `AI eval` (Gemini, synthetic emails) | PRs that change `src/services/ai/`, `src/eval/ai/` or `src/contracts/aiCatalog.ts`; manual run | no |
 | frontend | `check` (typecheck, lint, tests, build) | every push and PR | yes |
-| frontend | `contract-drift` (frontend `src/contracts` equals backend `main`) | every push and PR | yes |
+| frontend | `contract-drift` (frontend `src/contracts` equals backend `main`) | every push and PR, and daily at 07:00 India time | yes |
+
+In both code repositories a newer CI run of the same kind on the same branch cancels the older one, so pushing twice in a row runs CI once. The daily `contract-drift` run catches a backend contract change while no frontend PR is open; `check` does not run then.
 
 CodeRabbit (free for public repositories) posts review comments on new PRs. It is advisory and never a required check.
 
