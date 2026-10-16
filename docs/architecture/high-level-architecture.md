@@ -832,9 +832,9 @@ If an error occurs during classification or extraction, the exception is strippe
 
 See [ADR-0001](decisions/ADR-0001-user-provided-ai.md), the [AI capability architecture](ai-capability-architecture.md) and the [email AI pipeline](email-ai-pipeline.md#user-provided-ai-adr-0001-implemented-2026-10-02).
 
-**Error classification:** provider failures are classified as key rejected, account/billing, model unavailable, rate limited, unknown outcome, invalid output or invalid request.
-- Refusals wait (`PENDING`) without using attempts.
-- Unknown outcomes are held.
+**Error classification:** provider failures are classified as key rejected, account/billing, model unavailable, rate limited, busy, no answer in time (was "unknown outcome"), invalid output or invalid request.
+- Refusals, including a busy provider, wait (`PENDING`) without using attempts.
+- No answer in time (owner decision, 2026-10-14): for per-email reads it uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it is held for the user's OK. Batch triage is unchanged: held.
 - Invalid output can be retried once with the user's approval.
 
 ### Future BYO Extension Point (historical)

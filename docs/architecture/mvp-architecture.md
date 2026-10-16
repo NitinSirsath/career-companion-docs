@@ -25,7 +25,7 @@ This document describes the Sprint 4.5 MVP with the 2026-09-26 stabilization cor
   - Each classification/extraction uses a unique `(emailId, operation, version)` ledger, a claim committed before the call (recording provider and model), and a validated completion checkpoint.
   - A **per-user** daily safety limit and a **per-user** provider cooldown apply. One user never affects another.
   - SDK retries are disabled. Provider refusals never use attempts.
-- **Uncertainty:** a crash or timeout around a provider call cannot prove whether it was charged. Unknown claims are held and never released automatically; the user may approve exactly one more attempt ("Retry anyway"). Completed work is adopted; downstream matching failure does not replay AI.
+- **Uncertainty:** a crash or timeout around a provider call cannot prove whether it was charged. For per-email reads, a call with no answer in time uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it is held for the user's OK, and the user may approve exactly one more attempt ("Retry anyway") (owner decision, 2026-10-14). Batch triage: an uncertain batch is held and never resent automatically. Completed work is adopted; downstream matching failure does not replay AI.
 - **Waiting:** without usable AI access, emails wait as `PENDING`. After a provider pause (rate limit, busy provider, no answer) they are read by themselves when the pause ends, or at once when the user chooses "Read waiting mails now". After a key, billing or model problem they resume when the user fixes access.
 
 ## 4. Deterministic Matching & State Inference

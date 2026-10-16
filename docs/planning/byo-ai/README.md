@@ -57,9 +57,9 @@ Gemini can ship alone. OpenAI and Claude ship only after they pass evaluation.
 | Feature interfaces | `RelevanceClassifier`, `EmailAnalyzer` | Same interfaces, now also returning model and token usage | **Stays** (small extension) | Business code must not learn about providers | — |
 | Credentials | One server env key | Per-user AES-256-GCM ciphertext with a dedicated key, bound to the user ID | **New** | The key is the user's billing secret | Blocking |
 | Model configuration | `GEMINI_RELEVANCE_MODEL`, `GEMINI_EXTRACTION_MODEL` | Code catalog in `src/contracts/aiCatalog.ts`, synced to the frontend; per-user optional override | **New**; env vars removed at cutover | Curated, tested models only | Blocking for settings |
-| Operation ledger (`runOperation`) | Claim → global budget and cooldown → call → checkpoint. 429/503 use up to 3 attempts. | Claim → per-user cooldown and limit → call → checkpoint. Refusals release the claim and restore the attempt. The ledger records provider and model. Approved retries. | **Changes.** Claim-before-call, reuse, held states and no auto-replay all stay. | Per-user isolation; refusal rule; approved retry | Blocking |
+| Operation ledger (`runOperation`) | Claim → global budget and cooldown → call → checkpoint. 429/503 use up to 3 attempts. | Claim → per-user cooldown and limit → call → checkpoint. Refusals release the claim and restore the attempt. The ledger records provider and model. Approved retries. | **Changes.** Claim-before-call, reuse and held states stay. Owner decision 2026-10-14: a per-email call with no answer in time is tried again by itself up to 3 attempts, then held; a held batch is never replayed automatically. | Per-user isolation; refusal rule; approved retry | Blocking |
 | Daily limit | `ai_call_budgets` keyed by day, global | `ai_usage_days` keyed by user and day: calls, input and output tokens, verifications | **Replaced**; the old table is dropped after release | Per-user safety limit and counts | Blocking |
-| Worker and job errors | Budget/cooldown → `RetryableAIError` → pg-boss retry → `FAILED` after 3. Unknown outcome is rethrown. | No access → email back to `PENDING`, job acknowledged. Unknown outcome → `FAILED` at once (held). | **Changes.** Batch size 1, completed-never-downgraded and sanitized storage stay. | ADR decisions 8 and 9 | Blocking; needs S6-R06 |
+| Worker and job errors | Budget/cooldown → `RetryableAIError` → pg-boss retry → `FAILED` after 3. Unknown outcome is rethrown. | No access → email back to `PENDING`, job acknowledged. Unknown outcome → `FAILED` at once (held). Changed by owner decision 2026-10-14: per-email reads with no answer in time use 1 of 3 attempts and retry by themselves, then wait for the user's OK (§3.8, §3.10). Batch unchanged. | **Changes.** Batch size 1, completed-never-downgraded and sanitized storage stay. | ADR decisions 8 and 9 | Blocking; needs S6-R06 |
 | Gmail sync and ingestion | Ingest enqueues new emails; after a scan, re-offers 100 oldest `PENDING` | Re-offer extracted to `reofferPendingEmails(userId)`, newest first, skipped when AI is not ready. Called from sync and after a settings fix. | **Mostly stays** | Resume after a fix without a scheduler | Independent |
 | Email retry API | Held operations → 409 `AI_OPERATION_REQUIRES_REVIEW` | Approvable holds → 409 `AI_RETRY_NEEDS_APPROVAL`; resend with `acceptPossibleDuplicateCharge: true` | **Extended** | ADR decision 10 | After ledger |
 | Matching, applications, actions, notifications | — | — | **Unchanged** | Out of scope | — |
@@ -138,7 +138,8 @@ export const AI_CONTRACTS = {
 type FailureKind =
   | 'KEY_REJECTED' | 'ACCOUNT_OR_BILLING' | 'MODEL_UNAVAILABLE'   // needs attention
   | 'RATE_LIMITED'                                               // limited (provider refusal)
-  | 'OUTCOME_UNKNOWN'                                            // held
+  | 'PROVIDER_BUSY'                                              // limited (busy provider: a short server error, 409, or a request that never left)
+  | 'OUTCOME_UNKNOWN'                                            // no answer in time: 1 of 3 tries, retried by itself (per-email); batch held
   | 'INVALID_OUTPUT'                                             // held, approvable
   | 'INVALID_REQUEST';                                           // failed, engineering fix
 
@@ -245,12 +246,17 @@ Career Companion's vocabulary is the `FailureKind` list (§3.3). Each adapter ex
 | `KEY_REJECTED` | 400 `INVALID_ARGUMENT` with reason `API_KEY_INVALID`; 401 | 401 | 401 `authentication_error` |
 | `ACCOUNT_OR_BILLING` | 403 `PERMISSION_DENIED`; 400 `FAILED_PRECONDITION` (region, billing) | 403; 429 with code `insufficient_quota` | 403 `permission_error`; billing or credit errors (confirm the status and type with a real zero-credit key) |
 | `MODEL_UNAVAILABLE` | 404 for the model | 404 `model_not_found` | 404 `not_found_error` |
-| `RATE_LIMITED` | 429 `RESOURCE_EXHAUSTED`; 503 `UNAVAILABLE` | 429 (other codes); 503 | 429 `rate_limit_error`; 529 `overloaded_error` |
-| `OUTCOME_UNKNOWN` | timeout, network, 500, 504, anything unrecognized | same | same, plus 500 `api_error` |
+| `RATE_LIMITED` | 429 `RESOURCE_EXHAUSTED` | 429 (other codes) | 429 `rate_limit_error` |
+| `PROVIDER_BUSY` (owner decision, 2026-10-14) | 503 `UNAVAILABLE`, 500, 502 | 500, 502, 503, 504; 409 | 500 `api_error`, 503, 504, 529 `overloaded_error`; 409 |
+| `OUTCOME_UNKNOWN` (owner decision, 2026-10-14) | no answer in time: our own timer, 504 `DEADLINE_EXCEEDED`, a connection that dropped after sending | no answer in time: our own timer, a connection that dropped after sending | same as OpenAI |
 | `INVALID_OUTPUT` | empty text, non-JSON, schema-invalid | `finish_reason: length`, refusal, non-JSON, schema-invalid | `stop_reason: max_tokens` or `refusal`, missing tool input, schema-invalid |
 | `INVALID_REQUEST` | other 400 | other 400 | other 400 / 413 |
 
-**Unrecognized responses map to `OUTCOME_UNKNOWN`.** That is the conservative default: held, never replayed.
+**`OUTCOME_UNKNOWN` is no answer in time only** (owner decision, 2026-10-14). For per-email reads it uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it is held for the user's OK (§3.8). Batch triage keeps its own rules.
+
+**A provider status not in this table** (for example another 5xx, or 408) is not covered by the owner's 2026-10-14 decision. How it should be handled is an open question for the owner. Until then it counts as no answer in time.
+
+**A request that never left** (no connection: `ENOTFOUND`, `ECONNREFUSED`, `EAI_AGAIN` or `UND_ERR_CONNECT_TIMEOUT`) counts as busy: the provider never saw it, so no attempt is used. An error the adapter cannot sort is our own bug (§3.8).
 
 ### 3.7 Access resolution
 
@@ -303,14 +309,15 @@ Signature: `runOperation({ userId, emailId, contract, access, invoke })` returns
 | --- | --- | --- | --- |
 | Success | `COMPLETED`, result, `completedAt` | Clear `RATE_LIMITED`/`PROVIDER_UNAVAILABLE` issue, cooldown and `consecutiveFailures` if set | — |
 | `KEY_REJECTED` / `ACCOUNT_OR_BILLING` / `MODEL_UNAVAILABLE` | Back to the previous status, `attempts−1`, `errorCode = kind` | `accessIssue = kind` (+ `accessIssueModel`) | `AIAccessError(kind)` |
-| `RATE_LIMITED` | Same release | Cooldown = provider `retry-after` (bounded 10 s–1 h), else 60 s × 2^(n−1), capped at 30 min; `consecutiveFailures+1` | `AIAccessError('RATE_LIMITED', resumesAt)` |
-| `OUTCOME_UNKNOWN` (or any unclassified throw) | `UNKNOWN`, `errorCode` | Cooldown 2 min × 2^(n−1), capped at 30 min, `accessIssue = PROVIDER_UNAVAILABLE` | `AIOutcomeUnknownError` (terminal) |
+| `RATE_LIMITED` / `PROVIDER_BUSY` | Same release | Cooldown = provider `retry-after` (bounded 10 s–1 h), else 60 s × 2^(n−1), capped at 30 min; `consecutiveFailures+1` | `AIAccessError(kind, resumesAt)` |
+| `OUTCOME_UNKNOWN`: no answer in time (owner decision, 2026-10-14; per-email reads) | `RETRYABLE`, attempt used, `errorCode`. After the 3rd attempt it is held for the user's OK (step 3) | Paused as for `PROVIDER_BUSY` (1, 2, 4, 8, 16, then 30 min). The old 2-minute pause of all AI is removed | The email goes back to `PENDING` the same way as for a pause, and is tried again by itself |
+| Any other throw (our own bug) | The email fails with cause "unclassified", logged as an error. It never becomes an unknown outcome | — | — |
 | `INVALID_OUTPUT` | `FAILED`, `errorCode = INVALID_OUTPUT` | — | `SchemaValidationFailure` (terminal) |
 | `INVALID_REQUEST` | `FAILED`, `errorCode = INVALID_REQUEST` | — | `TerminalAIError` |
 
 7. **Checkpoint write stays outside the catch.** A persistence failure leaves `PROCESSING`, as today.
 
-**Why a cooldown after an unknown outcome:** without it, a provider outage turns every email processed during the outage into a held operation that needs the user's approval and may double-charge. With it, an outage costs at most one held operation per user per cooldown window. Other emails wait as `PENDING`. Nothing is replayed.
+**Why a pause and a cap after no answer in time:** a model that does not answer in time is usually overloaded. The pause keeps an outage from using up every waiting email's attempts: at most one try per pause. Other emails wait as `PENDING`. The 3-attempt cap stops an email that never gets an answer from being tried again forever. After that, only the user's OK sends it again, because the provider may have charged for those tries.
 
 **Revision guard:** every write to the configuration from a job uses `updateMany where { userId, revision: access.revision }`. A job that resolved the old key cannot mark a newly saved key as rejected.
 
@@ -335,7 +342,7 @@ Built on S6-R06: the worker throws only a sanitized error to pg-boss.
   - `updateMany where not COMPLETED → processingState: 'PENDING'` and clear the five error fields (the reason lives on the configuration);
   - log `job_waiting_for_ai { jobId, emailId, reason }`;
   - return. The job is acknowledged; no queue retry or operation attempt is used.
-- **`AIOutcomeUnknownError`** (subclass of `TerminalAIError`) → `FAILED`, `processingRetryable: false`, category `OutcomeUnknown`, acknowledged. No pointless queue retry against a held operation.
+- **No answer in time** (owner decision, 2026-10-14; per-email reads): the email goes back to `PENDING` through the same path as `AIAccessError` (delivery withdrawn), so the job that already exists for that email does not swallow the next try. After the 3rd attempt the email waits for the user's OK (§3.14). No pointless queue retry against a held operation.
 - **`SchemaValidationFailure` / `TerminalAIError`:** unchanged (`FAILED`, acknowledged).
 - **Other errors** (Gmail transport, database): unchanged. Sanitized, queue retry, `FAILED` at the final attempt.
 - **Job payload stays `{ userId, emailId }`.** A test asserts the exact key set.
@@ -895,7 +902,7 @@ Updated in AI-17 unless noted. Nothing new is created except the evaluation reco
 | E8 | `ai_usage_days` replaces the global budget; cooldown on the configuration | Per-user limit and counts; cooldown must survive midnight |
 | E9 | `AI_USER_DAILY_CALL_LIMIT` = 500, not user-adjustable, 0 = pause; old variable rejected (O4) | A safeguard, not a budget; a renamed meaning must not pass silently |
 | E10 | Refusal → claim released, attempt restored, job acknowledged, email `PENDING` | ADR decisions 8 and 9 |
-| E11 | Unknown outcome → held, email `FAILED` at once, short per-user cooldown | No useless queue retry; an outage holds one operation per user per window, not hundreds |
+| E11 | Unknown outcome → held, email `FAILED` at once, short per-user cooldown | No useless queue retry; an outage holds one operation per user per window, not hundreds. Changed by owner decision 2026-10-14: per-email reads with no answer in time use 1 of 3 attempts and retry by themselves, then wait for the user's OK; the 2-minute pause is removed (§3.8). Batch unchanged. |
 | E12 | `approvedRetries` counter plus compare-and-set claim; approval through the existing retry endpoint | Exactly one call per approval; no new route |
 | E13 | `provider` / `model` on `ai_operations` | Correct provenance after a switch; the user sees where an uncertain charge went |
 | E14 | `revision` on the configuration guards job-side writes | A mid-job switch cannot corrupt the new setup's state |

@@ -84,9 +84,13 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
 8. **Missing or unusable AI access is a waiting condition, not a processing failure.** Emails that need AI stay pending. The reason lives once, on the user's configuration. Processing resumes after the user fixes access or the limit clears.
 
-9. **Provider credential and refusal errors do not consume the normal email retry attempts.** A refusal (rejected key, account or permission problem, provider limit) is a rejection made before any work is done, so it is not charged. It pauses or cools down that user's AI, and the email stays pending. Calls whose outcome is unknown, or that returned unusable output, keep the current conservative handling.
+9. **Provider credential and refusal errors do not consume the normal email retry attempts.** A refusal (rejected key, account or permission problem, provider limit, busy provider) is a rejection made before any work is done, so it is not charged. It pauses or cools down that user's AI, and the email stays pending. Calls that returned unusable output keep the current conservative handling. Calls with no answer in time follow decision 10.
 
-10. **User-approved retry is the recovery mechanism for held operations.** Operations held because their outcome is uncertain are never replayed automatically. The user who pays may explicitly approve one more attempt, accepting a possible duplicate charge.
+   **Owner decision, 2026-10-14:** a short server error counts as a busy provider: the email waits and is tried again, and no attempt is used. Busy means Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); and 409 from OpenAI or Anthropic. Google's own 504 is not busy: it is "no answer in time" (decision 10).
+
+10. **User-approved retry is the recovery mechanism for held operations.** The user who pays may explicitly approve one more attempt, accepting a possible duplicate charge.
+
+    **Owner decision, 2026-10-14:** for per-email reads, a call with no answer in time (our own timer, Google's 504 "deadline expired", or a connection that dropped after sending) uses 1 of 3 attempts, and Career Companion tries again by itself. After the 3rd attempt the operation is held and waits for the user's OK. This replaces the earlier rule that an uncertain outcome is always held at once. Batch triage keeps its own rule: a batch whose outcome is uncertain is held and never replayed automatically.
 
 11. **There is no automatic cross-provider fallback.** Sending a user's email content to a second provider requires that user's explicit choice.
 

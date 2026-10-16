@@ -402,7 +402,7 @@ The operation ledger stays as it is:
 - one row per `(email, operation, version)`
 - claim before call
 - completed results reused
-- unknown outcomes held
+- a call with no answer in time is tried again by itself, up to 3 attempts, then held for the user's OK (per-email reads; owner decision, 2026-10-14). A batch with no answer in time is held at once.
 
 `AIProcessingResult` records provider and model. Logs record tokens. The `ai_batches` table records each batch execution, and `ai_operations.batchId` links batch claims to that batch.
 
@@ -424,8 +424,9 @@ The operation ledger stays as it is:
 | **Access: not set up** | No configuration | No claim; email pending | Choose a provider |
 | **Access: key rejected** | Invalid or revoked key | Claim released, attempt not used; Needs attention; email pending | Replace key (provider key link) |
 | **Access: account, billing or model** | No billing or credit, API disabled, region, model not available to this key | Same | Provider billing or permission link, or "choose another model" |
-| **Access: limited** | Provider rate limit, quota exhausted or overloaded; Career Companion safety limit reached | Claim released, attempt not used; per-user cooldown, or wait for the next day for the safety limit; email pending | Resumes about <time> |
-| **Outcome unknown** (existing) | Timeout, connection lost | Held | "Retry anyway" (§9.5) |
+| **Access: limited** | Provider rate limit, quota exhausted or busy; Career Companion safety limit reached | Claim released, attempt not used; per-user cooldown, or wait for the next day for the safety limit; email pending | Resumes about <time> |
+| **Provider busy** (owner decision, 2026-10-14) | A short server error: Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); 409 from OpenAI or Anthropic | Same as Access: limited | Resumes about <time> |
+| **No answer in time** (owner decision, 2026-10-14; was "Outcome unknown") | Our own timer; Google's 504 "deadline expired"; a connection that dropped after sending | Per-email reads: 1 of 3 attempts used; email pending; paused as for busy, then tried again by itself. After the 3rd attempt: held | "Retry anyway" after the 3rd attempt (§9.5) |
 | **Invalid output** (existing) | Empty, non-JSON, schema-invalid | Failed | "Retry anyway" (§9.5) |
 | **Invalid request** (existing) | Request rejected for a non-credential reason | Failed; engineering fix | Generic failure |
 
@@ -440,11 +441,11 @@ Each adapter owns a tested mapping table.
 
 The stabilization rule "at most three attempts for explicit 429/503 rejections" bounded spend on a shared key. With user keys, a refusal costs nothing, and the per-user cooldown and limit bound the loop. Under the old rule, a user who hits a provider quota would exhaust all attempts in minutes and strand emails for an operator who cannot see their account.
 
-Unknown and invalid outcomes keep the conservative handling.
+Invalid outcomes keep the conservative handling. A busy provider is a refusal too. No answer in time uses an attempt, but is tried again by itself up to 3 attempts (owner decision, 2026-10-14; §9.3, §9.5).
 
 ### 9.5 Retry approved by the payer
 
-Held operations are never replayed automatically. The user may approve one more attempt after being told it may be charged twice. The approval is recorded on the operation.
+Held operations are not tried again by themselves. For per-email reads, a call with no answer in time is first tried again by itself, up to 3 attempts; only then is it held (owner decision, 2026-10-14). Batch triage keeps its own rule: held, never replayed. The user may approve one more attempt after being told it may be charged twice. The approval is recorded on the operation.
 
 ### 9.6 Resuming waiting work
 
@@ -638,6 +639,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 - **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing. Cooldowns are per user.
 - **Unavailable AI:** emails remain `PENDING` and resume through the existing processing flow.
 - **Retries:** provider credential and refusal errors do not consume the normal email retry attempts. User-approved retry is the recovery mechanism for operations with uncertain outcomes.
+  - **Owner decisions, 2026-10-14:** a short server error counts as busy and uses no attempt (§9.3). For per-email reads, no answer in time uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it waits for the user's OK (§9.5). Batch triage keeps its own rules.
 - **No automatic provider fallback.**
 - **Excluded:** an enterprise marketplace, tenant/RBAC, a database catalog, per-feature routing, usage reservations, a separate AI/Integrations application, and new execution-log tables.
 

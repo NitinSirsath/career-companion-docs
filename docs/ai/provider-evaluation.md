@@ -77,14 +77,15 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 
 | Provider | Models (candidates) | Evaluation | Error mapping | Disclosure | Status |
 | --- | --- | --- | --- | --- | --- |
-| Google Gemini | Recommended: gemini-3.5-flash-lite (fast), gemini-3.8-flash (fast, detailed). Also offered: gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Batch relevance PASS on gemini-3.5-flash-lite (CI, 2026-10-06); full evaluation not run | Observed live on 2026-10-12: "model not available to the key" = 404 `NOT_FOUND` → `MODEL_UNAVAILABLE` (2.5 models, new key); "provider busy" = 503 `UNAVAILABLE` and 504 `DEADLINE_EXCEEDED` → `PROVIDER_BUSY` (gemini-3.8-flash). Other rows not confirmed live | Draft, needs owner approval | hidden |
+| Google Gemini | Recommended: gemini-3.5-flash-lite (fast), gemini-3.8-flash (fast, detailed). Also offered: gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Batch relevance PASS on gemini-3.5-flash-lite (CI, 2026-10-06); full evaluation not run | Observed live on 2026-10-12: "model not available to the key" = 404 `NOT_FOUND` → `MODEL_UNAVAILABLE` (2.5 models, new key); "provider busy" = 503 `UNAVAILABLE` and 504 `DEADLINE_EXCEEDED` → `PROVIDER_BUSY` (gemini-3.8-flash; from 2026-10-14, owner decision: 504 counts as no answer in time, not busy). Other rows not confirmed live | Draft, needs owner approval | hidden |
 | OpenAI | gpt-5-nano (fast), gpt-5-mini (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 | Anthropic Claude | claude-haiku-4-5-20251001 (fast, detailed; tool mode), claude-sonnet-5-5 (detailed; native JSON schema) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 
 **Gemini notes (2026-10-12):**
 - The 2.5 models are not recommended: Google serves them only to keys that used them before, and a new key gets 404 for both.
 - The key check sends one very small real request to each chosen model. Asking Google to describe the model (`models.get`) is not enough: Google answers that also for a model it refuses every real request for.
-- 503 and 504 are Google's own answers that it did not do the work, and Google does not charge a request that fails with a 400 or 500 error. The mail waits; nothing is put on hold. A call with no answer at all (our timeout, a lost connection) is still an unknown outcome and is held.
+- 503 is Google's own answer that it did not do the work, and Google does not charge a request that fails with a 400 or 500 error. Owner decision, 2026-10-14: 503, 500 and 502 count as busy. The mail waits, no try is used and nothing is put on hold.
+- Owner decision, 2026-10-14: Google's 504 ("deadline expired") counts as no answer in time, like our own timer or a connection that dropped after sending. It uses 1 of 3 tries and Career Companion tries again by itself. After the 3rd try the mail waits for the user's OK.
 
 **Re-evaluate when:**
 - a model is added or becomes the recommended one;
