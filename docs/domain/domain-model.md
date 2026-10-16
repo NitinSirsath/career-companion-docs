@@ -176,11 +176,12 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 | `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`). The catalog is code, not data. |
 | `encryptedApiKey` | The user's provider key as AES-256-GCM ciphertext bound to the user. Write-only: never returned, logged or sent anywhere except to the catalog's endpoint for that provider. |
 | `fastModel`, `detailedModel` | `null` follows the recommended model; otherwise a tested catalog model for that role. |
-| `accessIssue`, `accessIssueModel` | Why access cannot be used: needs attention (key rejected, account/billing, model unavailable, key unreadable) or limited (rate limited, provider unavailable). |
-| `cooldownUntil`, `consecutiveFailures` | Per-user provider cooldown. |
+| `accessIssue`, `accessIssueModel`, `accessFailure` | Why access needs the user's attention: key rejected, account/billing, model unavailable, key unreadable. `accessFailure` is the exact failure behind it (COM-230): status, the provider's short code, the model and our own times, never the provider's text. |
 | `verifiedAt`, `lastCheckedAt` | Content-free verification results. |
 | `consentDisclosure`, `consentedAt` | Which data-use text the user agreed to, and when. |
 | `revision` | Incremented on every save. Job-side state writes apply only to the revision they resolved. |
+
+`ai_model_pauses` (user, model) holds each model's own pause (COM-229): `reason` (rate limited, or provider busy, which also covers no answer in time; `PROVIDER_UNAVAILABLE` on pauses moved from before COM-229), `resumesAt`, `consecutiveFailures` (each failure in a row makes the next pause longer), the test mail of "Read waiting mails now" (`testEmailId`, `testStartedAt`, `testResult`), and `lastFailure`, the exact failure that started or last extended the pause (COM-230). A success on the model removes its row. A busy model never stops another model.
 
 `ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications. These are not provider billing data.
 

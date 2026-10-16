@@ -23,10 +23,10 @@ This document describes the Sprint 4.5 MVP with the 2026-09-26 stabilization cor
 - **Cost boundary:**
   - Deterministic filtering precedes classification.
   - Each classification/extraction uses a unique `(emailId, operation, version)` ledger, a claim committed before the call (recording provider and model), and a validated completion checkpoint.
-  - A **per-user** daily safety limit and a **per-user** provider cooldown apply. One user never affects another.
+  - A **per-user** daily safety limit applies, and each model pauses on its own for each user. One user never affects another, and a busy model never stops another model.
   - SDK retries are disabled. Provider refusals never use attempts.
 - **Uncertainty:** a crash or timeout around a provider call cannot prove whether it was charged. For per-email reads, a call with no answer in time uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it is held for the user's OK, and the user may approve exactly one more attempt ("Retry anyway") (owner decision, 2026-10-14). Batch triage: an uncertain batch is held and never resent automatically. Completed work is adopted; downstream matching failure does not replay AI.
-- **Waiting:** without usable AI access, emails wait as `PENDING`. After a provider pause (rate limit, busy provider, no answer) they are read by themselves when the pause ends, or at once when the user chooses "Read waiting mails now". After a key, billing or model problem they resume when the user fixes access.
+- **Waiting:** without usable AI access, emails wait as `PENDING`. After a provider pause (rate limit, busy provider, no answer) they are read by themselves when the pause ends. "Read waiting mails now" sends one waiting mail first, as a test; the others follow only if it works. After a key, billing or model problem they resume when the user fixes access.
 
 ## 4. Deterministic Matching & State Inference
 - **Matching:** The system deterministically matches processed emails to existing applications based on exact `companyName` string matches (after normalization).
@@ -56,7 +56,7 @@ This document describes the Sprint 4.5 MVP with the 2026-09-26 stabilization cor
 
 ## 8. Reliability & Job Processing
 - **Queueing:** `pg-boss` runs email processing, Gmail sync and Discord jobs directly in Postgres. Callers share an initialization promise. Queue singleton windows reduce duplicate jobs; database claims protect actual effects.
-- **Retries:** Queue retries are bounded and delayed. AI attempts and provider cooldown are separately durable. Terminal errors are acknowledged without replay; uncertain provider work is held for operator reconciliation. Exhausted pending work is not revived automatically.
+- **Retries:** Queue retries are bounded and delayed. AI attempts and each model's pause are durable, apart from the queue. Terminal errors are acknowledged without replay. A per-email AI call with no answer in time is tried again by itself, up to 3 tries in all, and then waits for the user's OK (owner decision, 2026-10-14). Only an uncertain batch is held and never sent again by itself. Exhausted work is not revived automatically: only the user's OK sends it again.
 - **Pagination:** All public lists use the existing offset envelope, default/max 20, validated parameters, and stable ID tie-breakers. Sublists and application selectors are paginated. Details load by owned ID independently of list pages. Query invalidation, empty-page navigation and mutation errors are covered by UI tests; concurrent changes can still shift offset pages.
 
 ## 9. Application Status and Evidence Boundary (Sprint 6)

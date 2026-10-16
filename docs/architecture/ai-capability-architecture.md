@@ -189,7 +189,7 @@ email-processing-job {userId, emailId}              ← unchanged payload; never
       → resolve AI access for userId                 ← once per job
           Ready → capabilities bound to (adapter, models, key) for this user
           else  → email stays PENDING; job acknowledged; stop
-      → runOperation(...)  claim → PER-USER limit/cooldown → adapter call → validate → checkpoint
+      → runOperation(...)  claim → PER-USER limit and that model's pause → adapter call → validate → checkpoint
                            ↳ usage counted per user (calls, tokens)
       → AIProcessingResult (provider, model provenance) → matcher   ← unchanged
 ```
@@ -367,7 +367,7 @@ Career Companion keeps structured job-search information, not email content.
   - access state and reason
   - last checked
   - consent (provider and time)
-- Per-user daily counts (calls, input and output tokens) and cooldown, recorded by Career Companion; not provider billing.
+- Per-user daily counts (calls, input and output tokens) and each model's pause, recorded by Career Companion; not provider billing.
 - Structured logs: IDs, events, durations, token counts, error categories.
 
 ### 8.2 Never stored or logged
@@ -406,7 +406,7 @@ The operation ledger stays as it is:
 
 `AIProcessingResult` records provider and model. Logs record tokens. The `ai_batches` table records each batch execution, and `ai_operations.batchId` links batch claims to that batch.
 
-### 9.2 Safety limit, counts and cooldown
+### 9.2 Safety limit, counts and each model's pause
 
 - **Safety limit, per user.**
   - The existing daily call limit, keyed by user instead of global. One batch call reserves one daily-limit unit.
@@ -415,7 +415,7 @@ The operation ledger stays as it is:
   - A global value of zero remains the operational kill switch.
   - The value, bounds and whether users may adjust it are implementation decisions.
 - **Career Companion's own counts.** The same daily record counts the calls and input/output tokens Career Companion sent. They are diagnostics and user transparency, not billing. No currency estimates in V1.
-- **Provider cooldown, per user.** Set by that user's provider refusals; grows with consecutive refusals and resets on success. The safety limit counts every call sent. Together they bound any loop.
+- **Each model's pause, per user** (COM-229, `ai_model_pauses`). Set by that user's provider refusals and calls with no answer in time on that model; grows with that model's failures in a row and ends on its first success. A busy model never stops another model. The safety limit counts every call sent. Together they bound any loop.
 
 ### 9.3 Failure categories
 
@@ -424,7 +424,7 @@ The operation ledger stays as it is:
 | **Access: not set up** | No configuration | No claim; email pending | Choose a provider |
 | **Access: key rejected** | Invalid or revoked key | Claim released, attempt not used; Needs attention; email pending | Replace key (provider key link) |
 | **Access: account, billing or model** | No billing or credit, API disabled, region, model not available to this key | Same | Provider billing or permission link, or "choose another model" |
-| **Access: limited** | Provider rate limit, quota exhausted or busy; Career Companion safety limit reached | Claim released, attempt not used; per-user cooldown, or wait for the next day for the safety limit; email pending | Resumes about <time> |
+| **Access: limited** | Provider rate limit, quota exhausted or busy; Career Companion safety limit reached | Claim released, attempt not used; that model pauses for this user, or wait for the next day for the safety limit; email pending | Resumes about <time> |
 | **Provider busy** (owner decision, 2026-10-14) | A short server error: Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); 409 from OpenAI or Anthropic | Same as Access: limited | Resumes about <time> |
 | **No answer in time** (owner decision, 2026-10-14; was "Outcome unknown") | Our own timer; Google's 504 "deadline expired"; a connection that dropped after sending | Per-email reads: 1 of 3 attempts used; email pending; paused as for busy, then tried again by itself. After the 3rd attempt: held | "Retry anyway" after the 3rd attempt (§9.5) |
 | **Invalid output** (existing) | Empty, non-JSON, schema-invalid | Failed | "Retry anyway" (§9.5) |
@@ -439,7 +439,7 @@ Each adapter owns a tested mapping table.
 
 ### 9.4 Why refusals no longer use attempts
 
-The stabilization rule "at most three attempts for explicit 429/503 rejections" bounded spend on a shared key. With user keys, a refusal costs nothing, and the per-user cooldown and limit bound the loop. Under the old rule, a user who hits a provider quota would exhaust all attempts in minutes and strand emails for an operator who cannot see their account.
+The stabilization rule "at most three attempts for explicit 429/503 rejections" bounded spend on a shared key. With user keys, a refusal costs nothing, and each model's pause and the per-user limit bound the loop. Under the old rule, a user who hits a provider quota would exhaust all attempts in minutes and strand emails for an operator who cannot see their account.
 
 Invalid outcomes keep the conservative handling. A busy provider is a refusal too. No answer in time uses an attempt, but is tried again by itself up to 3 attempts (owner decision, 2026-10-14; §9.3, §9.5).
 
@@ -449,8 +449,8 @@ Held operations are not tried again by themselves. For per-email reads, a call w
 
 ### 9.6 Resuming waiting work
 
-"Waiting for AI" is simply `PENDING`. Gmail sync already re-offers up to 100 pending emails per user on every manual or scheduled sync, so:
-- a cleared cooldown resumes on the next sync (no new scheduler)
+"Waiting for AI" is simply `PENDING`. Gmail sync already re-offers up to 100 pending emails per user on every manual or scheduled sync. In addition:
+- when a model's pause or the daily safety limit ends, the waiting mail is read by itself, with no sync needed: the start of the pause, or a job that hits the limit, queues one delayed job (`ai-resume-job`, COM-202, COM-229) for that moment
 - fixing access (save, or a successful "Check again") triggers the same bounded re-offer immediately
 - jobs for a user without usable access return without calling a provider and without using queue retries
 
@@ -483,7 +483,7 @@ These are conceptual. Exact schema and routes are decided during implementation.
 | Item | Change |
 | --- | --- |
 | AI configuration | **New**, one per user: provider, encrypted key, optional model per role, access state with reason, last checked, consent (provider, time), timestamps. A per-user safety-limit value only if implementation makes it adjustable. |
-| Daily safety limit and counts | **Changed:** the existing daily mechanism keyed by user, counting calls, input tokens, output tokens and cooldown |
+| Daily safety limit and counts | **Changed:** the existing daily mechanism keyed by user, counting calls, input tokens and output tokens. Each model's pause is kept per user and model (`ai_model_pauses`, COM-229) |
 | `AIProcessingResult` | Unchanged; provider and model now come from the resolved adapter and model |
 | `AIOperation` | Unchanged, except a marker recording the user's approval for a retry |
 | Email processing states | Unchanged; waiting is `PENDING`, with the reason from the user's access state |
@@ -539,7 +539,7 @@ Test applied to every pattern: *what problem does it solve for Career Companion?
 | Several provider configurations active per user | One active account meets the requirements; a backup provider is later |
 | Per-feature model routing; feature and trigger switches | Two email capabilities, no administrator |
 | Prompt/schema fingerprints; selection and policy revisions | Explicit contract versions already identify results |
-| Usage reservations, queues, token budgets | A per-user safety limit and cooldown suffice |
+| Usage reservations, queues, token budgets | A per-user safety limit and each model's pause suffice |
 | Separate asynchronous AI-run system | pg-boss and the ledger already provide it |
 | Admin dashboards and log explorers | The status card's counts are enough |
 
@@ -568,7 +568,7 @@ Test applied to every pattern: *what problem does it solve for Career Companion?
 | Per-user safety limit; Career Companion call and token counts | ● | | | |
 | Provenance label on results | ● | | | |
 | Switch provider (verify-then-replace) | ● | | | |
-| Waiting as pending; refusal rule; per-user cooldown | ● | | | |
+| Waiting as pending; refusal rule; each model's pause | ● | | | |
 | User-approved retry for held operations | ● | | | |
 | Currency cost estimates | | | ● | |
 | Several saved keys; user-chosen backup provider | | | ● | |
@@ -596,7 +596,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
    - Tests and smoke harness moved off `GeminiProvider.getInstance()`.
 2. **Evaluation set and runner** (synthetic emails, thresholds). Baseline the current Gemini models first.
 3. **Catalog** and the access-problem error category; Gemini error mapping confirmed with a real key.
-4. **Data:** AI configuration; per-user safety limit, counts and cooldown.
+4. **Data:** AI configuration; per-user safety limit, counts and each model's pause.
 5. **AI settings API:** encryption with a dedicated key, verify, sample test.
 6. **Switch to user access:**
    - remove the environment key and model variables
@@ -625,7 +625,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 | [Domain model](../domain/domain-model.md) | AI configuration and per-user safety limit concepts; result provenance; privacy wording from §8 |
 | [MVP architecture](mvp-architecture.md) | §3 user-provided AI from curated providers and the per-user safety limit; §7 replace "Other AI Providers" with the release scope in §13 |
 | [High-level architecture](high-level-architecture.md) | §3.6/§6/§7 AI access and adapters; §9.7 secrets; COM-26 section links here and corrects two stale claims (there is no provider factory; the Gemini schema is a hand-written copy, not generated from Zod) |
-| [Email AI pipeline](email-ai-pipeline.md) | Per-user safety limit, counts and cooldown; waiting as pending; refusal and user-approved retry rules |
+| [Email AI pipeline](email-ai-pipeline.md) | Per-user safety limit, counts and each model's pause; waiting as pending; refusal and user-approved retry rules |
 
 ---
 
@@ -636,7 +636,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 - **Contracts:** provider-neutral, owned by Career Companion.
 - **Setup:** one active AI provider setup per user. Credentials are encrypted and write-only (§7), and the privacy lists in §8 apply.
 - **Catalog:** providers and models are limited to Career Companion's code-defined catalog with fixed base URLs. The recommended model is the default; Advanced selection is limited to tested supported models.
-- **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing. Cooldowns are per user.
+- **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing. Each model pauses on its own, per user (COM-229, `ai_model_pauses`); a busy model never stops another model.
 - **Unavailable AI:** emails remain `PENDING` and resume through the existing processing flow.
 - **Retries:** provider credential and refusal errors do not consume the normal email retry attempts. User-approved retry is the recovery mechanism for operations with uncertain outcomes.
   - **Owner decisions, 2026-10-14:** a short server error counts as busy and uses no attempt (§9.3). For per-email reads, no answer in time uses 1 of 3 attempts and is tried again by itself; after the 3rd attempt it waits for the user's OK (§9.5). Batch triage keeps its own rules.
