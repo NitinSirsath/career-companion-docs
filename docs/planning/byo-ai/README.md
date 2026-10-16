@@ -19,7 +19,7 @@ This plan turns the accepted architecture into engineering work. Where the archi
 - The Gemini-only, env-key AI layer becomes a provider-neutral layer with three protocol adapters: Gemini, OpenAI-compatible and Anthropic.
 - Prompts and Zod schemas move out of `GeminiProvider` into Career Companion-owned contract definitions. Text and versions stay the same.
 - Each user stores one AI configuration: provider, encrypted key, optional model choices, access state, consent.
-- The global daily budget and global cooldown become a per-user safety limit, per-user usage counts and a per-user cooldown.
+- The global daily budget and global cooldown become a per-user safety limit, per-user usage counts and each model's pause, per user (COM-229).
 - Missing or refused AI access leaves emails `PENDING`. The job is acknowledged and no retry is used.
 - Held operations (unknown outcome, invalid output) can be retried once per explicit user approval.
 - A new **AI provider** page lets the user choose a provider, paste a key, pick models, see status, run a sample test, switch or remove.
@@ -29,7 +29,7 @@ This plan turns the accepted architecture into engineering work. Where the archi
 
 - **2 new tables:** `ai_configurations` and `ai_usage_days`. 3 new columns on `ai_operations`. No other schema change.
 - **5 new operations on one resource**, `/api/ai/settings` (read, save, check, sample test, remove). One existing endpoint (`POST /api/emails/:id/retry`) gains an approval flag.
-- **1 new page** (`/ai`), plus notices on the dashboard and Gmail page, a "Retry anyway" dialog and provenance labels.
+- **1 new page** (`/ai`), plus notices on the Mails and Gmail Sync pages, a "Retry anyway" dialog and provenance labels.
 - **No new infrastructure:** no scheduler, no catalog database, no separate service, no new queue.
 
 **Order**
@@ -57,14 +57,14 @@ Gemini can ship alone. OpenAI and Claude ship only after they pass evaluation.
 | Feature interfaces | `RelevanceClassifier`, `EmailAnalyzer` | Same interfaces, now also returning model and token usage | **Stays** (small extension) | Business code must not learn about providers | — |
 | Credentials | One server env key | Per-user AES-256-GCM ciphertext with a dedicated key, bound to the user ID | **New** | The key is the user's billing secret | Blocking |
 | Model configuration | `GEMINI_RELEVANCE_MODEL`, `GEMINI_EXTRACTION_MODEL` | Code catalog in `src/contracts/aiCatalog.ts`, synced to the frontend; per-user optional override | **New**; env vars removed at cutover | Curated, tested models only | Blocking for settings |
-| Operation ledger (`runOperation`) | Claim → global budget and cooldown → call → checkpoint. 429/503 use up to 3 attempts. | Claim → per-user cooldown and limit → call → checkpoint. Refusals release the claim and restore the attempt. The ledger records provider and model. Approved retries. | **Changes.** Claim-before-call, reuse and held states stay. Owner decision 2026-10-14: a per-email call with no answer in time is tried again by itself up to 3 attempts, then held; a held batch is never replayed automatically. | Per-user isolation; refusal rule; approved retry | Blocking |
+| Operation ledger (`runOperation`) | Claim → global budget and cooldown → call → checkpoint. 429/503 use up to 3 attempts. | Claim → per-user limit and that model's pause → call → checkpoint. Refusals release the claim and restore the attempt. The ledger records provider and model. Approved retries. | **Changes.** Claim-before-call, reuse and held states stay. Owner decision 2026-10-14: a per-email call with no answer in time is tried again by itself up to 3 attempts, then held; a held batch is never replayed automatically. | Per-user isolation; refusal rule; approved retry | Blocking |
 | Daily limit | `ai_call_budgets` keyed by day, global | `ai_usage_days` keyed by user and day: calls, input and output tokens, verifications | **Replaced**; the old table is dropped after release | Per-user safety limit and counts | Blocking |
 | Worker and job errors | Budget/cooldown → `RetryableAIError` → pg-boss retry → `FAILED` after 3. Unknown outcome is rethrown. | No access → email back to `PENDING`, job acknowledged. Unknown outcome → `FAILED` at once (held). Changed by owner decision 2026-10-14: per-email reads with no answer in time use 1 of 3 attempts and retry by themselves, then wait for the user's OK (§3.8, §3.10). Batch unchanged. | **Changes.** Batch size 1, completed-never-downgraded and sanitized storage stay. | ADR decisions 8 and 9 | Blocking; needs S6-R06 |
 | Gmail sync and ingestion | Ingest enqueues new emails; after a scan, re-offers 100 oldest `PENDING` | Re-offer extracted to `reofferPendingEmails(userId)`, newest first, skipped when AI is not ready. Called from sync and after a settings fix. | **Mostly stays** | Resume after a fix without a scheduler | Independent |
 | Email retry API | Held operations → 409 `AI_OPERATION_REQUIRES_REVIEW` | Approvable holds → 409 `AI_RETRY_NEEDS_APPROVAL`; resend with `acceptPossibleDuplicateCharge: true` | **Extended** | ADR decision 10 | After ledger |
 | Matching, applications, actions, notifications | — | — | **Unchanged** | Out of scope | — |
 | Auth | Session, `requireAuth`, dev header outside production | Same | **Unchanged** | — | — |
-| Frontend | No AI UI. Raw processing state in the Gmail table. | `/ai` page, AI notice on dashboard and Gmail page, "Waiting for AI" label, "Retry anyway" dialog, provenance labels | **New** | Users set up and fix their own AI | After API |
+| Frontend | No AI UI. Raw processing state in the Gmail table. | `/ai` page, AI notice on the Mails and Gmail Sync pages, "Waiting for AI" label, "Retry anyway" dialog, provenance labels | **New** | Users set up and fix their own AI | After API |
 | Tests and smoke | Tests and smoke patch `GeminiProvider.getInstance` | Tests mock `createProviderClient` / use a fake client; smoke installs a fake client and creates sealed fixture configurations | **Changes** in AI-01 | The singleton disappears | Blocking (first) |
 | Config and secrets | `GEMINI_*`, `AI_DAILY_CALL_LIMIT` (global) | `AI_CREDENTIAL_ENCRYPTION_KEY`, `AI_USER_DAILY_CALL_LIMIT` (per user). `GEMINI_*` rejected in production. | **Changes** | No hosted key exists after cutover | At cutover |
 | Evaluation | None | `backend/eval/ai/`: synthetic dataset, scorer, manual runner, committed reports | **New** | Evaluation gate | Independent after seam |
@@ -244,7 +244,7 @@ Career Companion's vocabulary is the `FailureKind` list (§3.3). Each adapter ex
 | Kind | Gemini | OpenAI | Anthropic |
 | --- | --- | --- | --- |
 | `KEY_REJECTED` | 400 `INVALID_ARGUMENT` with reason `API_KEY_INVALID`; 401 | 401 | 401 `authentication_error` |
-| `ACCOUNT_OR_BILLING` | 403 `PERMISSION_DENIED`; 400 `FAILED_PRECONDITION` (region, billing) | 403; 429 with code `insufficient_quota` | 403 `permission_error`; billing or credit errors (confirm the status and type with a real zero-credit key) |
+| `ACCOUNT_OR_BILLING` | 403 `PERMISSION_DENIED`; 400 `FAILED_PRECONDITION` (region, billing) | 403; the credit codes `insufficient_quota`, `billing_not_active` and `billing_hard_limit_reached`, at any status (COM-231) | 403 `permission_error`; billing or credit errors (confirm the status and type with a real zero-credit key) |
 | `MODEL_UNAVAILABLE` | 404 for the model | 404 `model_not_found` | 404 `not_found_error` |
 | `RATE_LIMITED` | 429 `RESOURCE_EXHAUSTED` | 429 (other codes) | 429 `rate_limit_error` |
 | `PROVIDER_BUSY` (owner decision, 2026-10-14) | 503 `UNAVAILABLE`, 500, 502 | 500, 502, 503, 504; 409 | 500 `api_error`, 503, 504, 529 `overloaded_error`; 409 |
@@ -258,12 +258,14 @@ Career Companion's vocabulary is the `FailureKind` list (§3.3). Each adapter ex
 
 **A request that never left** (no connection: `ENOTFOUND`, `ECONNREFUSED`, `EAI_AGAIN` or `UND_ERR_CONNECT_TIMEOUT`) counts as busy: the provider never saw it, so no attempt is used. An error the adapter cannot sort is our own bug (§3.8).
 
+**The provider's request ID** (COM-231): an OpenAI or Anthropic failure keeps the provider's own ID of the request (`x-request-id`, `request-id`), only when it looks like an ID. It is logged as `providerRequestId` (§3.15), so a failure can be found with the provider. A Gemini failure keeps none. It is only logged: never stored and never sent to the screens.
+
 ### 3.7 Access resolution
 
 ```ts
 type AccessReason = 'NOT_SET_UP' | 'KEY_REJECTED' | 'ACCOUNT_OR_BILLING' | 'MODEL_UNAVAILABLE'
-  | 'PROVIDER_UNSUPPORTED' | 'KEY_UNREADABLE' | 'RATE_LIMITED' | 'PROVIDER_UNAVAILABLE'
-  | 'SAFETY_LIMIT' | 'PAUSED';
+  | 'PROVIDER_UNSUPPORTED' | 'KEY_UNREADABLE' | 'RATE_LIMITED' | 'PROVIDER_BUSY'
+  | 'PROVIDER_UNAVAILABLE' /* older pauses only */ | 'SAFETY_LIMIT' | 'PAUSED';
 type AccessState = 'NOT_SET_UP' | 'READY' | 'NEEDS_ATTENTION' | 'LIMITED';
 ```
 
@@ -273,7 +275,7 @@ type AccessState = 'NOT_SET_UP' | 'READY' | 'NEEDS_ATTENTION' | 'LIMITED';
 2. No configuration → NOT_SET_UP.
 3. Provider missing from the catalog or not `supported` → NEEDS_ATTENTION / `PROVIDER_UNSUPPORTED`.
 4. `accessIssue` ∈ {KEY_REJECTED, ACCOUNT_OR_BILLING, MODEL_UNAVAILABLE} → NEEDS_ATTENTION.
-5. `cooldownUntil > now` → LIMITED / `accessIssue` (`RATE_LIMITED` or `PROVIDER_UNAVAILABLE`), with `resumesAt = cooldownUntil`.
+5. Work that needs a model with a running pause (`ai_model_pauses`, per user and model; COM-229) → LIMITED / the pause's `reason` (`RATE_LIMITED` or `PROVIDER_BUSY`), with the pause's `resumesAt`. The user's own state leaves pauses out: `getAccessState` returns the running pauses of the models the setup uses now, each with the roles that use it.
 6. `calls ≥ limit` today → LIMITED / `SAFETY_LIMIT`, with `resumesAt` = next 00:00 UTC.
 7. Otherwise → READY.
 
@@ -297,19 +299,19 @@ Signature: `runOperation({ userId, emailId, contract, access, invoke })` returns
    - `attempts ≥ MAX_ATTEMPTS + approvedRetries`.
 4. **Claim transaction:**
    - `updateMany where { id, status ∈ {PENDING, RETRYABLE}, attempts: existing.attempts, retryAfter null|≤now }`. This is a compare-and-set on `attempts`, which replaces `attempts < MAX_ATTEMPTS` in SQL; the bound is checked in step 3. It sets `PROCESSING`, `attempts+1`, `startedAt`, `provider`, `model`.
-   - Then `reserveUserCall(tx, userId, now)`:
-     - configuration cooldown active → `AIAccessError`;
+   - Then `reserveUserCall(tx, { userId, model, emailId }, now)`:
      - limit 0 → `PAUSED`;
+     - that model's pause running → `AIAccessError(reason, resumesAt)`, unless the email is the test mail of "Read waiting mails now";
      - otherwise upsert `ai_usage_days(userId, day)` and `updateMany … calls < limit → calls+1`. No row → `AIAccessError('SAFETY_LIMIT')`.
    - Any throw rolls back the claim, as today.
 5. **Call `invoke()`**, then record tokens on the usage row: best effort, after any response that has usage.
 6. **Outcome by kind** (one transaction per outcome):
 
-| Outcome | Operation row | User configuration (guarded by `revision`) | Thrown |
+| Outcome | Operation row | User configuration or model pause (guarded by `revision`) | Thrown |
 | --- | --- | --- | --- |
-| Success | `COMPLETED`, result, `completedAt` | Clear `RATE_LIMITED`/`PROVIDER_UNAVAILABLE` issue, cooldown and `consecutiveFailures` if set | — |
+| Success | `COMPLETED`, result, `completedAt` | End that model's pause (its `ai_model_pauses` row, with its `consecutiveFailures`); other models keep theirs | — |
 | `KEY_REJECTED` / `ACCOUNT_OR_BILLING` / `MODEL_UNAVAILABLE` | Back to the previous status, `attempts−1`, `errorCode = kind` | `accessIssue = kind` (+ `accessIssueModel`) | `AIAccessError(kind)` |
-| `RATE_LIMITED` / `PROVIDER_BUSY` | Same release | Cooldown = provider `retry-after` (bounded 10 s–1 h), else 60 s × 2^(n−1), capped at 30 min; `consecutiveFailures+1` | `AIAccessError(kind, resumesAt)` |
+| `RATE_LIMITED` / `PROVIDER_BUSY` | Same release | That model pauses: provider `retry-after` (bounded 10 s–1 h), else 60 s, doubled for each failure in a row up to 30 min but never shorter than asked, counted from the failure; a Google daily quota until midnight Pacific time; `consecutiveFailures+1` | `AIAccessError(kind, resumesAt)` |
 | `OUTCOME_UNKNOWN`: no answer in time (owner decision, 2026-10-14; per-email reads) | `RETRYABLE`, attempt used, `errorCode`. After the 3rd attempt it is held for the user's OK (step 3) | Paused as for `PROVIDER_BUSY` (1, 2, 4, 8, 16, then 30 min). The old 2-minute pause of all AI is removed | The email goes back to `PENDING` the same way as for a pause, and is tried again by itself |
 | Any other throw (our own bug) | The email fails with cause "unclassified", logged as an error. It never becomes an unknown outcome | — | — |
 | `INVALID_OUTPUT` | `FAILED`, `errorCode = INVALID_OUTPUT` | — | `SchemaValidationFailure` (terminal) |
@@ -321,7 +323,7 @@ Signature: `runOperation({ userId, emailId, contract, access, invoke })` returns
 
 **Revision guard:** every write to the configuration from a job uses `updateMany where { userId, revision: access.revision }`. A job that resolved the old key cannot mark a newly saved key as rejected.
 
-### 3.9 Safety limit, usage counts and cooldown
+### 3.9 Safety limit, usage counts and each model's pause
 
 - **`AI_USER_DAILY_CALL_LIMIT`:** default **500**, bounds 0–5000, per user per UTC day.
   - It counts every call sent: real processing, retries and sample tests.
@@ -331,7 +333,7 @@ Signature: `runOperation({ userId, emailId, contract, access, invoke })` returns
   - The value is confirmed in the supervised release run (AI-17).
 - **Old variable:** `AI_DAILY_CALL_LIMIT` (global meaning) is rejected at production startup with a "renamed, now per user" message. A silent change of meaning would be worse.
 - **Usage:** calls, input tokens and output tokens per user per day. Shown to the user as Career Companion's own counts, not provider billing. No currency estimates.
-- **Cooldown:** per user, on the configuration row, so it survives the UTC day boundary. It grows with `consecutiveFailures` and resets on the first success.
+- **Each model's pause** (COM-229): per user and model, in `ai_model_pauses`, so it survives the UTC day boundary. It grows with that model's `consecutiveFailures`, and the first success on the model ends it. Another model is not affected.
 - **Verification cap:** 20 content-free verifications per user per day (`ai_usage_days.verifications`). It stops the server being used as a validity oracle for stolen keys. It is a code constant.
 
 ### 3.10 Worker behavior (`emailProcessingJob.ts`)
@@ -349,7 +351,7 @@ Built on S6-R06: the worker throws only a sanitized error to pg-boss.
 
 ### 3.11 Resuming waiting work (no scheduler)
 
-The accepted architecture says "no new scheduler". The 2026-10-01 product decision also limits scheduled processing to the twice-daily Gmail sync. So resumption reuses existing triggers.
+The accepted architecture says "no new scheduler". The 2026-10-01 product decision also limits scheduled processing to the twice-daily Gmail sync. So resumption reuses existing triggers, plus one delayed queue job for the moment a pause or the daily safety limit ends (COM-202; below), not a scheduler.
 
 - **`reofferPendingEmails(userId, limit = 100)`** is extracted from `GmailSyncService.syncUser`'s recovery loop.
   - Order changes to **newest first** (`receivedAt desc nulls last, id desc`), so a fresh interview email is not stuck behind a backlog.
@@ -358,7 +360,7 @@ The accepted architecture says "no new scheduler". The 2026-10-01 product decisi
   - the end of every sync (manual today; the twice-daily scheduled sync when it is built);
   - after a successful save;
   - after a successful "Check again".
-- **After a cooldown or the daily limit clears**, processing continues on the next sync. The UI says so honestly ("Paused until about 14:05 — sync after that to continue") and offers the existing Sync action.
+- **When a pause or the daily safety limit ends**, the waiting mail is read by itself, with no sync needed (COM-202, COM-229). The start of a model's pause, or a job that hits the daily safety limit, queues one delayed job (`ai-resume-job`) for the moment it ends: the pause's end, or midnight UTC. The approved mock (2026-10-14) says "It is read by itself when the pause ends." "Read waiting mails now" asks for a new try at once: during a pause it sends one waiting mail first, as a test, and the others follow only if it works (owner decision, 2026-10-14).
 
 ### 3.12 Verification (save and "Check again")
 
@@ -367,7 +369,7 @@ The accepted architecture says "no new scheduler". The 2026-10-01 product decisi
 - **Result handling:**
   - `REJECTED` → nothing saved on save; on check, sets `accessIssue`.
   - `INCONCLUSIVE` → save stores the configuration with `verifiedAt = null`; check only updates `lastCheckedAt` and never overwrites a known state.
-  - `VERIFIED` → sets `verifiedAt` and clears needs-attention issues. A rate-limit cooldown stays, because a model lookup does not prove the limit has cleared.
+  - `VERIFIED` → sets `verifiedAt` and clears needs-attention issues. A model's pause stays, because a model lookup does not prove the limit has cleared or the model is no longer busy.
 
 ### 3.13 Sample test
 
@@ -381,22 +383,53 @@ The accepted architecture says "no new scheduler". The 2026-10-01 product decisi
 - **Ledger:** `approvedRetries Int @default(0)` on `ai_operations`.
 - **Approvable holds:**
   - `UNKNOWN`;
-  - `FAILED` with `errorCode ∈ {INVALID_OUTPUT, SchemaValidationFailure, AIProviderError}` (the last two cover legacy rows);
-  - `PROCESSING` with `startedAt` older than 15 minutes (a crash after the call);
-  - `PENDING`/`RETRYABLE` with exhausted attempts (legacy 429 rows).
+  - `FAILED` with `errorCode ∈ {INVALID_OUTPUT, SchemaValidationFailure}` (the last covers legacy rows);
+  - a batch claim still `PROCESSING` with `startedAt` older than 15 minutes (a crash after the call). A per-email claim no job holds any more goes back to waiting instead, its attempt used (COM-228);
+  - `PENDING`/`RETRYABLE` with exhausted attempts: after the 3rd try with no answer in time, or legacy 429 rows.
 - **Not approvable:** `INVALID_REQUEST`, legacy `TerminalAIError` rows, and legacy partial results without a ledger. These stay operator-only, as today.
-- **Approval** (one transaction, compare-and-set on the observed status and attempts): `status → RETRYABLE`, `retryAfter → null`, `approvedRetries + 1`; log `ai_retry_approved { userId, emailId, operation, version, previousStatus, provider }`; enqueue the email.
+- **Approval** (one transaction, compare-and-set on the observed status and attempts): `status → RETRYABLE`, `retryAfter → null`, `approvedRetries + 1`; log `ai_retry_approved { userId, emailId, operation, version, previousStatus, previousProvider, currentProvider }`; enqueue the email.
 - **Exactly one more call per approval:** `attempts < MAX_ATTEMPTS + approvedRetries`. If that call ends unknown or invalid again, a new approval is needed.
 - **Access must be READY to approve.** Otherwise 409 `AI_ACCESS_UNAVAILABLE`, so the user never approves a charge that would sit and wait.
 - **The dialog names both providers:** where the earlier attempt went (from the operation's `provider`/`model`) and which provider will be used now. A retry after a switch is the user's explicit choice to send to the new provider (ADR decision 11).
 
 ### 3.15 Logging and observability
 
-- **Format:** structured JSON `console.*`, as today.
-- **Allowed fields:** IDs (`userId`, `emailId`, `jobId`, operation ID), operation, version, attempt, provider ID, model ID, failure kind, HTTP status, allowlisted provider code, token counts, duration, outcome.
-- **New events:** `ai_settings_saved` (provider, verification), `ai_settings_removed`, `ai_access_checked` (result, kind), `ai_access_refused` (kind, cooldown seconds), `ai_sample_test` (outcome, tokens), `ai_retry_approved`, `job_waiting_for_ai` (reason), `ai_credential_unreadable`.
-- **`ai_usage`** gains `provider`, `userId` and `outcome`.
+Updated 2026-10-15 for the AI errors work (COM-226 to COM-231): what the backend logs now.
+
+- **Format:** one JSON line per event (`src/utils/log.ts`) with `time` (ISO, UTC), `event`, `level` and, inside a request, `requestId`. A developer's terminal gets a short readable line instead. Lines below `LOG_LEVEL` are skipped.
+- **Levels:** a provider failure is an expected outcome: `warn`, with no stack. Our own bugs and faults log as `error`. A line that carries the error adds `category`, an allowlisted `code` and `where` (our own file and line); its message and stack show only in a developer's terminal.
+- **Allowed fields:** IDs (`userId`, `emailId`, `jobId`, `batchId`, `testEmailId`, and the provider's own request ID `providerRequestId`), operation, version, attempt, provider ID, model ID, failure kind and cause, HTTP status, allowlisted provider code, stop reason and network code, quota scope, times we measured (`durationMs`, `timeoutMs`, `pauseMs`, `retryAfterMs`, `resumesAt`), token counts, counts and outcomes.
+- **Always redacted,** whatever the caller passes: a field whose name ends in `apiKey`, `token`, `password`, `secret`, `authorization` or `cookie`, and the fields `body`, `html`, `text`, `snippet`, `subject`, `sender`, `from`, `to`, `cc`, `address`, `input`, `prompt`, `response` and `raw`.
 - **Never logged:** keys or any part of a key, prompts, inputs, raw responses, provider messages, email content.
+- **One email's AI tries:** search the log for its `emailId`. Each try shows `ai_call_started`, then `ai_call_completed` or `ai_call_failed`, with the try number and how long it took.
+
+| Event | Level | Fields | Meaning |
+| --- | --- | --- | --- |
+| `ai_call_started` | info | userId, emailId, operation, version, attempt, provider, model | A try is claimed and sent |
+| `ai_call_completed` | info | userId, emailId, operation, version, provider, model, inputTokens, outputTokens, durationMs | The try worked |
+| `ai_call_failed` | warn; error for our own bug | userId, emailId, operation, version, attempt, provider, model, kind, failureCause, networkCode, status, providerCode, providerRequestId, quotaScope, retryAfterMs, stopReason, durationMs, timeoutMs, result, resumesAt | The try failed. `failureCause`: `TIMEOUT` (our own timer), `PROVIDER_DEADLINE` (Google's 504), `NETWORK` (no connection, nothing sent), `NETWORK_AFTER_SEND` (the connection dropped after sending), `PROVIDER_ANSWER`, or `UNCLASSIFIED` (our own bug). `providerRequestId`: OpenAI's or Anthropic's own ID of the request, to find the failure with them (COM-231). `stopReason`: why an unusable answer stopped early, for example `MAX_TOKENS`. `result`: `paused`, `retry_scheduled`, `waiting_for_user` or `held` |
+| `ai_paused` | info | userId, model, reason, pauseMs, resumesAt, consecutiveFailures, testEmailId | A model pauses for this user: why and until when. `testEmailId` when the test mail of "Read waiting mails now" was still busy |
+| `ai_pause_extended` | info | the same as `ai_paused` | A failure while that model's pause was still running (a call already under way) made the pause longer |
+| `ai_call_deferred` | info | userId, emailId, operation, version, reason | A model's pause, the daily safety limit or AI paused by Career Companion stopped a try before it was sent |
+| `ai_claim_released` | warn | emailId, operation, version, attempt, startedAt | A try that no job holds any more went back to waiting, its attempt used |
+| `ai_call_blocked` | warn | emailId, operation, version, status, attempts | A held operation was not sent again |
+| `email_offer_suppressed` | info | userId, emailId | An offer of an email was dropped: a job for that email already waits or runs |
+| `ai_resumed_after_pause` | info | userId, offered, access | A pause or the daily safety limit ended, and the waiting mail was offered again |
+| `ai_resume_not_queued` | warn | userId | The automatic read could not be queued; the next sync offers the mail |
+| `ai_read_waiting_requested` | info | userId, then testEmailId and pausedModels; testEmailId and alreadyTesting; or offered | "Read waiting mails now": the test mail sent during a pause; a test mail still waits for its answer, so nothing is sent; or how many emails were offered |
+| `job_waiting_for_ai` | info | jobId, emailId, reason, durationMs, retryCount, retryLimit | The email went back to waiting |
+| `job_withdraw_failed` | warn | jobId | The delivery of an email that went back to waiting could not be withdrawn. Best effort: the email still waits, and a later sync offers it again |
+| `job_failed` | warn; error only for a non-AI, non-Gmail fault (category `ProcessingError`) | jobId, emailId, outcome, errorStage, durationMs, retryCount, retryLimit, and `errorCategory` (warn) or `category`, `code`, `where` (error) | The job failed. An AI or Gmail failure is a warning; anything else is an error |
+| `ai_retry_approved` | info | userId, emailId, operation, version, previousStatus, previousProvider, currentProvider | The user approved one more try |
+| `ai_access_checked` | info | userId, provider, on (`save` or `check`), result, kind | Key check on save or "Check again" |
+| `ai_settings_saved` | info | userId, provider, verification, switched, keyChanged | Setup saved |
+| `ai_settings_removed` | info | userId | Setup removed |
+| `ai_sample_test` | info | userId, provider, outcome, calls, inputTokens, outputTokens, and on a failure providerRequestId | "Try a sample email" |
+| `ai_credential_unreadable` | error | userId | The stored key cannot be decrypted (check the encryption key) |
+| `ai_batch_claimed`, `ai_batch_completed`, `ai_batch_failed` | info, info, warn | batchId, userId, itemCount, and provider and model; decided, undecided and ignored; or kind and providerRequestId | Batch relevance triage (COM-125) |
+| `ai_usage_record_failed`, `ai_access_state_record_failed` | warn | userId | A best-effort write failed: today's token counts, or ending a model's pause or a test mail |
+
+- `ai_result_reused`, `job_started` and `job_completed` are `debug` lines.
 - No metrics system, dashboard or log store is added.
 
 ### 3.16 Configuration
@@ -424,18 +457,22 @@ The accepted architecture says "no new scheduler". The 2026-10-01 product decisi
 | `provider` | text not null, `CHECK (provider <> '')` | Catalog ID. Text, not an enum: adding a provider is catalog work, not a migration. Validated against the catalog at the API and at resolution. |
 | `encryptedApiKey` | text not null | `v1:<iv>:<ciphertext+tag>` (base64). Only ciphertext is stored. |
 | `fastModel`, `detailedModel` | text null | `null` = follow the recommended model, so users on recommended move with the catalog. A value = an Advanced choice. |
-| `accessIssue` | enum `AIAccessIssue` null: `KEY_REJECTED`, `ACCOUNT_OR_BILLING`, `MODEL_UNAVAILABLE`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE` | Needs-attention cause or limited cause. Career Companion's own closed vocabulary, so an enum. The reason is stored once here, not on every email. |
+| `accessIssue` | enum `AIAccessIssue` null: `KEY_REJECTED`, `ACCOUNT_OR_BILLING`, `MODEL_UNAVAILABLE`, `KEY_UNREADABLE`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE`, `PROVIDER_BUSY` | Needs-attention cause or limited cause. Career Companion's own closed vocabulary, so an enum. The reason is stored once here, not on every email. Since COM-229 only `KEY_REJECTED`, `ACCOUNT_OR_BILLING`, `MODEL_UNAVAILABLE` and `KEY_UNREADABLE` are stored here; pause reasons live on `ai_model_pauses`. |
 | `accessIssueModel` | text null | Which model a `MODEL_UNAVAILABLE` refers to, so the fix is "choose another fast model". A catalog ID, never provider text. |
 | `verifiedAt` | timestamptz null | Last definitive verification success. `null` = saved while inconclusive. |
 | `lastCheckedAt` | timestamptz null | "Last checked" on the status card. |
-| `cooldownUntil` | timestamptz null | Per-user provider cooldown. Survives day boundaries. |
-| `consecutiveFailures` | int not null default 0, `CHECK >= 0` | Cooldown growth. Reset on success. |
+| `cooldownUntil` | timestamptz null | Per-user provider cooldown. Survives day boundaries. Dropped 2026-10-14 (COM-229): see the note below. |
+| `consecutiveFailures` | int not null default 0, `CHECK >= 0` | Cooldown growth. Reset on success. Dropped 2026-10-14 (COM-229): see the note below. |
 | `consentDisclosure` | text not null | Catalog disclosure version the user agreed to (for example `openai-2026-10`). Records what text they saw. |
 | `consentedAt` | timestamptz not null | When. Consent is per provider because the row has one provider and switching re-consents. |
 | `revision` | int not null default 0 | Incremented on every save. Guards job-side state writes (§3.8). |
 | `createdAt`, `updatedAt` | timestamptz | Convention. |
 
 Not stored: key hint or last four, provider display data, model capabilities (catalog), usage, any provider text.
+
+> Superseded 2026-10-14 (COM-229, migration `20261014100000_ai_model_pauses`): each model pauses on its own. `cooldownUntil` and `consecutiveFailures` moved to `ai_model_pauses` (key `userId`, `model`; deleted with the configuration): `reason`, `resumesAt`, `consecutiveFailures`, and the test mail of "Read waiting mails now" (`testEmailId`, `testStartedAt`, `testResult`). `accessIssue` now keeps only the problems the user must fix.
+>
+> Added 2026-10-15 (COM-230, migration `20261015100000_ai_failure_details`): the exact failure, as JSON with the status, the provider's short code, the model and our own times (contract `AIFailure`, never the provider's message text). `accessFailure` on `ai_configurations` is the failure behind a key, billing or model problem; `lastFailure` on `ai_model_pauses` is the failure that started or last extended the pause.
 
 ### 4.2 `ai_usage_days` (new): replaces `ai_call_budgets`
 
@@ -458,6 +495,8 @@ Rows are tiny: at most one per user per active day. **No pruning job in V1** (§
 | `provider` text null, `model` text null | Set at claim time. Gives correct provenance when a completed operation is reused after a provider switch, and tells the user where an uncertain charge happened. Metadata only (ADR decision 12). |
 | `approvedRetries` int not null default 0, `CHECK >= 0` | Records each user approval. Bounds approved attempts. |
 | **Backfill:** `UPDATE ai_operations SET provider = 'gemini' WHERE attempts > 0` | Only Gemini has ever run. Model stays `null` ("model not recorded"). |
+| `lastFailure` jsonb null (COM-230) | The step's last failure (contract `AIFailure`), for the row's (i) and the retry dialog. Older rows have none and are shown by their stored kind. |
+| `triedAt` timestamp[] default `{}` (COM-230) | When each counted try was sent, oldest first. A refusal gives its try back and is not kept. |
 
 ### 4.4 Reused unchanged
 
@@ -503,14 +542,23 @@ The user always comes from the session, and no route takes a user ID or configur
 
 There is no key field of any kind. The UI renders a fixed "API key saved (hidden)".
 
+**Added 2026-10-15 (COM-230): the exact error.** A failure is an `AIFailure`: `kind`, `cause`, `provider`, `model`, `httpStatus`, `providerCode`, `quotaScope`, `freeTier`, `networkCode`, `stopReason`, `at`, `waitedMs`, `timeoutMs`, `attempt` and `maxAttempts`. It never holds the provider's message text. `AISettingsResponse` gains:
+- `access.failure`: the failure behind `reason`;
+- `access.pauses`: each running pause of a model the setup uses now (`model`, `roles`, `reason`, `resumesAt`, `failure`, and `test`: the test mail of "Read waiting mails now", with `emailId`, `startedAt` and `result`);
+- `lastFailure`: the latest failure kept for the account;
+- `needsYourOk`: the mails that wait for the user's OK (`emails`, `model`, `lastTriedAt`, `tries`).
+
+The save and check responses add `verificationFailure`: why an `INCONCLUSIVE` key check could not decide. Each mail of `GET /api/gmail/messages`, and each mail's result in the mail sandbox, gains `aiStatus`: why a waiting or stopped mail is not read yet (`reason`, `step`, `provider`, `model`, `failure`, `attempts`, `maxAttempts`, `triedAt`, `nextTryAt`), what happens next (`nextStep`), and whether it is the test mail or waits for it (`readNowTest`). It comes from the stored kind, never from stored text, so older mails get it too.
+
 | Endpoint | Purpose | Request | Success | Failures |
 | --- | --- | --- | --- | --- |
 | `GET /api/ai/settings` | Status and configuration (doubles as "AI status") | — | 200 `AISettingsResponse` | 401 |
 | `PUT /api/ai/settings` | Create, update key, change models, switch provider. **Verifies before saving.** | `{ provider, apiKey?, models?: { fast?: id \| null, detailed?: id \| null }, consentDisclosure? }` | 200 `AISettingsResponse & { verification: 'VERIFIED' \| 'INCONCLUSIVE' }` | 400 `VALIDATION_ERROR`; 422 `AI_ACCESS_REJECTED` `{ reason, modelId? }` (nothing saved); 429 `AI_VERIFY_RATE_LIMITED` `{ resetsAt }`; 500 safe message if the encryption key is missing |
 | `POST /api/ai/settings/check` | "Check again" on the stored configuration | `{}` | 200 `AISettingsResponse & { verification: 'VERIFIED' \| 'REJECTED' \| 'INCONCLUSIVE' }` | 404 `AI_NOT_CONFIGURED`; 429 `AI_VERIFY_RATE_LIMITED` |
-| `POST /api/ai/settings/sample-test` | Run both capabilities on the built-in synthetic email | `{}` | 200 `{ provider, models, classification: { decision, category, confidence }, extraction: { companyName, jobTitle, interviewStage, interviewDate, interviewTime, actionRequired, requestedAction, actionDeadline }, usage: { calls, inputTokens, outputTokens } }` | 404 `AI_NOT_CONFIGURED`; 409 `AI_ACCESS_UNAVAILABLE` `{ state, reason, resumesAt }`; 422 `AI_ACCESS_REJECTED`; 502 `AI_SAMPLE_FAILED` `{ kind: 'INVALID_OUTPUT' \| 'OUTCOME_UNKNOWN' \| 'INVALID_REQUEST' }` |
+| `POST /api/ai/settings/sample-test` | Run both capabilities on the built-in synthetic email | `{}` | 200 `{ provider, models, classification: { decision, category, confidence }, extraction: { companyName, jobTitle, interviewStage, interviewDate, interviewTime, actionRequired, requestedAction, actionDeadline }, usage: { calls, inputTokens, outputTokens } }` | 404 `AI_NOT_CONFIGURED`; 409 `AI_ACCESS_UNAVAILABLE` `{ state, reason, resumesAt, modelId, failure }`; 422 `AI_ACCESS_REJECTED`; 502 `AI_SAMPLE_FAILED` `{ failure }` (which model did not answer or answered unusably, and how long we waited) |
 | `DELETE /api/ai/settings` | Remove the configuration (key deleted). Idempotent. | — | 200 `{ removed: true }` | 401 |
-| `POST /api/emails/:id/retry` (existing) | Retry; approve a held retry | optional `{ acceptPossibleDuplicateCharge: true }` | 200 `{ success: true }` | 404; 400 completed; 409 `AI_RETRY_NEEDS_APPROVAL` `{ operations: [{ operation, reason: 'OUTCOME_UNKNOWN' \| 'INVALID_OUTPUT', provider, model, attemptedAt }], currentProvider }`; 409 `AI_OPERATION_REQUIRES_REVIEW` (not approvable); 409 `AI_ACCESS_UNAVAILABLE`; 409 `RETRY_RECENTLY_QUEUED` |
+| `POST /api/ai/waiting/read` | "Read waiting mails now" (COM-202, COM-229): during a pause, one waiting mail goes first, as a test; the others follow only if it works | `{}` | 200 `AISettingsResponse` (the test's result shows in a later read) | 401 |
+| `POST /api/emails/:id/retry` (existing) | Retry; approve a held retry | optional `{ acceptPossibleDuplicateCharge: true }` | 200 `{ success: true }` | 404; 400 completed; 409 `AI_RETRY_NEEDS_APPROVAL` `{ operations: [{ operation, reason: 'OUTCOME_UNKNOWN' \| 'INVALID_OUTPUT' \| 'ATTEMPTS_EXHAUSTED', provider, model, attemptedAt, triedAt, failure }], currentProvider }`; 409 `AI_OPERATION_REQUIRES_REVIEW` (not approvable); 409 `AI_ACCESS_UNAVAILABLE` `{ state, reason, resumesAt, modelId, failure }`; 409 `RETRY_RECENTLY_QUEUED` |
 
 **`PUT` validation**
 - `provider` is a `supported` catalog provider.
@@ -526,7 +574,7 @@ There is no key field of any kind. The UI renders a fixed "API key saved (hidden
 1. Check the verification cap.
 2. Verify the new key, or the stored key for a model-only change.
 3. On rejection, return 422 and leave the old configuration untouched. This is "switching keeps the current setup until the new one is verified".
-4. Otherwise, in one transaction, overwrite the row (the old ciphertext is gone): `revision + 1`, issue and cooldown cleared, consent recorded when given.
+4. Otherwise, in one transaction, overwrite the row (the old ciphertext is gone): `revision + 1`, issue cleared, consent recorded when given. The pause of a model the setup no longer uses ends; a new key ends every pause (COM-229).
 5. Then `reofferPendingEmails`.
 
 **Concurrent saves:** last write wins; `revision` keeps jobs honest.
@@ -555,7 +603,7 @@ There is no key field of any kind. The UI renders a fixed "API key saved (hidden
 | --- | --- | --- |
 | Not configured | Short intro.<br>Provider cards (supported providers only): name, "Free tier available" / "Paid API billing required", one-line data-use summary, recommended-for note.<br>Note: "A ChatGPT, Claude or Gemini app subscription is not an API key", with links. | Set up (opens the form for that provider) |
 | Setup / switch / update key (`ProviderSetupForm`) | Provider steps and links (key page, billing page); paid-billing warning first when `PAID_ONLY`.<br>**API key** password field.<br>**Models:** recommended per role ("Fast screening", "Detailed analysis"); an **Advanced** `<details>` with `NativeSelect`s of supported models.<br>Safety-limit note.<br>**Data use:** what is sent (sender, subject, labels, snippet up to 1,000 characters; body up to 8,000 characters for job-related mail), training and residency summary, provider terms link, consent checkbox (required for a new provider). | **Save and verify**, Cancel |
-| Configured (`AIStatusPanel`) | Provider, models (with a note when a retired model was replaced), access badge and reason with **one fix** (key page / billing page / "Choose another model" / "Paused until about HH:MM — sync after that to continue"), last checked, waiting email count, today's counts ("Career Companion sent 12 AI calls today · 3,400 input / 900 output tokens. Our count, not your provider bill."), safety limit | Check again · Try a sample email · Change models · Replace key · Switch provider · Remove |
+| Configured (`AIStatusPanel`) | Provider, models (with a note when a retired model was replaced), access badge and reason with **one fix** (key page / billing page / "Choose another model" / "Paused until about HH:MM" on the paused model, with "It is read by itself when the pause ends."), last checked, waiting email count, today's counts ("Career Companion sent 12 AI calls today · 3,400 input / 900 output tokens. Our count, not your provider bill."), safety limit | Check again · Try a sample email · Change models · Replace key · Switch provider · Remove |
 
 **Save results**
 
@@ -574,8 +622,8 @@ There is no key field of any kind. The UI renders a fixed "API key saved (hidden
 
 ### 6.2 Across the app
 
-- **`AIAccessNotice`:** a banner on the dashboard and the Gmail page whenever access is not READY. It shows the reason text, the waiting count and a link to `/ai`. Not shown in the shell, so existing route tests keep their mocks.
-- **Gmail table:** `PENDING` rows show "Waiting for AI" when access is not READY. Error categories map to plain text (`OutcomeUnknown` → "Outcome unknown", and so on).
+- **`AIAccessNotice`:** a banner on the Mails and Gmail Sync pages whenever access is not READY. It shows the reason text, the waiting count and a link to `/ai`. Not shown in the shell, so existing route tests keep their mocks.
+- **Gmail table:** rows show the badge from the mail's `aiStatus` ("Waiting for AI", "Needs your OK", "AI could not read it") and the (i) text from the wording sheet of the approved mock (2026-10-14); never stored error text (COM-232).
 - **`RetryAnywayDialog`:** opened when "Manual Retry" returns 409 `AI_RETRY_NEEDS_APPROVAL`. It says:
   - the earlier attempt went to <provider · model> and its outcome is unknown, or it returned unusable output;
   - retrying may charge your <current provider> account again;
@@ -750,7 +798,7 @@ All automated tests use the guarded local databases, fake keys and fake provider
 | API | 401 on every route; strict validation (unknown keys, hidden provider, wrong role, key length, missing consent); 422 leaves the old configuration untouched; inconclusive saves unverified; blank key keeps the stored one; switch; check transitions; sample test not persisted and counted; remove idempotent; verification cap 429; no key in any response; retry-approval codes and the exactly-once approval. | `ai-settings.test.ts`, `email.test.ts` |
 | Integration: Gmail → AI → application | Two users with fake clients. A: classification and extraction complete, provenance correct, matched to an existing application, event and action created. B (no configuration): `PENDING`. C (rate-limited): `PENDING` while A continues. | `ai-pipeline-integration.test.ts` |
 | Security | §8 list. | `ai-redaction.test.ts`, `ai-boundaries.test.ts` |
-| Frontend | Supported cards only; form validation; key is a password field, never prefilled, cleared after success, failure and unmount; sentinel absent from query and mutation caches and storage; verified/inconclusive/rejected messages with fix links; recommended vs Advanced models; consent required for a new provider; switch keeps the old status on rejection; remove confirm; status states including "Paused until"; notice on dashboard and Gmail; "Waiting for AI" label; Retry anyway (409 → dialog → flag; uncertain → no resend); provenance labels. Update `gmail.test.tsx` mocks (`retryEmail`, `isApiError`). | `src/tests/ai-settings.test.tsx`, `ai-status.test.tsx`, updated existing tests |
+| Frontend | Supported cards only; form validation; key is a password field, never prefilled, cleared after success, failure and unmount; sentinel absent from query and mutation caches and storage; verified/inconclusive/rejected messages with fix links; recommended vs Advanced models; consent required for a new provider; switch keeps the old status on rejection; remove confirm; status states including "Paused until"; notice on the Mails and Gmail Sync pages; "Waiting for AI" label; Retry anyway (409 → dialog → flag; uncertain → no resend); provenance labels. Update `gmail.test.tsx` mocks (`retryEmail`, `isApiError`). | `src/tests/ai-settings.test.tsx`, `ai-status.test.tsx`, updated existing tests |
 | Smoke (real API, PostgreSQL, pg-boss, workers, browser) | Replace the `GeminiProvider.getInstance` patch with a fake `createProviderClient`. Create sealed fixture configurations. Scenarios: configured user processes; unconfigured user waits; limited user waits while another processes; `/ai` page renders status; Retry anyway sends the flag. Outbound blocking stays. Fixture `AI_CREDENTIAL_ENCRYPTION_KEY` in the smoke env. | `frontend/scripts/smoke-stabilization.mjs` |
 | Evaluation (CI part) | Dataset shape, reserved-domain rule, scorer. | `eval/ai/*.test.ts` |
 | Live (supervised, manual) | AI-04: Gemini mapping. AI-02: Gemini baseline. AI-15: OpenAI and Claude certification. AI-17: one end-to-end run per supported provider with a test Gmail account and synthetic emails: setup, verify, sample, process, rate-limit or refusal where it can be produced, approve one retry. Evidence goes in the release report. | Runbook |
