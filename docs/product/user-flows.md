@@ -356,7 +356,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 - **Switching provider** uses the same flow with a new key and consent. The current setup keeps working until the new key is verified. Completed emails are not reprocessed and keep their own provenance.
 - **Remove** deletes the setup and key. New emails wait; processed data stays.
 - **Needs attention** (key rejected, billing or permission, model unavailable, key unreadable) or **Limited** (provider rate limit or outage, Career Companion's daily safety limit, paused): emails wait as `PENDING`, shown as "Waiting for AI". They resume after the fix. After a provider pause they are read by themselves when the pause ends, and the notice offers **Read waiting mails now** for a new try at once. A busy provider is shown as busy ("Google Gemini is busy right now"), not as a limit on the user's account.
-- **Retry anyway:** an email whose AI step had an uncertain or unusable outcome is never retried automatically. "Manual Retry" explains where the earlier attempt went and that one more attempt may be charged again. It names the new provider if the user switched. Only "Retry anyway" sends exactly one more attempt.
+- **Retry anyway:** a mail with no answer in time is tried again by itself, up to 3 tries; after the 3rd try, or after an unusable answer, it waits for the user's OK and is not tried again by itself. A batch with no answer in time is held at once. "Manual Retry" explains where the earlier attempt went and that one more attempt may be charged again. It names the new provider if the user switched. Only "Retry anyway" sends exactly one more attempt.
 
 ### UF-11 — Connect the User's Own Automation (ADR-0002)
 
