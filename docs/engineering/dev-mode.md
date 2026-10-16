@@ -25,7 +25,7 @@ The frontend has no mode setting. At start it asks the backend (`GET /api/app-mo
 1. **Never in production.** `APP_MODE=dev` with `NODE_ENV=production` stops startup. In prod mode every sandbox path answers 404 before login, the sandbox pages are "not found", and the frontend asks nothing of the sandbox API.
 2. **Sandbox only.** Dev mode never talks to Google: no Google client is built, no Google key is needed, and real Gmail cannot be connected. The dev database never holds real mail.
 3. **Separate database, same standard.** Dev mode starts only on a database whose name ends in `_dev`; prod mode refuses such a database; automated tests keep their `test` databases. The three can never share one. All use the same schema and migrations.
-4. **Real AI only.** There is no fake AI, no ready-made AI result and no preloaded sample data. Everything a tester sees comes from a mail they sent. With no AI key, mail is synced but not read, and the app says "AI key is not set up".
+4. **Real AI only.** There is no fake AI, no ready-made AI result and no preloaded sample data. Everything a tester sees comes from a mail they sent. With no AI key, mail is synced but not read, and the app says "AI key is not set up". Fake AI errors, to test the error screens, are a separate command and never part of `npm run devmode` (section 6).
 5. **Send, then sync.** Sending a sandbox mail writes only to the sandbox. The mail reaches the app only when a sync pulls it, with the same code as real Gmail mail.
 6. **Same shape as Gmail.** A sandbox message has the structure of a Gmail message, and the app reads it with the same code as real mail.
 
@@ -62,6 +62,24 @@ To go back to prod mode, start the backend with `npm run dev`.
 - A test fails when the app starts to make a Gmail call the sandbox does not answer.
 - Of the user's own sandbox mail the app keeps what it keeps in prod: message ID, thread ID and sent time. The text stays in the sandbox.
 
-## 6. Not built yet
+## 6. Test the AI error screens (fake AI errors)
+
+Owner decision, 2026-10-14: fake AI errors are their own command, next to the smoke script. Dev mode itself stays real AI only (rule 4).
+
+Backend: `npm run fake-ai-errors -- <fault>`. It starts dev mode as `npm run devmode` does, but every AI call gets the chosen error instead of an answer. Nothing is sent to any AI provider, so no real key is needed. Each fake is what the AI library itself gives the app for that problem (its own error classes and the provider's own error body), so the app's real error handling runs. The app's code is not changed.
+
+- **Never in prod.** It starts only when `.env.dev` says `APP_MODE=dev` on a `_dev` database, it refuses `NODE_ENV=production`, and the server checks the app mode again before it loads the fakes.
+- **One fault per run:** `busy`, `no-answer` (the call stops after 5 seconds), `deadline` (504), `rate-minute`, `rate-day`, `key`, `billing`, `model-gone`, `unusable` (cut off at `MAX_TOKENS`), `no-connection` (`ENOTFOUND`), `line-dropped` (`ECONNRESET`) or `server-error` (500). Without a fault it lists them all. The codes each provider gets are in the backend README, "Testing AI error screens".
+
+Steps:
+
+1. `npm run fake-ai-errors -- busy`, and start the frontend as usual.
+2. If the test user has no AI key yet, choose Google Gemini on the **AI provider** page and enter any 8 or more characters without spaces as the key, during a fault other than `key`, `billing` or `model-gone` (those refuse a new key). A user who already has a real key keeps it.
+3. In the **Mail sandbox** send a mail, then **Sync now**. Compare the Gmail Sync and Mails pages, the row's (i) and the AI provider page with the approved mock. Search the server log for the mail's ID.
+4. Stop with Ctrl+C and start again with the next fault.
+
+Fake errors leave their states in the dev database: pauses, a rejected key, failed mails. Use a separate test user, or afterwards, in `npm run devmode`, save the key again and choose **Reset dev data**. The app's own pause lengths are not shortened. To try again sooner, "Read waiting mails now" sends one waiting mail as a test at once.
+
+## 7. Not built yet
 
 Later work, tracked as `[Later]` issues of the dev mode epic: choosing a mail's arrival time, attachments, search, and an AI writer for test mail. A received sandbox mail always arrives in Gmail's "Primary" category, and a new mail always goes to the user's own inbox.
