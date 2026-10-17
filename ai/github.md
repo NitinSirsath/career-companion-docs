@@ -73,13 +73,13 @@ What runs today (no deployment pipeline yet):
 
 | Repository | Check | When | Required |
 | --- | --- | --- | --- |
-| backend | `test` (typecheck, lint, build, migrations, tests) | every push and PR | yes |
-| backend | `migration-lanes` | every push and PR | yes |
+| backend | `test` (typecheck, lint, build, migrations, tests) | every PR and every push to `main` | yes |
+| backend | `migration-lanes` | every PR and every push to `main` | yes |
 | backend | `AI eval` (Gemini, synthetic emails) | PRs that change `src/services/ai/`, `src/eval/ai/` or `src/contracts/aiCatalog.ts`; manual run | no |
-| frontend | `check` (typecheck, lint, tests, build) | every push and PR | yes |
-| frontend | `contract-drift` (frontend `src/contracts` equals backend `main`) | every push and PR, and daily at 07:00 India time | yes |
+| frontend | `check` (typecheck, lint, tests, build) | every PR and every push to `main` | yes |
+| frontend | `contract-drift` (frontend `src/contracts` equals backend `main`) | every PR, every push to `main`, and daily at 07:00 India time | yes |
 
-In both code repositories a newer CI run of the same kind on the same branch cancels the older one, so pushing twice in a row runs CI once. The daily `contract-drift` run catches a backend contract change while no frontend PR is open; `check` does not run then.
+In both code repositories a newer CI run of the same kind on the same branch cancels the older one, so pushing twice in a row runs CI once. A push to any other branch runs no CI of its own: its pull request does (owner decision, 2026-10-18). Before, a stacked branch made from another PR's last commit ran CI on that same commit, the next push on the stacked branch cancelled that run, and GitHub showed the cancelled run on the first PR in place of its passing one, which blocked the merge. The daily `contract-drift` run catches a backend contract change while no frontend PR is open; `check` does not run then.
 
 CodeRabbit (free for public repositories) posts review comments on new PRs. It is advisory and never a required check.
 
