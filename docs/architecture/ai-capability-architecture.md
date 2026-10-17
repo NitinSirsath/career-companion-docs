@@ -343,7 +343,7 @@ Adapters call only base URLs fixed in the catalog. No user input ever determines
 
 ### 7.6 Logging and errors
 
-Stored or logged error text is application-written, or a fixed safe message. Raw provider messages can echo content or the key, so they are never kept.
+Stored or logged error text is application-written, or a fixed safe message. Raw provider messages can echo content or the key, so they are never kept. One exception, in dev mode only (owner decision, 2026-10-17): the log of a failed call carries the provider's own error text, cleaned (one line, quoted text and key-like runs masked, at most 300 characters), never stored and never in an API response.
 
 Redaction tests push a recognizable fake key through every path: save, verify, sample test, processing and failures. They assert it never appears outside the ciphertext.
 
