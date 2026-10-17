@@ -37,7 +37,7 @@ Backend, one command:
 npm run devmode
 ```
 
-On first run it makes `.env.dev` from `.env.dev.example` and fills in the four secrets. Every run it creates the dev database when it is missing, brings it to the latest structure and starts the backend. It never deletes data. If PostgreSQL is not reachable with the default user, correct `DATABASE_URL` in `.env.dev`.
+On first run it makes `.env.dev` from `.env.dev.example` and fills in the four secrets. Every run it creates the dev database when it is missing, rebuilds the Prisma client (so a pull with schema changes needs no extra step), brings the database to the latest structure and starts the backend. It never deletes data. In dev mode the backend log also shows an AI provider's own error text on a failed call (`providerMessage`, cleaned and cut short); prod mode never logs it. If PostgreSQL is not reachable with the default user, correct `DATABASE_URL` in `.env.dev`.
 
 Frontend: `npm run dev`, as always.
 
