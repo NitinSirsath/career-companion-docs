@@ -368,7 +368,8 @@ The accepted architecture says "no new scheduler". The 2026-10-01 product decisi
 - It counts toward the verification cap. Timeout is 10 s.
 - **Result handling:**
   - `REJECTED` → nothing saved on save; on check, sets `accessIssue`.
-  - `INCONCLUSIVE` → save stores the configuration with `verifiedAt = null`; check only updates `lastCheckedAt` and never overwrites a known state.
+  - `INCONCLUSIVE` → save stores the configuration with `verifiedAt = null`; check only updates `lastCheckedAt` and never overwrites a known state. The AI provider page then shows an amber **Not confirmed** badge with one notice, never a green **Ready** (owner decision, 2026-10-17).
+  - **A call that works confirms the key** (owner decision, 2026-10-17): the first successful AI call (a mail or the sample test) sets `verifiedAt` while it is `null`, so a slow key check never leaves a working key "not confirmed".
   - `VERIFIED` → sets `verifiedAt` and clears needs-attention issues. A model's pause stays, because a model lookup does not prove the limit has cleared or the model is no longer busy.
 
 ### 3.13 Sample test
@@ -400,14 +401,15 @@ Updated 2026-10-15 for the AI errors work (COM-226 to COM-231): what the backend
 - **Levels:** a provider failure is an expected outcome: `warn`, with no stack. Our own bugs and faults log as `error`. A line that carries the error adds `category`, an allowlisted `code` and `where` (our own file and line); its message and stack show only in a developer's terminal.
 - **Allowed fields:** IDs (`userId`, `emailId`, `jobId`, `batchId`, `testEmailId`, and the provider's own request ID `providerRequestId`), operation, version, attempt, provider ID, model ID, failure kind and cause, HTTP status, allowlisted provider code, stop reason and network code, quota scope, times we measured (`durationMs`, `timeoutMs`, `pauseMs`, `retryAfterMs`, `resumesAt`), token counts, counts and outcomes.
 - **Always redacted,** whatever the caller passes: a field whose name ends in `apiKey`, `token`, `password`, `secret`, `authorization` or `cookie`, and the fields `body`, `html`, `text`, `snippet`, `subject`, `sender`, `from`, `to`, `cc`, `address`, `input`, `prompt`, `response` and `raw`.
-- **Never logged:** keys or any part of a key, prompts, inputs, raw responses, provider messages, email content.
+- **Never logged:** keys or any part of a key, prompts, inputs, raw responses, provider messages, email content. One exception, in dev mode only (owner decision, 2026-10-17): a failed AI call logs the provider's own error text as `providerMessage`, on one line, with quoted text and key-like runs masked, at most 300 characters. Prod mode never logs it, because a provider can echo the key or the mail text.
 - **One email's AI tries:** search the log for its `emailId`. Each try shows `ai_call_started`, then `ai_call_completed` or `ai_call_failed`, with the try number and how long it took.
 
 | Event | Level | Fields | Meaning |
 | --- | --- | --- | --- |
 | `ai_call_started` | info | userId, emailId, operation, version, attempt, provider, model | A try is claimed and sent |
 | `ai_call_completed` | info | userId, emailId, operation, version, provider, model, inputTokens, outputTokens, durationMs | The try worked |
-| `ai_call_failed` | warn; error for our own bug | userId, emailId, operation, version, attempt, provider, model, kind, failureCause, networkCode, status, providerCode, providerRequestId, quotaScope, retryAfterMs, stopReason, durationMs, timeoutMs, result, resumesAt | The try failed. `failureCause`: `TIMEOUT` (our own timer), `PROVIDER_DEADLINE` (Google's 504), `NETWORK` (no connection, nothing sent), `NETWORK_AFTER_SEND` (the connection dropped after sending), `PROVIDER_ANSWER`, or `UNCLASSIFIED` (our own bug). `providerRequestId`: OpenAI's or Anthropic's own ID of the request, to find the failure with them (COM-231). `stopReason`: why an unusable answer stopped early, for example `MAX_TOKENS`. `result`: `paused`, `retry_scheduled`, `waiting_for_user` or `held` |
+| `ai_call_failed` | warn; error for our own bug | userId, emailId, operation, version, attempt, provider, model, kind, failureCause, networkCode, status, providerCode, providerRequestId, providerMessage (dev mode only), quotaScope, retryAfterMs, stopReason, durationMs, timeoutMs, result, resumesAt | The try failed. `failureCause`: `TIMEOUT` (our own timer), `PROVIDER_DEADLINE` (Google's 504), `NETWORK` (no connection, nothing sent), `NETWORK_AFTER_SEND` (the connection dropped after sending), `PROVIDER_ANSWER`, or `UNCLASSIFIED` (our own bug). `providerRequestId`: OpenAI's or Anthropic's own ID of the request, to find the failure with them (COM-231). `stopReason`: why an unusable answer stopped early, for example `MAX_TOKENS`. `result`: `paused`, `retry_scheduled`, `waiting_for_user` or `held`
+| `ai_fallback_used` | info | userId, emailId, operation, version, pausedModel, model | The Detailed model was paused, so the Fast model took the detailed step with the same key (owner decision, 2026-10-17) | |
 | `ai_paused` | info | userId, model, reason, pauseMs, resumesAt, consecutiveFailures, testEmailId | A model pauses for this user: why and until when. `testEmailId` when the test mail of "Read waiting mails now" was still busy |
 | `ai_pause_extended` | info | the same as `ai_paused` | A failure while that model's pause was still running (a call already under way) made the pause longer |
 | `ai_call_deferred` | info | userId, emailId, operation, version, reason | A model's pause, the daily safety limit or AI paused by Career Companion stopped a try before it was sent |
@@ -459,7 +461,7 @@ Updated 2026-10-15 for the AI errors work (COM-226 to COM-231): what the backend
 | `fastModel`, `detailedModel` | text null | `null` = follow the recommended model, so users on recommended move with the catalog. A value = an Advanced choice. |
 | `accessIssue` | enum `AIAccessIssue` null: `KEY_REJECTED`, `ACCOUNT_OR_BILLING`, `MODEL_UNAVAILABLE`, `KEY_UNREADABLE`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE`, `PROVIDER_BUSY` | Needs-attention cause or limited cause. Career Companion's own closed vocabulary, so an enum. The reason is stored once here, not on every email. Since COM-229 only `KEY_REJECTED`, `ACCOUNT_OR_BILLING`, `MODEL_UNAVAILABLE` and `KEY_UNREADABLE` are stored here; pause reasons live on `ai_model_pauses`. |
 | `accessIssueModel` | text null | Which model a `MODEL_UNAVAILABLE` refers to, so the fix is "choose another fast model". A catalog ID, never provider text. |
-| `verifiedAt` | timestamptz null | Last definitive verification success. `null` = saved while inconclusive. |
+| `verifiedAt` | timestamptz null | Last definitive verification success: a key check, or the first AI call that worked. `null` = saved while inconclusive and no call has worked yet. |
 | `lastCheckedAt` | timestamptz null | "Last checked" on the status card. |
 | `cooldownUntil` | timestamptz null | Per-user provider cooldown. Survives day boundaries. Dropped 2026-10-14 (COM-229): see the note below. |
 | `consecutiveFailures` | int not null default 0, `CHECK >= 0` | Cooldown growth. Reset on success. Dropped 2026-10-14 (COM-229): see the note below. |
