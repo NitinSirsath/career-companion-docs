@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | **Accepted, 2026-10-02. Implemented locally 2026-10-02, not released.** Reviewed under [Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md). All three providers are `hidden` until certified ([provider evaluation](../../ai/provider-evaluation.md)). See the [BYO AI execution report](../../planning/byo-ai/execution-report.md). |
+| Status | **Accepted, 2026-10-02. Implemented locally 2026-10-02, not released.** Reviewed under [Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md). All providers are `hidden` until certified ([provider evaluation](../../ai/provider-evaluation.md)). See the [BYO AI execution report](../../planning/byo-ai/execution-report.md). |
 | Date | 2026-10-02 (proposed, revised after review and accepted the same day; design history in the [design document's versioning table](../ai-capability-architecture.md#document-versioning)) |
 | Decides | Whose AI access Career Companion uses, which providers it supports and how, where the provider boundary sits, how credentials are protected, and how AI failures affect processing |
 | Detail | [AI capability architecture](../ai-capability-architecture.md) |
@@ -56,6 +56,13 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
    A new provider that speaks an existing protocol is a catalog entry plus evaluation, not new integration code.
 
+   **Owner decision, 2026-10-17:** OpenRouter is a fourth provider with its own small adapter (protocol `openrouter`). It is the one exception to "per protocol, not per vendor", for three reasons:
+   - Its model lists are public, so a model lookup proves nothing about a key. The key check reads the key's own record, then OpenRouter's list of servers that keep nothing.
+   - Its error codes mean other things than OpenAI's, so it has its own error table.
+   - Every request must ask for private servers: `provider: { zdr: true, require_parameters: true }`.
+
+   The rule for a usable answer is shared with the OpenAI adapter in one place. OpenRouter may switch to another server of the same model, never to another model (decision 11). Its models change only through the catalog plus an evaluation run, and it stays `hidden` until certified.
+
 4. **Career Companion owns its AI contracts, and they are provider-neutral.**
    - Each capability has one versioned definition: prompt, output schema and input limits.
    - Adapters only translate that definition into their protocol.
@@ -98,7 +105,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
 ## Accepted V1 scope
 
-- **Providers:** Gemini, OpenAI and Claude. Each becomes officially supported only after passing Career Companion's synthetic AI evaluation.
+- **Providers:** Gemini, OpenAI and Claude. Each becomes officially supported only after passing Career Companion's synthetic AI evaluation. **Owner decision, 2026-10-17:** OpenRouter joins on the same terms, with two small models, and stays `hidden` until certified.
 - **Setup:** one active AI provider setup per user. Credentials are encrypted and write-only.
 - **Catalog:** providers and models are limited to Career Companion's supported catalog. The recommended model is used by default; Advanced selection is limited to tested supported models.
 - **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing.
@@ -156,11 +163,13 @@ Decided during implementation, within this decision:
 | Automatic fallback to another provider on failure | Moves user content to another account without consent; mixes result quality silently |
 | Per-vendor adapters for every provider | Most vendors share the OpenAI-compatible protocol; per-protocol adapters give the same coverage with a fraction of the code |
 
+**Owner decision, 2026-10-17:** the aggregator is now offered as one curated entry with fixed models (OpenRouter, decision 3). It is also the one per-vendor adapter, because its key check, errors and request rules differ from the protocol it speaks.
+
 ## Future evolution
 
 These are not designed now. The decision keeps each one additive.
 
-- **More providers on existing protocols:** catalog entry + evaluation + data-use disclosure.
+- **More providers on existing protocols:** catalog entry + evaluation + data-use disclosure. (Owner decision, 2026-10-17: a provider whose key check, errors or request rules differ gets a small adapter of its own, as OpenRouter did.)
 - **Backup provider or several saved keys:** more configurations per user plus an explicit user choice. Access resolution is the single place this would change.
 - **Career Companion-provided allowance:** a second source in access resolution, plus its own limit scope. States already speak of "AI access" rather than "key present".
 - **Explicit reprocessing with a new provider:** a user-initiated replay, built on the user-approved retry rule.

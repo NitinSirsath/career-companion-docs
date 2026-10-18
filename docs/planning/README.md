@@ -98,13 +98,14 @@ Each decision has a recommendation. A decision blocks only the work named in its
 | OD-06 | Deadline dates without a year. | Infer the year from the email's received date (next occurrence on or after it, with one day of tolerance for senders behind UTC); store null for anything else unclear. Keep date-only deadlines date-only. | S7-03 |
 | OD-07 | Wrong-match correction policy (ADR-0003). | Allow move and unlink for matched emails (auto- or user-matched), and link for ignored emails. Retire, never delete, the old application's event and actions with a reason. Recompute `aiStatus`; never touch `userStatus`. | S8-01 |
 | OD-08 | Deploy before Sprint 8? | No. Stay local and owner-only. When you decide to deploy, run the release track instead of Sprint 8. | Sprint 8 choice |
-| OD-09 | BYO AI V1 providers and data-use approval. | Gemini only for V1. OpenAI and Claude stay hidden. Approve the data-use text only after AI-19 corrects it; bump `disclosure.version` with the approval. | AI-15 catalog change |
+| OD-09 | BYO AI V1 providers and data-use approval. | Gemini only for V1. OpenAI and Claude stay hidden. Approve the data-use text only after AI-19 corrects it; bump `disclosure.version` with the approval. OpenRouter (OD-16, 2026-10-17) also stays hidden. | AI-15 catalog change |
 | OD-10 | Undo for applications created by automation. | For owner-only use, accept CLOSED as the workaround and run live with a low `MCP_DAILY_SUBMISSION_LIMIT`. Require archive/undo before anyone else uses MCP. | Wider MCP use only |
 | OD-11 | If Antigravity sends `Origin: null` (found in MV-14). | Decide only if it happens. Prefer an opt-in setting, off by default, that accepts a literal `null` Origin only with a valid Bearer token and an allowed Host; record it as an ADR-0002 amendment. | MCP-10, MCP-09 part B |
 | OD-12 | S6-R08 malformed dates. | Validate the three runtime-checked application date fields as ISO strings, so a bad date becomes the recoverable contract error that Sprint 6 DoD item 7 requires. | S6-R08 |
 | OD-13 | Does the original ~1,620-email dataset still exist (MV-02)? | If not found, drop S5-FU-01 FU-5 (snapshot tooling) from planning and record the original-data part of the moved gate as not applicable (dated). Keep the preservation rule for any real database restored later. | FU-5 scheduling |
 | OD-14 | How AI-19 stores the per-user pause after repeated provider rejections (INVALID_REQUEST). | Add `PAUSED` to the stored `AIAccessIssue` enum (one additive migration) and show the existing `PAUSED` access reason. No API or label change. | AI-19, AI-20 item 22 |
 | OD-15 | How S5-FU-02 stops the token refresh that runs on every Gmail 403. | Store the access-token expiry (one nullable column) so the library refreshes before expiry and never on 401/403. | S5-FU-02 |
+| OD-16 | OpenRouter as an AI provider (owner, 2026-10-17). | A fourth provider with its own small adapter, the one exception in ADR-0001 decision 3 (amended). Two small models, each serving both roles: Gemma 4 26B A4B (recommended for fast) and DeepSeek V4.1 Flash (recommended for detailed); reserves outside the catalog: Mistral Small 3.2 and GPT-OSS 20B. Every request asks for servers that keep nothing and take every parameter sent. No block by country or company for now; decide again before real users. Hidden until certified. Models change only through the catalog plus an evaluation run. A 403 without a spend limit is a billing problem unless it is a content block. Wording made for OpenRouter users waits until production. Test candidates (owner, 2026-10-17): Claude Haiku 5.5 (screening only), Gemini 3.8 Flash and GPT-6 Sol (on zero-retention servers, sent without an output limit). | COM-241 catalog change |
 
 ## 7. Release track (not scheduled)
 
@@ -122,6 +123,7 @@ Runs only when the owner decides to deploy (OD-08). It replaces Sprint 8 at that
 | --- | --- | --- |
 | Deployment and production hardening | No deployment exists or is scheduled. | OD-08 = deploy |
 | OpenAI and Claude certification | Gemini is the V1 minimum. | Owner asks |
+| OpenRouter certification | Hidden until certified (OD-16, 2026-10-17). | Owner asks (COM-245) |
 | Interview/assessment agenda and a temporal extraction contract | Needs a decision record and a contract version bump. S7-03 removes the visible wrong dates first. | After Sprint 8, if daily use shows it is the top pain |
 | Retention and account deletion | A recorded pre-wider-release gate; not needed for owner-only use. | Anyone besides the owner |
 | Application archive or delete (incl. automation-created) | OD-10 workaround is enough for one user. | Junk applications pile up, or wider MCP use |

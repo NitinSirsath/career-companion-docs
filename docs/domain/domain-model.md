@@ -173,7 +173,7 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 
 | Field | Meaning |
 | --- | --- |
-| `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`). The catalog is code, not data. |
+| `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`, `openrouter`). The catalog is code, not data. |
 | `encryptedApiKey` | The user's provider key as AES-256-GCM ciphertext bound to the user. Write-only: never returned, logged or sent anywhere except to the catalog's endpoint for that provider. |
 | `fastModel`, `detailedModel` | `null` follows the recommended model; otherwise a tested catalog model for that role. |
 | `accessIssue`, `accessIssueModel`, `accessFailure` | Why access needs the user's attention: key rejected, account/billing, model unavailable, key unreadable. `accessFailure` is the exact failure behind it (COM-230): status, the provider's short code, the model and our own times, never the provider's text. |
