@@ -120,6 +120,7 @@ OPEN     → otherwise
 ```
 
 - The user can mark a request done or open it again. When the request already has an application action, that action is completed or reopened too. A reply alone never completes an action.
+- An application action from an earlier request of the conversation shows Replied when the user sent a message after that request and before the next request arrived (2026-10-17).
 - The rule for what an email asks (`services/emailRequest.ts`) is shared with the matcher, so the conversation list and application actions cannot disagree.
 
 ### 4.3b OutgoingEmail
