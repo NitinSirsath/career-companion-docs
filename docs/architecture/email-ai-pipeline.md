@@ -65,7 +65,7 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 
 ## User-provided AI (ADR-0001, implemented 2026-10-02)
 
-- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI or Claude, from the code catalog). There is no Career Companion key and no fallback to another provider.
+- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI, Claude or OpenRouter, from the code catalog; owner decision, 2026-10-17: OpenRouter is hidden until certified). There is no Career Companion key and no fallback to another provider.
 - **Provider-neutral contracts:** \`classification/v2\`, \`extraction/v2\` and \`relevance-batch/v1\` (prompt, Zod schema, role, input bounds) are owned by Career Companion. Each adapter derives its schema dialect from Zod. Every result is validated with the same Zod schema.
 - **Access resolution:**
   - lazy, at most once per job, after completed-result adoption and the deterministic filter;
