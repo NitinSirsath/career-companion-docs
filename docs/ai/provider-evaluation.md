@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | **No provider certified yet (2026-10-02).** All three catalog providers are `hidden`: usable in development and tests, never offered in production. |
+| Status | **No provider certified yet (2026-10-02).** All four catalog providers are `hidden`: usable in development and tests, never offered in production. |
 | Decision | [ADR-0001](../architecture/decisions/ADR-0001-user-provided-ai.md) decision 2; [BYO AI plan §7](../planning/byo-ai/README.md#7-provider-evaluation-plan) |
 | Code | backend `src/eval/ai/` (dataset, scorer, runner); catalog `src/contracts/aiCatalog.ts` |
 
@@ -21,6 +21,7 @@ AI_EVAL_API_KEY=<key in the shell only> npm run ai:eval -- --provider gemini --f
 - Compare against the Gemini baseline with `--baseline <report.json>`.
 - `--triage batch --batch-size <1-25>` checks relevance only, in batches (no extraction calls).
 - Google limits Gemini 2.5 models to projects that used them before. A new key gets `404 NOT_FOUND` (`MODEL_UNAVAILABLE`) for them, so use the Gemini 3 models above.
+- OpenRouter: `--provider openrouter --fast google/gemma-4-26b-a4b-it --detailed deepseek/deepseek-v4.1-flash`. A `/` in a model ID becomes `_` in the report's file name.
 
 ## CI evaluation (COM-136)
 
@@ -80,6 +81,7 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 | Google Gemini | Recommended: gemini-3.5-flash-lite (fast), gemini-3.8-flash (fast, detailed). Also offered: gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Batch relevance PASS on gemini-3.5-flash-lite (CI, 2026-10-06); full evaluation not run | Observed live on 2026-10-12: "model not available to the key" = 404 `NOT_FOUND` → `MODEL_UNAVAILABLE` (2.5 models, new key); "provider busy" = 503 `UNAVAILABLE` and 504 `DEADLINE_EXCEEDED` → `PROVIDER_BUSY` (gemini-3.8-flash; from 2026-10-14, owner decision: 504 counts as no answer in time, not busy). Other rows not confirmed live | Draft, needs owner approval | hidden |
 | OpenAI | gpt-5-nano (fast), gpt-5-mini (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 | Anthropic Claude | claude-haiku-4-5-20251001 (fast, detailed; tool mode), claude-sonnet-5-5 (detailed; native JSON schema) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
+| OpenRouter | Recommended: google/gemma-4-26b-a4b-it (fast), deepseek/deepseek-v4.1-flash (detailed). Both serve both roles; thinking turned off. Test candidates (owner, 2026-10-17): anthropic/claude-haiku-5.5 (fast only), google/gemini-3.8-flash (fast, detailed), openai/gpt-6-sol (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 
 **Gemini notes (2026-10-12):**
 - The 2.5 models are not recommended: Google serves them only to keys that used them before, and a new key gets 404 for both.
@@ -87,9 +89,27 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 - 503 is Google's own answer that it did not do the work, and Google does not charge a request that fails with a 400 or 500 error. Owner decision, 2026-10-14: 503, 500 and 502 count as busy. The mail waits, no try is used and nothing is put on hold.
 - Owner decision, 2026-10-14: Google's 504 ("deadline expired") counts as no answer in time, like our own timer or a connection that dropped after sending. It uses 1 of 3 tries and Career Companion tries again by itself. After the 3rd try the mail waits for the user's OK.
 
+**OpenRouter notes (2026-10-17):**
+- Owner decisions, 2026-10-17: two small models only. Every request asks for servers that keep nothing (`zdr`) and that take every parameter sent (`require_parameters`). No block by country or company for now; decide again before real users. Hidden until certified.
+- The key check sends no paid request. It reads the key's own record (`GET /key`): a rejected key, or no credit left under the key's limit. Then it reads one list of servers that keep nothing (`GET /endpoints/zdr`): each chosen model needs a server that takes every parameter sent.
+- Rows to confirm live: 402 (no credit), 402 with too much spend in flight, 403 for a key limit and 403 for blocked content, 404 and 503 when no server meets the rules, and a 200 answer that carries an error.
+- Owner decision, 2026-10-17: three test candidates for the evaluation: Claude Haiku 5.5, Gemini 3.8 Flash and GPT-6 Sol. GPT-6 Sol's zero-retention servers take no output limit, so none is sent for it; zero retention stays for every model.
+- First live check (sample email, 2026-10-17): 401 for a wrong key confirmed. Haiku 5.5 with Gemini 3.8 Flash, and GPT-6 Sol alone, answered correctly. Gemma 4 26B A4B answered correctly when it answered, but its servers often gave no answer in time. DeepSeek V4.1 Flash extracted correctly but screened the sample wrongly.
+- Anthropic's JSON output allows at most 16 fields that may be empty, so Haiku 5.5 screens only (extraction has 19). An optional fixed list is sent as "one of the list, or null" (`anyOf`), which Anthropic accepts.
+
 **Re-evaluate when:**
 - a model is added or becomes the recommended one;
 - a contract version changes;
 - an adapter's request shape changes;
 - an SDK major version changes;
 - a provider announces a deprecation or behavior change.
+
+## Changing an OpenRouter model
+
+Owner decision, 2026-10-17: OpenRouter models change only through the catalog plus an evaluation run, never through a setting while the app runs. Exact model IDs only: an alias such as `~…-latest` can move to another model without an evaluation.
+
+1. Check the candidate's facts on OpenRouter: servers that keep nothing and take our request, thinking, price, expiry date and server countries. From COM-242 on: `npm run ai:openrouter-models -- <model id>`.
+2. Add it to the catalog with `evaluation: null`.
+3. Run the evaluation twice (see "How to run an evaluation").
+4. If it passes, make it recommended or replace the old model. Users on a removed model move to the recommended one by themselves.
+5. Ship one small backend PR, plus the frontend contract sync.
