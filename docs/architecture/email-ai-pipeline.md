@@ -45,16 +45,16 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 
 ## How a mail moves the application status
 
-Each processed mail suggests at most one status for its application (\`inferState\` in \`src/services/matcher.ts\`). The first rule that fits wins:
+Each processed mail suggests at most one status for its application (`inferState` in `src/services/matcher.ts`). The first rule that fits wins:
 
-1. Rejected: rejection details, or the type \`REJECTION\`.
-2. Offer: offer details, or the type \`OFFER\`.
-3. Interview: the type \`INTERVIEW\`, or an interview date. A stage name (\`interviewStage\`) alone counts too, except when the type is \`ASSESSMENT\` or \`RECRUITER\`. The AI also names the stage of an assessment ("Assessment") or of a recruiter's first call ("Initial Screening") (2026-10-17).
-4. Assessment: assessment details, or the type \`ASSESSMENT\`.
-5. Recruiter contact: a recruiter's name, or the type \`RECRUITER\`.
-6. Applied: the type \`FOLLOW_UP\` with nothing stronger.
+1. Rejected: rejection details, or the type `REJECTION`.
+2. Offer: offer details, or the type `OFFER`.
+3. Interview: the type `INTERVIEW`, or an interview date. A stage name (`interviewStage`) alone counts too, except when the type is `ASSESSMENT` or `RECRUITER`. The AI also names the stage of an assessment ("Assessment") or of a recruiter's first call ("Initial Screening") (2026-10-17).
+4. Assessment: assessment details, or the type `ASSESSMENT`.
+5. Recruiter contact: a recruiter's name, or the type `RECRUITER`.
+6. Applied: the type `FOLLOW_UP` with nothing stronger.
 
-The AI status never moves back in this order: Applied, Recruiter contact, Assessment, Interview, Offer, Rejected, Closed (\`canTransition\`). The user's own status is kept apart and always wins.
+The AI status never moves back in this order: Applied, Recruiter contact, Assessment, Interview, Offer, Rejected, Closed (`canTransition`). The user's own status is kept apart and always wins.
 
 ## Privacy Boundary
 
