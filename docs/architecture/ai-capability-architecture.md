@@ -78,6 +78,7 @@ The cost model (a free tier vs paid billing only) shapes the guidance shown to u
 | **Gemini** | Google Gemini API | Native response schema |
 | **OpenAI-compatible** | OpenAI; later Kimi (Moonshot), DeepSeek, Mistral and similar, each a fixed catalog entry with its own base URL | JSON-schema response format where supported, otherwise JSON mode; always validated |
 | **Anthropic** | Claude | Native structured output where available, otherwise a forced tool call with the schema |
+| **OpenRouter** (its own adapter; owner decision, 2026-10-17) | OpenRouter's fixed small models, each run by private servers | OpenAI's strict JSON schema; every request asks for servers that keep nothing and take every parameter sent (`zdr`, `require_parameters`); always validated |
 
 Every adapter's output is validated against the same Zod schema, exactly as today. A provider with weaker native guarantees shows up as more `invalid_output` failures. The evaluation gate (§5.4) keeps such providers out until they are good enough.
 
@@ -89,13 +90,15 @@ Every adapter's output is validated against the same Zod schema, exactly as toda
 | OpenAI | **V1** | Most widely held developer account; strong structured output; establishes the OpenAI-compatible adapter |
 | Claude (Anthropic) | **V1** | Widely held; strong extraction; the third protocol completes the core set |
 | Kimi (Moonshot), DeepSeek, Mistral | **V1.x**, one at a time | Same OpenAI-compatible adapter. Each needs evaluation and a clear data-use and residency statement before it is offered. Residency matters because the content is Gmail-derived. |
-| Aggregator (for example OpenRouter) | **Later** | One key for many models is attractive, but it adds a third party to the data path and model quality varies. If offered, only as a curated entry with fixed models. |
+| Aggregator (for example OpenRouter) | ~~Later~~ **V1.x, hidden until certified** (owner decision, 2026-10-17) | One key for many models is attractive, but it adds a third party to the data path and model quality varies. If offered, only as a curated entry with fixed models. Owner decision, 2026-10-17: offered as OpenRouter with two small models; every request is forced to servers that keep nothing. |
 | Azure OpenAI, Amazon Bedrock, Vertex AI | **Later, if demanded** | Credentials are endpoints, deployments or cloud IAM rather than one key. That is an enterprise shape. |
 | User-entered endpoints, local or self-hosted models | **Not planned** | A hosted server cannot reach a user's local machine. Calling user-chosen URLs from the server is an SSRF and data-exfiltration risk. Quality is unverifiable. |
 
 **Release gate:** V1 ships with every provider that has passed evaluation. Gemini is the minimum. A provider that is not ready is not shipped in a weaker form; it waits for V1.x.
 
 **Decision (accepted 2026-10-02):** the V1 provider set is Gemini, OpenAI and Claude, under the release gate above. Kimi, DeepSeek and Mistral are V1.x candidates, each subject to evaluation and a data-use and residency decision (O6).
+
+**Owner decision, 2026-10-17:** OpenRouter becomes a V1.x provider with its own small adapter and two small models. It stays `hidden` until it passes evaluation and the owner approves its data-use text ([ADR-0001](decisions/ADR-0001-user-provided-ai.md), decision 3).
 
 ---
 
@@ -461,6 +464,7 @@ Held operations are not tried again by themselves. For per-email reads, a call w
 ### 10.1 Verify (on save, and "Check again")
 
 - **Content-free:** the provider's model lookup for each selected model. Gemini, OpenAI and Anthropic all expose one. No tokens, no email data, not an AI operation, not counted in the limit.
+  - **OpenRouter** (owner decision, 2026-10-17): its model lists are public, so a lookup proves nothing about a key. It reads the key's own record (`GET /key`: a rejected key, or no credit left under the key's limit), then one list of servers that keep nothing (`GET /endpoints/zdr`): each selected model needs a server that takes every parameter sent.
 - **Three results:**
   - verified
   - rejected (with a category and the provider-specific fix)
@@ -558,7 +562,7 @@ Test applied to every pattern: *what problem does it solve for Career Companion?
 | --- | :-: | :-: | :-: | :-: |
 | Gemini, OpenAI, Claude (each after passing evaluation) | ● | | | |
 | Kimi, DeepSeek, Mistral via the OpenAI-compatible adapter | | ● | | |
-| Aggregator as a curated entry | | | ● | |
+| Aggregator as a curated entry (OpenRouter; owner decision, 2026-10-17: moved from Later) | | ● | | |
 | Azure / Bedrock / Vertex credentials | | | ● (if demanded) | |
 | User-entered endpoints, local models, free-form model names | | | | ● |
 | Provider cards with cost model, data-use summary, guided key steps | ● | | | |
@@ -633,6 +637,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 
 **Accepted V1 architecture (ADR-0001, 2026-10-02):**
 - **Providers:** Gemini, OpenAI and Claude, through protocol adapters. Each is officially supported only after passing Career Companion's synthetic AI evaluation.
+  - **Owner decision, 2026-10-17:** OpenRouter joins as a fourth provider with its own small adapter and two small models, `hidden` until certified ([ADR-0001](decisions/ADR-0001-user-provided-ai.md), decision 3).
 - **Contracts:** provider-neutral, owned by Career Companion.
 - **Setup:** one active AI provider setup per user. Credentials are encrypted and write-only (§7), and the privacy lists in §8 apply.
 - **Catalog:** providers and models are limited to Career Companion's code-defined catalog with fixed base URLs. The recommended model is the default; Advanced selection is limited to tested supported models.
@@ -652,7 +657,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 | O3 | Data-use and residency statements per provider | Write from current terms at catalog entry; review when entries change |
 | O4 | Safety-limit value and bounds, and whether users may adjust it | Set from expected daily email volume; an application safeguard, not a quota estimate |
 | O5 | SDK or library behind the adapter interface | Decide in step 1 against the §5.2 criteria |
-| O6 | Whether V1.x providers with non-EU/US data residency are offered at all | Product decision before each entry; disclose clearly if offered |
+| O6 | Whether V1.x providers with non-EU/US data residency are offered at all | Product decision before each entry; disclose clearly if offered. Owner decision, 2026-10-17 (OpenRouter): no block by country or company for now; only servers that keep nothing; decide again before real users. |
 | O7 | Authoritative repository and Sprint 6 commit | Required before an implementation branch |
 | O8 | Who relies on the hosted key in production today | Confirm; they choose a provider at rollout |
 | O9 | Catalog contents, default models, final UI wording | Decide during implementation and evaluation |
@@ -668,3 +673,4 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 | 0.3 | 2026-10-02 | Provider experience re-evaluated. Added a curated multi-provider set (Gemini, OpenAI, Claude in V1; OpenAI-compatible providers such as Kimi in V1.x), protocol adapters, provider-neutral contracts, code catalog with capability metadata, evaluation gate, guided setup, per-provider consent, sample test, usage and personal limit, provenance labels, fixed base URLs. Kept the single active configuration and all v0.2 simplifications not affected by provider choice. |
 | 0.4 | 2026-10-02 | V1 provider set (Gemini, OpenAI, Claude, evaluation-gated) accepted. Added S6-R06 as a precondition. |
 | 0.5 | 2026-10-02 | ADR-0001 accepted in full. The per-user limit is defined as an application safety control, separate from provider quota and billing; its value and adjustability are left to implementation. User-approved retry moved into V1. §15 lists the accepted architecture and the implementation decisions. |
+| 0.6 | 2026-10-17 | OpenRouter moved from Later to V1.x as one curated entry with its own small adapter (ADR-0001 decision 3, owner amendment), two small models, servers that keep nothing only, `hidden` until certified. |
