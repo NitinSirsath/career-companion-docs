@@ -1,67 +1,112 @@
 # Career Companion Design System
 
-This document outlines the IBM-inspired frontend design foundation for Career Companion.
+Design part 1, built on 18 Oct 2026 from the plan the owner approved on 17 Oct 2026 and the approved mock: https://claude.ai/artifact/VWAgcutaXtATYMXhRXc4Mx. The rules every agent must follow are in [AI_UI_RULES.md](AI_UI_RULES.md).
 
-## Core Philosophy
-- **Precise, Calm, Information-Rich:** The UI should feel like a professional operational tool, not a generic SaaS dashboard.
-- **Square Geometry:** `0px` border radius everywhere.
-- **Restrained Color:** Components consume semantic design tokens. Themes define semantic token values. Never hardcode colors.
-- **Hairlines over Shadows:** Hierarchy is achieved through semantic borders (`border-default`, `border-strong`) and surface colors (`surface`, `surface-subtle`), avoiding heavy box-shadows.
+The look is IBM Carbon, made for daily work: layers instead of borders, one type scale, short productive motion, Carbon icons. The goal is a mature, calm tool, not a showcase.
 
 ## Themes
-The application supports a multi-theme architecture:
-- **Light:** Primary IBM-inspired light theme.
-- **Dark:** IBM-inspired dark theme.
-- **Grey:** Neutral grey-oriented theme.
-- **GitHub:** GitHub-inspired color theme.
-- **Monokai:** Monokai-inspired color theme.
 
-Theme switching dynamically updates CSS variables defined in `.theme-*` root classes. 
+Four choices: **System**, **Light** and **Dark** (owner decision, 17 Oct 2026), and **White** (owner decision, 18 Oct 2026). System follows the computer's setting (Light or Dark). Grey, GitHub and Monokai are gone.
 
-## Typography
-- **Primary Font:** IBM Plex Sans (`var(--font-sans)`)
-- We rely on native font weights and tracking to establish hierarchy rather than excessive size differences.
+| Theme | Carbon theme | Page | Card | Text |
+| --- | --- | --- | --- | --- |
+| Light | Gray 10 | `#f4f4f4` | `#ffffff` | `#161616` |
+| White | White | `#ffffff` | `#f4f4f4` | `#161616` |
+| Dark | Gray 100 | `#161616` | `#262626` | `#f4f4f4` |
 
-## Tokens (Tailwind v4 Semantic Variables)
+The theme is chosen in the account menu and on the Account page. Every colour is a token in `src/index.css` (`:root, .theme-light`, `.theme-white` and `.theme-dark`; White only overrides what differs from Light); components use the Tailwind names of the tokens (`bg-surface`, `text-text-secondary`), never a hex value.
 
-### Surfaces
-- `bg-surface`: The primary canvas.
-- `bg-surface-subtle`: Secondary canvas (hovers, backgrounds).
-- `bg-surface-raised`: Elevated surface (cards, modals).
-- `bg-surface-selected`: Visually distinct active indicator for selected navigation items.
-- `bg-surface-disabled`: For explicitly disabled states.
+## Layers
 
-### Borders
-- `border-border-subtle`: Very subtle dividing line.
-- `border-border-default`: Standard hairline.
-- `border-border-strong`: Stronger emphasis hairline.
-- `border-border-focus`: Primary interaction indicator.
+- **Page** (`bg-background`), then **card** (`bg-surface`: one step lighter than the page in Light and Dark, one step darker in White), then **inner layer** (`bg-layer-accent`, for table headers, code and meters).
+- Thin borders (`border-border-subtle`) only between rows and sections. No shadows. No rounded corners, except round status dots and avatars.
+- The user's own mails sit on `bg-tint`, a light blue layer.
 
-### Text
-- `text-text-primary`: Primary ink.
-- `text-text-secondary`: Secondary ink.
-- `text-text-tertiary`: Muted ink.
-- `text-text-disabled`: Non-interactive ink.
-- `text-text-inverse`: Contrast ink against primary action backgrounds.
+## Type
 
-### Action Colors & States
-- `bg-action-primary` & `hover:bg-action-primary-hover`: Main calls to action.
-- `bg-action-secondary` & `hover:bg-action-secondary-hover`: Secondary actions.
-- `bg-action-danger` & `hover:bg-action-danger-hover`: Destructive actions.
+IBM Plex Sans and IBM Plex Mono, Carbon's productive scale:
 
-### Status Semantic Colors
-- `bg-status-success-subtle text-status-success`: e.g. OFFERS, COMPLETE
-- `bg-status-warning-subtle text-status-warning`: e.g. PENDING, ASSESSMENT
-- `bg-status-error-subtle text-status-error`: e.g. REJECTED, DISMISSED
-- `bg-status-info-subtle text-status-info`: e.g. RECRUITER CONTACT
-- `bg-status-neutral-subtle text-status-neutral`: e.g. INTERVIEW, DEFAULT
+| Use | Size / line height | Weight |
+| --- | --- | --- |
+| Page title (`h1`) | 28 / 36 | regular |
+| Section title in a card (`h2`) | 20 / 28 | regular |
+| Settings row title | 16 / 22 | semibold |
+| Body | 14 / 20 | regular |
+| Label, help and meta text | 12 / 16, letter spacing 0.32px | regular |
 
-## Components
-- Reusable primitives are located in `src/components/ui/`.
-- Use `Button` variants (`primary`, `secondary`, `tertiary`, `ghost`, `danger`) instead of building custom buttons.
-- Use `Badge` for status indication mapped semantically. Application status uses the shared `StatusBadge`/`EffectiveStatus` (`src/components/ApplicationStatus.tsx`); a null status renders as an outline "Status unknown" badge.
-- Use `NativeSelect` (`src/components/ui/native-select.tsx`, added Sprint 6) for single-choice fields: a styled native `<select>` with the same square border, token colors and focus ring as `Input`. Keyboard and screen-reader behavior come from the platform; always pair it with a `Label` via `id`/`htmlFor`.
+Sentence case everywhere ("Sync now", not "Sync Now").
 
-## Layout
-- **Desktop:** Persistent left sidebar. Content area constrained and centered where appropriate.
-- **Mobile:** Bottom navigation bar. Forms and lists should transform to vertical stacks. Do NOT squeeze desktop sidebars onto mobile screens.
+## Width and spacing
+
+- One width for every page: the full width up to **1584px**, centred beyond (`src/routes/__root.tsx`). Laptops use the whole width; margins only appear on very large screens.
+- Spacing follows Carbon's 8px grid: 8, 16, 24, 32, 48. Cards use 24px side padding and 20px top and bottom.
+- Phones: 16px side gutter, no sideways scroll; tables stack each row's cells.
+
+## Page structure
+
+- `PageHeader` (`components/layout/PageHeader.tsx`): breadcrumb on detail pages, one title, one line of description, actions on the right (at most one primary).
+- `Breadcrumb`: "Mails / Lumen Apps". It leads back to the list as the user left it (the list's search is remembered).
+- Detail pages: a main column and a 360px side column from `lg` up.
+- Settings pages (`SettingsSection`): each section is a row, title and short help on the left third, the controls in a card on the right.
+
+## Motion
+
+Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `ease-entrance` (0, 0, 0.38, 0.9), `ease-exit` (0.2, 0, 1, 0.9).
+
+| Time | Use |
+| --- | --- |
+| 70ms | hover and pressed colours |
+| 110ms | dropdowns and menus open |
+| 150ms | a section unfolds, a page fades in (`animate-open`, `animate-page-in`) |
+| 240ms | dialogs and toasts come and go |
+
+Motion is short and quiet and never needed to understand the screen. With "reduce motion" on, it is off.
+
+## Icons
+
+Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the menu. The AI is shown with Carbon's machine-learning model icon, never a sparkle.
+
+## Shared parts (`src/components/ui/`)
+
+| Part | Use it for |
+| --- | --- |
+| `Button` | primary (one per view), secondary, tertiary, ghost, danger, danger-ghost; `loading` shows a spinner |
+| `Select` | a short fixed list; never the browser's own select |
+| `Combobox` | a long list or one the server loads: type to search |
+| `OverflowMenu` (`menu.tsx`) | the "…" menu for actions that are not the main one; danger actions last and red |
+| `DataTable` | every list; sorting, filtering and paging stay on the server; skeleton rows while loading |
+| `Toolbar` | search and filters above a table, in one row |
+| `Tabs` | switching between views of one list |
+| `Tag` | statuses and counts; colours from `lib/statusTags.ts` only |
+| `InlineNotification` | a notice inside a page: info, success, warning, error |
+| `SectionError` | a part of the page that did not load: plain words and "Try again", never the raw error |
+| `EmptyState` | "nothing here": why, and the one next step |
+| `Skeleton`, `SkeletonList` | loading |
+| `Dialog` | a confirm or a short form; Carbon footer buttons |
+| `showToast` (`toast.tsx`) | a short confirmation after an action, with Undo where the app can really undo |
+| `CodeSnippet` | one line to copy, with a copy button |
+| `Avatar` | initials of a person |
+
+## Status colours
+
+One map, in `src/lib/statusTags.ts`. Colour carries meaning only here:
+
+| Status | Tag |
+| --- | --- |
+| Applied | gray |
+| Recruiter contact | cyan |
+| Assessment | teal |
+| Interview | blue |
+| Offer | green |
+| Rejected | red |
+| Closed | outline |
+| Status unknown, Sent by automation, Archived | outline |
+
+The to-do state ("Needs action", yellow) and the mail type never reuse these looks.
+
+## Loading, empty and error states
+
+- Loading: skeletons shaped like the content, never a bare "Loading…".
+- Empty: `EmptyState` says why and offers the next step.
+- Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
+- A save that may or may not have happened is read back from the server and never sent again by itself.
