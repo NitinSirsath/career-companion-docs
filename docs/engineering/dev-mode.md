@@ -22,7 +22,7 @@ The frontend has no mode setting. At start it asks the backend (`GET /api/app-mo
 
 ## 2. Hard rules
 
-1. **Never in production.** `APP_MODE=dev` with `NODE_ENV=production` stops startup. In prod mode every sandbox path answers 404 before login, the sandbox pages are "not found", and the frontend asks nothing of the sandbox API.
+1. **Never in production.** `APP_MODE=dev` with `NODE_ENV=production` stops startup. In prod mode every sandbox path answers 404 before login, the sandbox pages are "not found", and the frontend asks nothing of the sandbox API. The one exception is a test account (section 7): it uses the sandbox in prod mode, and nobody else does.
 2. **Sandbox only.** Dev mode never talks to Google: no Google client is built, no Google key is needed, and real Gmail cannot be connected. The dev database never holds real mail.
 3. **Separate database, same standard.** Dev mode starts only on a database whose name ends in `_dev`; prod mode refuses such a database; automated tests keep their `test` databases. The three can never share one. All use the same schema and migrations.
 4. **Real AI only.** There is no fake AI, no ready-made AI result and no preloaded sample data. Everything a tester sees comes from a mail they sent. With no AI key, mail is synced but not read, and the app says "AI key is not set up". Fake AI errors, to test the error screens, are a separate command and never part of `npm run devmode` (section 6).
@@ -80,6 +80,18 @@ Steps:
 
 Fake errors leave their states in the dev database: pauses, a rejected key, failed mails. Use a separate test user, or afterwards, in `npm run devmode`, save the key again and choose **Reset dev data**. The app's own pause lengths are not shortened. To try again sooner, "Read waiting mails now" sends one waiting mail as a test at once.
 
-## 7. Not built yet
+## 7. Test accounts on a shared deploy
+
+Owner decision, 2026-10-20: one deploy (Render's free plan has one server and one database) serves real users and testers. Everyone signs in with Google and uses real Gmail. A few fixed **test accounts** sign in on their own page and use the mail sandbox instead of Gmail, with a real AI provider. This is prod mode, not dev mode: nothing else changes.
+
+- **Setting:** `TEST_ACCOUNTS=dev1@test.com:<password>,dev2@test.com:<password>` in the backend's settings. At most 5 accounts. Each password is 16 to 200 characters. Empty: no test accounts, and the sandbox answers 404 before login as before.
+- **Passwords:** long and random, one per account, kept only in the host's secret settings (on Render: Environment, as a secret). Never in code, GitHub or chat. Hand each tester theirs privately.
+- **Created at start:** every server start creates a missing test account and sets its password to the setting. A changed password ends the account's sessions. An account already linked to Google is left alone. There is no other way to create one.
+- **Sign-in:** `/test-login`, not linked from `/login`; share the address with the tester. It takes test accounts only (`POST /api/auth/test-login`, 403 `NOT_TEST_ACCOUNT` for any other email), with the same guessing limits as the normal sign-in. The normal sign-in and Google sign-in refuse a test account. A test account cannot change its password in the app.
+- **In the app:** a "Test account" banner, the **Mail sandbox** menu entry and **Connect sandbox mailbox** on the Gmail Sync page. From there it works as in section 4, steps 2 to 9. Real users never see any of it.
+- **How it works:** one check, "does this user use the sandbox?", is true in dev mode for everyone and in prod mode for test accounts (`services/testAccounts.ts`). `withGmail`, Gmail connect and disconnect, replies and the sandbox routes ask it instead of the app mode. `GET /api/auth/me` says `testAccount: true`. Each test account has its own sandbox mailbox.
+- **Shared database:** test data sits in the same tables as real data and belongs to the test account's user, like any user's data. Leave the test accounts out when counting across all users.
+
+## 8. Not built yet
 
 Later work, tracked as `[Later]` issues of the dev mode epic: choosing a mail's arrival time, attachments, search, and an AI writer for test mail. A received sandbox mail always arrives in Gmail's "Primary" category, and a new mail always goes to the user's own inbox.
