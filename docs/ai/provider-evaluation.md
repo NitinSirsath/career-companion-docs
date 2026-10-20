@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | **No provider certified yet (2026-10-02).** All four catalog providers are `hidden`: usable in development and tests, never offered in production. |
+| Status | **No provider certified yet (2026-10-02).** All four catalog providers are `hidden`: usable in development and tests, never offered in production except on a test deploy (see "Test deploys" below). |
 | Decision | [ADR-0001](../architecture/decisions/ADR-0001-user-provided-ai.md) decision 2; [BYO AI plan §7](../planning/byo-ai/README.md#7-provider-evaluation-plan) |
 | Code | backend `src/eval/ai/` (dataset, scorer, runner); catalog `src/contracts/aiCatalog.ts` |
 
@@ -71,6 +71,15 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 3. **Disclosure:** the catalog's data-use text (summary, training, residency) checked against the provider's current terms and **approved by the owner**. Then set `disclosure.reviewedOn` and a new `disclosure.version`.
 4. **Links:** key, billing and terms links open the right pages.
 5. **Catalog PR:** `status: 'supported'`, `evaluation` filled for each model, recommended models set. The catalog test refuses `supported` without these.
+
+## Test deploys (`AI_SHOW_HIDDEN_PROVIDERS`)
+
+Owner decision, 2026-10-20: the Render test deploy (owner and one friend) runs with `NODE_ENV=production` and uses OpenRouter with GPT-6 Sol before any provider is certified. The 44-mail certification is not run for it.
+
+- Backend setting `AI_SHOW_HIDDEN_PROVIDERS=true` offers the `hidden` providers in production too. Empty (the default) offers only `supported` ones. Any other value stops startup.
+- While it is on in production, startup logs the warning "AI_SHOW_HIDDEN_PROVIDERS is on: uncertified AI providers are offered. Test deploys only."
+- It changes no catalog entry: every provider stays `hidden` and uncertified, and users still see each provider's draft data-use text before they save a key.
+- Never set it for real users. Before real users: remove it and certify the provider with the checklist above.
 
 ## Current status
 
