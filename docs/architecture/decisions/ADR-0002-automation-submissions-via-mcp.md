@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Status | **Accepted** by the owner on 2026-10-02 after explicit review ([Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md)). **SDK line decided by MCP-00 (2026-10-02): v2**: `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. The spike also used `/express` 2.0.1, but Career Companion does not: it re-types `req.auth` for the whole app (plan review 2026-10-02, MCP-04). Claude Code is verified on 2026-07-28. Antigravity is the target client and is verified in MCP-09. Codex is unsupported in the owner's environment ([spike report](../../planning/mcp-feature/MCP-00-spike-report.md)). **Implemented locally 2026-10-02** (MCP-01 to MCP-07 and MCP-09 part A; [execution report](../../planning/mcp-feature/execution-report.md)). MCP-08 is staged for the automation repository, and MCP-09 part B (Antigravity) is run by the owner. |
-| Date | 2026-10-02 |
+| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)) |
 | Decides | How applications submitted by `job-application-automation` reach Career Companion: where the MCP server lives, which data crosses the boundary, how it is authenticated, how it is matched to existing applications, and which system owns what |
 | Plan | [MCP Feature Planning — Automation submissions](../../planning/mcp-feature/README.md) |
 
@@ -229,3 +229,23 @@ These are not designed now. Each is additive.
 - **Local, read-only answer viewer:** a stdio MCP server inside the automation, limited to `applied/**/applications.md`, so the user's own AI host can show submitted answers without them leaving the laptop.
 - **Deterministic backfill:** a REST import endpoint or script reusing the same submission service.
 - **Unlink and re-resolve:** an explicit user action with event history.
+
+## Amendment of 2026-10-21: full automation details
+
+Decided by the owner on 2026-10-21 (Linear COM-277; backend COM-278, frontend COM-279, automation COM-92). Where this section and the decisions above differ, this section wins. The text above is kept as the record of the first decision.
+
+**Why:** in the real test on 2026-10-20 the automation sent nothing until the owner asked, because its `AGENTS.md` never mentioned Career Companion (MCP-08 was staged but never applied), and the app showed no job link, platform or time for automation applications. The owner wants the complete details of where they applied in one place. The data stays in the user's own account.
+
+1. **More data crosses the boundary (changes decision 4).** `record_application_submission` also accepts:
+   - `applyUrl`: the full `http`/`https` address of the page where the form was submitted, at most 2048 characters. Stored with its query string; the fragment and any user name or password are dropped.
+   - `resumeFilename`: the file name only, at most 255 characters. Never the resume or its content.
+   - `submittedAnswers`: every screening question and answer as written in the daily file, including salary and notice period. At most 50 pairs; a question is 1–500 characters and an answer at most 2000. Shown as plain text only.
+   - Still never sent: credentials and account records, the resume content, and plan, limit, cooldown, tab or session state. Unknown keys are still rejected, also inside an answer.
+2. **Jobs not applied to are recorded apart (changes decision 4 and the tool list in decision 3).** A second write-only, idempotent tool, `record_not_submitted_job`, records a `skipped` or `needs_user` entry with its reason (`NotSubmittedJob`). It never creates, links or changes an application. The automation sends these at the end of each session.
+3. **A repeat fills only empty fields (changes decisions 5 and 6).** A repeat of the same `sourceRecordRef` still returns `already_recorded` and never redoes the match, but it now fills optional fields that are still empty. A saved value is never changed. The same rule applies to not-submitted jobs (their job link).
+4. **The body limit is 128 KB (changes decision 11),** to fit 50 answers. The daily limit `MCP_DAILY_SUBMISSION_LIMIT` counts submissions and not-submitted jobs separately.
+5. **The automation sends each job as it finishes (changes decision 12).** Sync is on when `Career Companion server` in the automation profile holds the server address. At session start the agent wakes the server (`<server>/health`; a free host can sleep for 30–60 seconds), sends each `applied` entry right after it is written, retries a failed send once at least 60 seconds later, and at the end of the session sends the not-submitted entries and resends failed ones. The entry line is `Career Companion sync: sent | already recorded | failed (<reason>)`.
+6. **What the app shows.** Application responses carry `automation` (platform, job link, submitted time of the newest linked or created submission). `GET /api/applications/:id/submissions` returns every stored detail. `GET /api/submissions/not-submitted` lists the jobs not applied to. `GET /api/integration-tokens/connection` returns the backend address the automation uses (`https://` and the first `MCP_ALLOWED_HOSTS` name), because the frontend and the backend have different addresses on the deployed app.
+7. **Deleting automation applications is not part of this amendment.** The owner dropped it on 2026-10-21; archive stays the way to hide one.
+
+Ownership changes accordingly: Career Companion now also keeps a copy of the submitted answers, the resume file name, the apply page link and the not-submitted outcomes. The automation's daily file stays the source of truth.
