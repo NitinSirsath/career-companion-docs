@@ -364,7 +364,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 ### UF-11 — Connect the User's Own Automation (ADR-0002)
 
-**Entry point:** "Automation" in the navigation.
+**Entry point:** "Automation" in the navigation, **Setup** tab.
 
 **User intent:** Let the user's own job-application automation tell Career Companion about each application it submits.
 
@@ -372,7 +372,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 1. User names a token (for example the computer it is used on) and chooses an expiry (30, 90, 180 or 365 days; default 90).
 2. Career Companion shows the token once, with a copy button and a warning that it will not be shown again. "Done, I saved it" removes it from the page.
-3. The page shows the MCP server URL and the setup steps: add the server to the AI client's user-level settings with the `Authorization: Bearer` header (never in a repository file), allow the one tool, and turn on "Career Companion sync" in the automation profile.
+3. The page shows the MCP server URL (the backend's own address, which differs from the page's on the deployed app) and the setup steps: add the server to the AI client's user-level settings with the `Authorization: Bearer` header (never in a repository file), allow the two tools, and add the line `- Career Companion server: <address>` to the automation profile. It lists every field that is sent.
 4. The list shows each token's name, prefix, status (active, expired, revoked), last use and expiry.
 
 **Edge/error states:**
@@ -384,20 +384,22 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 ### UF-12 — Automation Reports a Submission (system flow, ADR-0002)
 
-**Trigger:** the user's automation agent appends an `applied` entry to its daily file after the site confirmed the submission, and calls `record_application_submission` once with values copied from the entry.
+**Trigger:** the user's automation agent appends an `applied` entry to its daily file after the site confirmed the submission, and right then calls `record_application_submission` once with values copied from the entry, including the apply page link, the resume file name and every submitted question and answer. At the end of the session it calls `record_not_submitted_job` for each `skipped` or `needs_user` entry, with the reason.
 
 **Flow:**
 
 1. Career Companion identifies the user from the token only.
-2. A repeat of the same `sourceRecordRef` returns `already_recorded`; nothing changes.
+2. A repeat of the same `sourceRecordRef` returns `already_recorded`; it only fills fields that are still empty and never changes a saved one.
 3. The submission is matched conservatively: no application at that company → a new application is created (`appliedAt` = submission time); exactly one with the same title and none untitled → linked; anything else → waits for review.
 4. A linked or created submission adds a "Submitted via automation" timeline entry. The application shows "Applied · via automation" until a user or AI status exists.
+5. In the Applications table an automation row also shows the platform, a job link icon (opens the job post in a new tab) and the applied time under the date. The application page gets two tabs: **Overview** (as before) and **Automation details**: job post and apply page links, platform, where the job was found, location, work mode, job ID, submitted time, the site's confirmation, resume file name and all submitted answers. A field that was not sent says "Not sent".
+6. The Automation page's **Submitted** tab keeps the review list on top and lists every application the automation sent, archived ones included. The **Not submitted** tab lists the jobs it did not apply to: company and title, platform with job link, a "Skipped" or "Needs you" tag with the reason, and the time. They never become applications.
 
-**Never:** submitted answers, resume, credentials, `skipped` or `needs_user` entries. Unknown fields are rejected (`invalid_input`, naming the field). A failure never blocks applying; the daily file stays the source of truth and a day can be replayed safely.
+**Never:** resume content or credentials. Unknown fields are rejected (`invalid_input`, naming the field). A failure never blocks applying; the agent retries once, resends failed sends at the end of the session, and a day can be replayed safely. Links open only when they are `http`/`https`; all text is shown as plain text.
 
 ### UF-13 — Review an Uncertain Automation Submission (ADR-0002)
 
-**Entry point:** "Automation submissions to review" at the top of the Automation page (moved from the old dashboard on 2026-10-11).
+**Entry point:** "Waiting for a match" at the top of the Automation page's **Submitted** tab (moved from the old dashboard on 2026-10-11).
 
 **Main flow:** each card shows company, title, platform, destination, location, work mode, submission and recording times, the confirmation text and, for an `http`/`https` URL only, a link to the posting. The user links it to an existing application (choose, then "Link"), creates a new application from it, or ignores it.
 
@@ -620,6 +622,7 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.0 | 2026-08-30 | Incorporated review findings; finalized MVP flows and boundaries. |
 | 1.1 | 2026-10-02 | Added UF-11 to UF-13: automation tokens, automation-reported submissions and their review (ADR-0002). |
 | 1.2 | 2026-10-11 | Mail-first walkthrough (COM-158): added UF-14 to UF-16; the Mails page replaces the dashboard as home; the automation review moved to the Automation page. |
+| 1.3 | 2026-10-21 | Full automation details (COM-277): UF-11 to UF-13 updated for the Automation page tabs, the application page's Automation details tab, the table's automation cells and the jobs not submitted. |
 | 1.3 | 2026-10-12 | Sign-in with email and password (COM-183): UF-01 renamed "Sign In"; added UF-17. Dev mode and its mail sandbox are a testing tool, described in engineering/dev-mode.md, not a user flow. |
 | 1.4 | 2026-10-13 | UF-16: reply to a mail from the app (COM-176); a reply goes to everyone on the mail unless the user chooses the sender alone, and a mail names the other people on it. UF-03 names the send permission. The Agenda is back in the navigation as "Coming soon". |
 | 1.5 | 2026-10-15 | Dated notes where the app differs: no first-run screen (UF-02); connecting does not start a sync (UF-03); sync runs on Sync Now and twice a day (UF-04); mail never creates an application by itself (UF-05); Discord for one configured user (§5). |

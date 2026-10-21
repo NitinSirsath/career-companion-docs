@@ -6,6 +6,7 @@
 
 ### Version History / Implementation Notes
 - **v1.4 (mail-first walkthrough, COM-158):** conversations as a read model over `Email` (§4.3a), the New mark and the user's answer to a request on `Email`, and `OutgoingEmail` (§4.3b). An application can now also be created from a job-mail conversation, by the user's one click (§6).
+- **v1.4 (ADR-0002 amendment, 2026-10-21):** `ExternalSubmission` also keeps `applyUrl`, `resumeFilename` and `submittedAnswers`, and a repeat fills only empty fields; new `NotSubmittedJob` for jobs the automation did not apply to; `ApplicationResponse.automation` (§4.8).
 - **v1.3 (MCP feature, ADR-0002):** `IntegrationToken` and `ExternalSubmission` (§4.8), the `AUTOMATION_SUBMITTED` event, `submittedVia` on applications, and their ownership triggers. Automatic application creation is allowed for automation submissions only; Gmail never creates applications.
 - **v1.2 (Sprint 6):** Canonical status read fields, the `userStatusRevision` manual-correction token and owned set/change/clear semantics (§4.5). Implemented history is recording-ordered processing events with bounded owned source-email evidence; no `occurredAt` exists in the implemented schema (§4.6 "Implemented history boundary").
 - **v1.1 (Sprint 2):** Implemented `GmailConnection` and `Email` schemas. `GmailConnection` includes encrypted token fields and sync status. `Email` intentionally omits `snippet` and `body` (privacy decision: only metadata headers `Subject`, `From`, `Date` are ingested); `threadId` is implemented as a dedicated column.
@@ -44,6 +45,7 @@ The model is intentionally production-minded but limited to the current MVP. It 
 - `AIConfiguration` — the user's one active AI provider setup (ADR-0001): provider, sealed key, model choices, access state, consent.
 - `IntegrationToken` — a per-user bearer token for the MCP endpoint (ADR-0002); only its hash is stored.
 - `ExternalSubmission` — evidence that the user's own automation reported a confirmed submission (ADR-0002).
+- `NotSubmittedJob` — a job the user's own automation looked at but did not apply to, with the reason (ADR-0002 amendment). Never an application.
 
 ### Infrastructure boundary
 
@@ -284,7 +286,7 @@ The implemented `application_events` table records processing events (for exampl
 - `Action` requires an Application in MVP. Unmatched/ambiguous email processing must be resolved before creating an application-bound action.
 - What such an email asks is still shown to the user on its conversation before any `Action` exists (§4.3a). If the user marked it done there, the `Action` created later starts as `COMPLETED` and sends no reminder.
 
-### 4.8 IntegrationToken and ExternalSubmission (ADR-0002)
+### 4.8 IntegrationToken, ExternalSubmission and NotSubmittedJob (ADR-0002)
 
 **IntegrationToken** (`integration_tokens`, deleted with the user)
 
@@ -301,17 +303,31 @@ The implemented `application_events` table records processing events (for exampl
 | Field | Meaning |
 | --- | --- |
 | `source`, `sourceRecordRef` | `AUTOMATION` and `YYYY-MM-DD/HH:MM:SS` from the automation's daily file. Unique per `(userId, source, sourceRecordRef)`: the idempotency key. |
-| `platform`, `company`, `jobTitle`, `submittedAt`, `jobUrl`, `portalJobId`, `destinationHost`, `discoverySource`, `location`, `workMode`, `confirmationText` | The ADR-0002 contract fields, trimmed and canonical (job URL without fragment, credentials or non-job-ID query parameters; confirmation truncated to 300 characters). Never submitted answers, resume data or credentials. |
+| `platform`, `company`, `jobTitle`, `submittedAt`, `jobUrl`, `portalJobId`, `destinationHost`, `discoverySource`, `location`, `workMode`, `confirmationText` | The ADR-0002 contract fields, trimmed and canonical (job URL without fragment, credentials or non-job-ID query parameters; confirmation truncated to 300 characters). |
+| `applyUrl`, `resumeFilename`, `submittedAnswers` | Added 2026-10-21: the full apply page address (without fragment or credentials), the resume file name, and the `[{ question, answer }]` list as written in the daily file (JSON; null when none were sent). Never resume content or credentials. |
 | `receivedAt`, `tokenId` | When Career Companion recorded it, and the token used (SetNull). |
 | `matchState` | `NEEDS_REVIEW`, `LINKED`, `CREATED` or `IGNORED`. |
 | `resolvedBy`, `resolvedAt` | `AUTOMATIC` (rule-based, never AI) or `USER`, and when. Both null exactly while `NEEDS_REVIEW` (CHECK). |
 | `applicationId` | The linked or created application (SetNull). |
 
 Rules:
-- A submission is evidence, not a replica: a later call with the same ref never updates it. A user resolution is final in v1.
+- A submission is evidence, not a replica: a later call with the same ref fills only optional fields that are still empty and never changes a saved value or the match (amended 2026-10-21). A user resolution is final in v1.
 - Matching (ADR-0002 §7) uses a company key (the existing normalization after dropping trailing legal-suffix words) and the existing title key. No same-company application → `CREATED`; exactly one same-title application and no untitled one → `LINKED`; anything else, or an empty key → `NEEDS_REVIEW`. The Gmail matcher is unchanged.
 - Created applications get the submitted company, title and location, and `appliedAt = submittedAt`. Linking sets `appliedAt` only when it is empty. `aiStatus`, `userStatus` and `deriveStatus` are never touched.
+- `ApplicationResponse.automation` holds the platform, job link and submitted time of the newest linked or created submission (owner-checked), or null. `GET /api/applications/:id/submissions` returns every stored field of those submissions.
 - `ApplicationResponse.submittedVia` is `AUTOMATION` when a linked or created submission exists. The UI shows "Applied · via automation" only while `statusSource` is `UNKNOWN`; a user or AI status always wins.
+**NotSubmittedJob** (`not_submitted_jobs`, deleted with the user; added 2026-10-21)
+
+| Field | Meaning |
+| --- | --- |
+| `source`, `sourceRecordRef` | As for `ExternalSubmission`; unique per `(userId, source, sourceRecordRef)`. |
+| `outcome` | `SKIPPED` or `NEEDS_USER`, from the daily file's status. |
+| `platform`, `company`, `jobTitle`, `jobUrl` | As reported; the job link is canonical like `jobUrl` above. |
+| `reason` | The skip reason, or the unanswered question or next step, 1–1000 characters. |
+| `loggedAt`, `receivedAt`, `tokenId` | When the automation wrote the entry, when Career Companion recorded it, and the token used (SetNull). |
+
+Rules: it never creates, links or changes an application. A repeat fills only an empty job link. Listed newest first on the Automation page ("Not submitted").
+
 - Ownership triggers reject: a submission linked to another owner's application or token; a change of a submission's or token's owner; an event whose submission belongs to someone other than the application's owner. Links are checked when set or changed, so SetNull deletions never fail.
 
 ## 5. Relationships
@@ -327,6 +343,8 @@ User
 ├── 1:N ExternalSubmission
 │   ├── N:1 IntegrationToken (optional; SetNull)
 │   └── N:1 Application (optional; via matchState)
+├── 1:N NotSubmittedJob
+│   └── N:1 IntegrationToken (optional; SetNull)
 └── 1:N Application
     ├── 1:N ApplicationEvent
     │   ├── N:1 Email (optional evidence)
