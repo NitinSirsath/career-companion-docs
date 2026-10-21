@@ -1,5 +1,7 @@
 # MCP-08 — Staged changes for `job-application-automation`
 
+> **Applied, as updated, on 2026-10-21 (COM-92).** These staged changes were never applied as written. COM-92 applied an updated version to `job-application-automation`: `AGENTS.md` section 11A, the `Career Companion server` profile line instead of the yes/no flag, per-job sends with one retry and an end-of-session resend, the not-submitted entries, and the README setup. It follows the [ADR-0002 amendment of 2026-10-21](../../architecture/decisions/ADR-0002-automation-submissions-via-mcp.md#amendment-of-2026-10-21-full-automation-details), which replaces the "never send answers" rule below. The text below is kept as the record of the 2 October plan.
+
 > **Before applying (2026-10-02):**
 > - The staged README sentence below says only six fields are sent. The tool contract sends twelve (also `sourceRecordRef`, `submittedAt`, `portalJobId`, `destinationHost`, `discoverySource`, `workMode`). Correct it to match ADR-0002 decision 4. No answers, resume or credentials are sent; that part is accurate.
 > - Add one line: the feature needs a Career Companion instance the user runs locally.
