@@ -18,6 +18,7 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 - Owner decision, 22 Oct 2026: themes are System, Light (flat white) and Dark (Render's near-black `#0d0d0d` and greys, with quiet dark-tinted tags and notices). The White theme and the grey Light page of design part 1 are gone.
 - Owner decision, 17 Oct 2026: the menu can collapse to icons, and the app remembers the choice. Agenda stays out of the menu until it works.
 - Owner decision, 18 Oct 2026: the Dashboard is not part of design part 1; it stays as it is and is a [Later] issue.
+- Owner decision, 22 Oct 2026: on phones the app feels like a phone app (mock option B with square corners): a top bar of square cells (menu, page name, search, "+", account), a menu drawer from the left, three pages in the bottom bar, one tappable row per mail with swipe to mark done, a floating Reply button and a full-screen reply. Square corners as on laptops: only true circles are round.
 - Owner decision, 21 Oct 2026: show/hide sections, dialogs and dropdowns never change size in one jump. They grow and shrink with the shared `Collapse`, `Reveal` and `AutoHeight` (demo "Motion: today vs new" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv).
 
 ## Do this
@@ -31,7 +32,7 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 7. **Every state.** Loading shows a skeleton; empty says why and offers the next step; an error says what failed in plain words and offers "Try again". One failed part never hides the rest of the page.
 8. **Safe saves.** A save that may or may not have happened is read back from the server and never sent again by itself. Saves use the revision the page shows, so a change made elsewhere is never overwritten.
 9. **Lists keep their place.** Search, filters, sort and page live in the URL, so a reload, Back and the breadcrumb return to the same view.
-10. **Phones.** No sideways scroll at 375px, a 16px side gutter, stacked table rows, the bottom navigation.
+10. **Phones.** Follow "Phones" in DESIGN_SYSTEM.md: no sideways scroll at 375px, a 16px side gutter, the top bar of cells, one row or card per list item (`phoneRow`), three pages in the bottom bar. Draw phone-only parts with `useIsPhone`, never twice with CSS hiding one, so each name is in the page once.
 11. **Accessibility.** Visible focus on every control; an `aria-label` on every icon-only button; every field has a label; check the contrast of new colours; check that Base UI parts are wired correctly (labels, names), do not assume it.
 12. **Smooth size changes.** A section the user shows and hides is a `Collapse`, never `{open && …}`. Something that appears by itself (a field error, a notice) is wrapped in `Reveal`; `InlineNotification` already is. A dialog body and the Combobox list already sit in `AutoHeight`; put other boxes whose content jumps in one too.
 
