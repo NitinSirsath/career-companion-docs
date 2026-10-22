@@ -131,6 +131,7 @@ The to-do state ("Needs action", yellow) and the mail type never reuse these loo
 
 ## Loading, empty and error states
 
+- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv): the logo, the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
 - Loading: skeletons shaped like the content, never a bare "Loading…".
 - Empty: `EmptyState` says why and offers the next step.
 - Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
