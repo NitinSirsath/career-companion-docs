@@ -34,6 +34,12 @@ System-initiated processing may occur without direct user interaction when new o
 
 ### UF-01 — Sign In
 
+**Opening the app (built 22 Oct 2026):** until the app knows who is signed in, it shows a start-up screen: the logo, the name and a thin moving line, never the app's shape. Then:
+
+- Signed in: the page the user opened.
+- Signed out (the server answers 401): the sign-in page at once, with the page asked for kept as `next` (`/login?next=/applications/123`). After signing in, by password, test account or Google, the user lands on that page. A signed-in user who opens `/login?next=…` goes straight there. Only pages inside the app count as `next`.
+- No answer, a network error or a 5xx (the free server sleeps when nobody uses it and takes about a minute to wake): the screen keeps asking every 3 seconds. After 5 seconds it says "Waking up the server…", that this takes about a minute, and how long it has waited. After 2 minutes it stops and says it cannot reach the server, with **Try again**. With no network it says the device is offline, with **Try again**, and asks again by itself when the network is back. A signed-in user is never sent to the sign-in page because the server was slow.
+
 **Entry point:** User opens Career Companion while unauthenticated.
 
 **User intent:** Securely access their Career Companion account.
@@ -45,7 +51,7 @@ System-initiated processing may occur without direct user interaction when new o
 3. User authenticates with Google.
 4. Google returns the authentication result.
 5. Career Companion creates or retrieves the user's application account.
-6. User is redirected to the authenticated application.
+6. User is redirected to the authenticated application: the page they asked for before signing in, or Mails.
 7. If Gmail is not connected, the product presents the first-run/onboarding path.
 
 **End state:** User is authenticated and can continue onboarding or access the dashboard when setup is already complete.
