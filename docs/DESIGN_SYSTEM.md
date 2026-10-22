@@ -45,15 +45,28 @@ Geist and Geist Mono (free, loaded from Google Fonts in `index.html`), with no e
 
 - One width for every page: the full width up to **1584px**, centred beyond (`src/routes/__root.tsx`).
 - Page side padding 48px on laptops, 16px on phones. Spacing follows the 8px grid: 8, 16, 24, 32, 48.
-- Phones: no sideways scroll; tables stack each row's cells; the bottom navigation stays.
+- Phones: no sideways scroll; lists are one tappable row or card each (see "Phones" below).
 
 ## App shell
 
 - **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it, across the app: the logo in its own 56px square cell, then "Career Companion" in a cell as wide as the side menu (288px; only the logo cell when the menu is collapsed); then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
 - **Account menu** (`AccountMenu.tsx`), from the account button: name and email, Account, Theme (System, Light, Dark), Log out.
 - **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages, a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons.
-- **Phones:** the top bar shows the logo, a way back to the page above (on detail pages), the chip and the account button; the bottom navigation stays.
+- **Phones:** see "Phones" below.
 - The sign-in pages have their own top bar with the logo and the chip.
+
+## Phones
+
+Up to 767px wide the app looks and works like a phone app (approved mock boards "Option B: Mails", "Option B: a mail" and "Option B: Applications", square corners, on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv). The phone parts are drawn only on phones (`useIsPhone` in `components/layout/useIsPhone.ts`), so a laptop never has them hidden in the page.
+
+- **Top bar**, 56px, a row of square 48px cells split by thin lines: the menu, the page name, the page's own buttons (search, and "+" on Applications), the "Dev" or "Test" chip, the account button. A page puts its buttons there with `TopBarActions` and `TopBarButton` / `TopBarSearch` (`components/layout/TopBarButtons.tsx`).
+- **Menu** (`PhoneMenu.tsx`): the menu cell opens a drawer from the left with every page: the daily pages, the "Settings" label, the settings pages and the mail sandbox. A tap on a page closes it.
+- **Bottom bar** (`MobileNav.tsx`): Mails, Applications and Dashboard only, the chosen one on the blue tint. No "More": the rest is in the menu.
+- **Page header**: the title is in the top bar, so the page shows no title and no description (`PageHeader phoneCompact`). The sync line is one short row under the tabs.
+- **Lists**: `DataTable` takes `phoneRow`, one row or card per item, with no header row. A job mail is one row edge to edge (`PhoneMailRow`): picture, sender, date, subject, what it needs, the tags. Swiping it to the right does its first action, such as "Mark done", with Undo in the toast. An application is a bordered card (`PhoneApplicationCard`).
+- **Filters**: the search box and the "Filters" button stay; Mails adds two one-tap chips, "Needs action" and "New only". Applications shows its status tabs as a row of chips that scrolls sideways.
+- **A mail**: the job panel comes first, the next step open and "Key dates" and "Application" folded. Reply is a floating button above the bottom bar; it opens the reply full screen with a close cell. Closing keeps the text.
+- **Dialogs** cover the whole screen. **Toasts** sit above the bottom bar.
 
 ## Page structure
 
@@ -96,8 +109,8 @@ Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the
 | `Combobox` | a long list or one the server loads: type to search |
 | `OverflowMenu` (`menu.tsx`) | the "…" menu for actions that are not the main one; danger actions last and red |
 | `DataTable` | every list, with no outer frame: a mono header row (the first label with the row count) over a darker line, rows split by thin lines, underlined names, an optional last row such as "+ Add application"; sorting, filtering and paging stay on the server; skeleton rows while loading |
-| `Toolbar` | above a table: a bordered search that takes the free width, then each filter as a bordered button ("Action: All"); on phones the filters open in a sheet |
-| `Tabs` | switching between views of one list: segmented, in a bordered group, each with its count ("Job mails (5)") |
+| `Toolbar` | above a table: a bordered search that takes the free width, then each filter as a bordered button ("Action: All"); on phones the filters open in a sheet; `ToolbarSearch` takes an `id` for the phone top bar's search |
+| `Tabs` | switching between views of one list: segmented, in a bordered group, each with its count ("Job mails (5)"); `phoneLook="chips"` makes a long set a row of chips on phones |
 | `Pagination` | under a list, with no frame: the page, and two small bordered arrow buttons |
 | `Tag` | statuses and counts; colours from `lib/statusTags.ts` only |
 | `InlineNotification` | a notice inside a page: info, success, warning, error |
