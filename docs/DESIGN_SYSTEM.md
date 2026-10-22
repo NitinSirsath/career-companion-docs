@@ -56,11 +56,19 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 | Time | Use |
 | --- | --- |
 | 70ms | hover and pressed colours |
-| 110ms | dropdowns and menus open |
-| 150ms | a section unfolds, a page fades in (`animate-open`, `animate-page-in`) |
-| 240ms | dialogs and toasts come and go |
+| 110ms | dropdowns and menus close; tooltips open |
+| 150ms | dropdowns and menus open: they fade and grow out of the side next to their field; a page fades in (`animate-page-in`) |
+| 240ms | dialogs and toasts come and go; every change of size (below) |
 
-Motion is short and quiet and never needed to understand the screen. With "reduce motion" on, it is off.
+**Size changes are never a jump** (owner, 21 Oct 2026; demo "Motion: today vs new" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv). Three shared parts do it, so a page never builds its own:
+
+- `Collapse`: a section the user shows and hides (an older mail, the AI's reading, done steps). It grows from no height to its own and fades in, and leaves the same way.
+- `Reveal`: something that appears by itself, such as an error under a field. It grows and fades in. `InlineNotification` already uses it.
+- `AutoHeight`: a box that follows its content's height when the content jumps (new results, the next step). Every dialog body and the Combobox list already sit in one. A part inside that animates its own height is followed as it moves, so the two never fight.
+
+Motion is short and quiet and never needed to understand the screen. With "reduce motion" on, it is off, and every part still ends at the right size.
+
+**Tailwind 4 rule.** `translate-*`, `scale-*` and `rotate-*` set the CSS `translate`, `scale` and `rotate` properties, not `transform`. A transition must list the property it moves (`transition-[opacity,translate]`), or use `transition-transform`, which covers all four. A list with only `transform` makes the movement snap while only the fade runs.
 
 ## Icons
 
@@ -82,7 +90,10 @@ Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the
 | `SectionError` | a part of the page that did not load: plain words and "Try again", never the raw error |
 | `EmptyState` | "nothing here": why, and the one next step |
 | `Skeleton`, `SkeletonList` | loading |
-| `Dialog` | a confirm or a short form; Carbon footer buttons |
+| `Dialog` | a confirm or a short form; Carbon footer buttons; its body follows its content's height |
+| `Collapse` | a section the user shows and hides; the toggle keeps `aria-expanded` |
+| `Reveal` | something that appears by itself, such as a field error |
+| `AutoHeight` | a box whose content jumps in height (results, steps) |
 | `showToast` (`toast.tsx`) | a short confirmation after an action, with Undo where the app can really undo |
 | `CodeSnippet` | one line to copy, with a copy button |
 | `Avatar` | initials of a person |
