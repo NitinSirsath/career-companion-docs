@@ -14,6 +14,7 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 - Owner decision, 18 Oct 2026: a fourth theme, White (Carbon White: white page, grey cards), as on ibm.com.
 - Owner decision, 17 Oct 2026: the menu can collapse to icons, and the app remembers the choice. Agenda stays out of the menu until it works.
 - Owner decision, 18 Oct 2026: the Dashboard is not part of design part 1; it stays as it is and is a [Later] issue.
+- Owner decision, 21 Oct 2026: show/hide sections, dialogs and dropdowns never change size in one jump. They grow and shrink with the shared `Collapse`, `Reveal` and `AutoHeight` (demo "Motion: today vs new" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv).
 
 ## Do this
 
@@ -28,6 +29,7 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 9. **Lists keep their place.** Search, filters, sort and page live in the URL, so a reload, Back and the breadcrumb return to the same view.
 10. **Phones.** No sideways scroll at 375px, a 16px side gutter, stacked table rows, the bottom navigation.
 11. **Accessibility.** Visible focus on every control; an `aria-label` on every icon-only button; every field has a label; check the contrast of new colours; check that Base UI parts are wired correctly (labels, names), do not assume it.
+12. **Smooth size changes.** A section the user shows and hides is a `Collapse`, never `{open && …}`. Something that appears by itself (a field error, a notice) is wrapped in `Reveal`; `InlineNotification` already is. A dialog body and the Combobox list already sit in `AutoHeight`; put other boxes whose content jumps in one too.
 
 ## Not allowed
 
@@ -35,7 +37,8 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 - A pure white page in the Light theme (its page is `#f4f4f4` with white cards). Only the White theme has a white page, and its cards are grey.
 - Em dashes in on-screen text.
 - Shadows, and rounded corners (true circles such as status dots and avatars are fine).
-- Animation on hover only, bouncy or endless animation, and motion longer than 400ms. Motion uses Carbon times (70 to 400ms) and curves, in CSS only, and turns off when the computer asks for reduced motion.
+- Animation on hover only, bouncy or endless animation, and motion longer than 400ms. Motion uses Carbon times (70 to 400ms) and curves, in CSS only, and turns off when the computer asks for reduced motion. The one exception is `AutoHeight`: it must measure its content, so it uses the browser's own animation API. No animation library.
+- A transition that lists only `transform` for Tailwind's `translate-*`, `scale-*` or `rotate-*` classes. Tailwind 4 sets the `translate`, `scale` and `rotate` properties, so list those (or use `transition-transform`), or the movement snaps.
 - "Loading…" text where a skeleton fits.
 - The browser's own `<select>`.
 - A new page or dialog pattern that differs from the existing ones without the owner's OK.
