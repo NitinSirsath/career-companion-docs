@@ -103,6 +103,8 @@ Schemas: `src/contracts/conversation.ts` and `src/contracts/mailbox.ts` in the b
 
 Mailbox errors: 409 `GMAIL_NOT_CONNECTED`, 404 `NOT_FOUND`, 502 `GMAIL_UNAVAILABLE`, 413 `ATTACHMENT_TOO_LARGE`.
 
+**Fake job offers (owner decision, 23 Oct 2026):** a conversation and each mail's AI read carry `fakeOfferWarning: string | null`, the AI's short reason when a mail offers a job and asks for money or bank, card or ID details. When it is set, the conversation's `request.text` is Career Companion's own safe step, "Don't pay. Check this job on the company's own careers site.", with no due date. The sandbox mail result carries the same field. See [Email AI pipeline](email-ai-pipeline.md), "Job offers that ask for money".
+
 ## Verification
 
 Cross-cutting contracts should be verified with focused automated tests where practical, especially:
