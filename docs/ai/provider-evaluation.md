@@ -37,8 +37,9 @@ The backend workflow `.github/workflows/ai-eval.yml` runs the evaluation on GitH
 
 ## Dataset
 
-44 hand-written synthetic emails in `src/eval/ai/dataset/`:
-- recruiter 5 (including a LinkedIn InMail), application received 3, interview 6, assessment 4, offer 3, rejection 4, follow-up 3, job alerts 5 (including LinkedIn recommended and sponsored jobs), irrelevant 7, adversarial 4 (prompt injection, non-English, long thread, spam posing as a recruiter);
+45 hand-written synthetic emails in `src/eval/ai/dataset/`:
+- recruiter 5 (including a LinkedIn InMail), application received 3, interview 6, assessment 4, offer 3, rejection 4, follow-up 3, job alerts 5 (including LinkedIn recommended and sponsored jobs), irrelevant 7, adversarial 5 (prompt injection, non-English, long thread, a fake recruiter asking for a fee, a fake offer asking for a fee);
+- since 23 Oct 2026 (owner decision), the two fake-offer cases are expected `RELEVANT` (Offer or Recruiter) with `fakeOfferWarning` set. Before, the fake recruiter case expected "any" relevance and the old `SPAM` category, so it was not really scored;
 - since COM-133, job alerts and job-platform newsletters are expected `IRRELEVANT`;
 - fictitious companies and people, reserved domains only (enforced by a CI test);
 - case 1 is the built-in sample email used by the user's "Try a sample email".
