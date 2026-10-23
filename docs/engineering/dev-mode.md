@@ -75,7 +75,7 @@ Steps:
 
 1. `npm run fake-ai-errors -- busy`, and start the frontend as usual.
 2. If the test user has no AI key yet, choose Google Gemini on the **AI provider** page and enter any 8 or more characters without spaces as the key, during a fault other than `key`, `billing` or `model-gone` (those refuse a new key). A user who already has a real key keeps it.
-3. In the **Mail sandbox** send a mail, then **Sync now**. Compare the Gmail Sync and Mails pages, the row's (i) and the AI provider page with the approved mock. Search the server log for the mail's ID.
+3. In the **Mail sandbox** send a mail, then **Sync now**. Compare the Gmail Sync and Mails pages, the row's (i) and the AI providers page with the approved mock. Search the server log for the mail's ID.
 4. Stop with Ctrl+C and start again with the next fault.
 
 Fake errors leave their states in the dev database: pauses, a rejected key, failed mails. Use a separate test user, or afterwards, in `npm run devmode`, save the key again and choose **Reset dev data**. The app's own pause lengths are not shortened. To try again sooner, "Read waiting mails now" sends one waiting mail as a test at once.
