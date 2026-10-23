@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | **No provider certified yet (2026-10-02).** All four catalog providers are `hidden`: usable in development and tests, never offered in production except on a test deploy (see "Test deploys" below). |
+| Status | **OpenRouter certified (2026-10-23)**, see "OpenRouter certification" below. Gemini, OpenAI and Anthropic stay `hidden`: usable in development and tests, never offered in production except on a test deploy (see "Test deploys" below). |
 | Decision | [ADR-0001](../architecture/decisions/ADR-0001-user-provided-ai.md) decision 2; [BYO AI plan §7](../planning/byo-ai/README.md#7-provider-evaluation-plan) |
 | Code | backend `src/eval/ai/` (dataset, scorer, runner); catalog `src/contracts/aiCatalog.ts` |
 
@@ -21,7 +21,8 @@ AI_EVAL_API_KEY=<key in the shell only> npm run ai:eval -- --provider gemini --f
 - Compare against the Gemini baseline with `--baseline <report.json>`.
 - `--triage batch --batch-size <1-25>` checks relevance only, in batches (no extraction calls).
 - Google limits Gemini 2.5 models to projects that used them before. A new key gets `404 NOT_FOUND` (`MODEL_UNAVAILABLE`) for them, so use the Gemini 3 models above.
-- OpenRouter: `--provider openrouter --fast google/gemma-4-26b-a4b-it --detailed deepseek/deepseek-v4.1-flash`. A `/` in a model ID becomes `_` in the report's file name.
+- OpenRouter: `--provider openrouter --fast anthropic/claude-haiku-5.5 --detailed openai/gpt-6-luna`. A `/` in a model ID becomes `_` in the report's file name.
+- Reports are committed exactly as the runner wrote them; `.prettierignore` keeps the formatter away from them.
 
 ## CI evaluation (COM-136)
 
@@ -60,7 +61,7 @@ The Gemini baseline run fixes the final values. A floor the current Gemini model
 
 ## Certification checklist (per provider)
 
-1. **Evaluation:** a passing report for every model offered for each role.
+1. **Evaluation:** a passing report for every model offered for each role. A floor a model misses is offered only as an owner-approved exception, recorded with its cause in this file.
 2. **Error mapping:** confirmed with a real key. Record each row as observed or "not produced".
    - invalid key;
    - revoked key;
@@ -80,6 +81,7 @@ Owner decision, 2026-10-20: the Render test deploy (owner and one friend) runs w
 - While it is on in production, startup logs the warning "AI_SHOW_HIDDEN_PROVIDERS is on: uncertified AI providers are offered. Test deploys only."
 - It changes no catalog entry: every provider stays `hidden` and uncertified, and users still see each provider's draft data-use text before they save a key.
 - Never set it for real users. Before real users: remove it and certify the provider with the checklist above.
+- OpenRouter is `supported` since 2026-10-23, so the Render deploy no longer needs the setting for it. Remove it there; Gemini, OpenAI and Anthropic then disappear from that deploy.
 
 ## Current status
 
@@ -90,13 +92,67 @@ Owner decision, 2026-10-20: the Render test deploy (owner and one friend) runs w
 | Google Gemini | Recommended: gemini-3.5-flash-lite (fast), gemini-3.8-flash (fast, detailed). Also offered: gemini-2.5-flash-lite (fast), gemini-2.5-flash (fast, detailed) | Batch relevance PASS on gemini-3.5-flash-lite (CI, 2026-10-06); full evaluation not run | Observed live on 2026-10-12: "model not available to the key" = 404 `NOT_FOUND` → `MODEL_UNAVAILABLE` (2.5 models, new key); "provider busy" = 503 `UNAVAILABLE` and 504 `DEADLINE_EXCEEDED` → `PROVIDER_BUSY` (gemini-3.8-flash; from 2026-10-14, owner decision: 504 counts as no answer in time, not busy). Other rows not confirmed live | Draft, needs owner approval | hidden |
 | OpenAI | gpt-5-nano (fast), gpt-5-mini (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
 | Anthropic Claude | claude-haiku-4-5-20251001 (fast, detailed; tool mode), claude-sonnet-5-5 (detailed; native JSON schema) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
-| OpenRouter | Recommended: google/gemma-4-26b-a4b-it (fast), deepseek/deepseek-v4.1-flash (detailed). Both serve both roles; thinking turned off. Test candidates (owner, 2026-10-17): anthropic/claude-haiku-5.5 (fast only), google/gemini-3.8-flash (fast, detailed), openai/gpt-6-sol (fast, detailed) | Not run | Starting table, unit-tested; not confirmed live | Draft, needs owner approval | hidden |
+| OpenRouter | Recommended: openai/gpt-6-luna (fast, detailed). Also offered: anthropic/claude-haiku-5.5 (fast), google/gemini-3.8-flash (detailed), openai/gpt-6-sol (fast, detailed) | PASS: Haiku and Gemini (2026-10-22). Luna and Sol pass every floor except one case, an owner exception (see below) | Confirmed live 2026-10-17 to 2026-10-23 (see below) | Approved by the owner, 2026-10-23 (`openrouter-2026-10-23`) | **supported** |
 
 **Gemini notes (2026-10-12):**
 - The 2.5 models are not recommended: Google serves them only to keys that used them before, and a new key gets 404 for both.
 - The key check sends one very small real request to each chosen model. Asking Google to describe the model (`models.get`) is not enough: Google answers that also for a model it refuses every real request for.
 - 503 is Google's own answer that it did not do the work, and Google does not charge a request that fails with a 400 or 500 error. Owner decision, 2026-10-14: 503, 500 and 502 count as busy. The mail waits, no try is used and nothing is put on hold.
 - Owner decision, 2026-10-14: Google's 504 ("deadline expired") counts as no answer in time, like our own timer or a connection that dropped after sending. It uses 1 of 3 tries and Career Companion tries again by itself. After the 3rd try the mail waits for the user's OK.
+
+**OpenRouter certification (2026-10-21 to 2026-10-23):**
+
+Owner decisions:
+- Certify OpenRouter only; the other three providers stay hidden.
+- Offer four models: Claude Haiku 5.5 (fast), GPT-6 Luna (fast and detailed, recommended for both), Gemini 3.8 Flash (detailed) and GPT-6 Sol (fast and detailed).
+- Luna recommended for both steps (2026-10-23), after a 49-mail sandbox test of the whole flow (send, sync, AI): Luna for both steps and Haiku + Gemini each read 43 of 44 scored mails right, but Haiku let a fake job offer asking for a fee through, and Luna cost a sixth as much ($0.0076 against $0.046 for 47 mails).
+- Remove Gemma 4 26B A4B and DeepSeek V4.1 Flash. Their 2026-10-17 problems are in the notes below.
+- No country limit (O6, 2026-10-23): all four models run on Google or Microsoft Azure servers in the US or Europe. Decide again when a model on another company's servers is added.
+
+Evaluations (`--runs 2`, all 44 cases each run; reports in backend `src/eval/ai/reports/`):
+
+| Report | Fast + detailed | Result | Why |
+| --- | --- | --- | --- |
+| 2026-10-21T11-43-22-410Z | Haiku 5.5 + Gemini 3.8 Flash (60 s) | FAIL | 2 Gemini calls gave no answer in 60 s |
+| 2026-10-21T12-02-39-117Z | GPT-6 Sol + GPT-6 Sol | FAIL | Prompt-injection case blocked (see exception) |
+| 2026-10-22T11-35-57-992Z | Haiku 5.5 + Gemini 3.8 Flash (60 s) | FAIL | 2 Gemini timeouts; p95 17.3 s |
+| 2026-10-22T19-19-02-480Z | Haiku 5.5 + Claude Sonnet 5.5 | FAIL | Every extraction refused: Anthropic's 16-field limit. Sonnet is not offered |
+| 2026-10-22T19-22-12-192Z | GPT-6 Luna + GPT-6 Luna | FAIL | Prompt-injection case blocked (see exception) |
+| 2026-10-22T19-22-55-385Z | Haiku 5.5 + Gemini 3.8 Flash (90 s) | **PASS** | Relevance and category 100%, fields 96%, p95 8.3 s, slowest 30 s |
+
+- Haiku 5.5 was perfect in all four of its runs: every answer valid, relevance and category 100%, p95 2.4 s or less.
+- Gemini 3.8 Flash always thinks, and under 60 s it sometimes gave no answer in time. Its timeout is now 90 s, and it is offered for detailed only.
+- **Owner exception (GPT-6 Luna and GPT-6 Sol), 2026-10-22:**
+  - Both fail only the `adversarial-prompt-injection` case: an email that tells the AI to ignore its instructions.
+  - Azure's safety filter on their zero-retention servers stops the answer (`finish_reason: content_filter`, confirmed with a one-call check).
+  - Career Companion reads that as unusable output, so such a mail waits for the user and nothing wrong is saved.
+  - Every other floor passed, with the same numbers for both models: relevance 97.7%, 0 critical misses, category 92.9%, fields 93.8%, no made-up fields, p95 4.5 s or less.
+  - The owner keeps both models: real job mail rarely contains such text.
+- **Key credit limit (GPT-6 Luna and GPT-6 Sol):**
+  - Their servers take no output limit, so OpenRouter holds the worst-case cost on the key's credit limit before each call: about $0.07 for Luna and $1.30 for Sol.
+  - With a fresh $0.01 key, Haiku answered but Sol got 402 `openrouter_key_limit` at once.
+  - Owner decision, 2026-10-23: no code change. The setup steps ask for a key limit of at least $5, or none.
+  - Clear wording per error cause is follow-up work (COM-247).
+
+Error mapping, confirmed live with real keys (2026-10-17 to 2026-10-23):
+
+| Row | Observed |
+| --- | --- |
+| Invalid key | 401 → `KEY_REJECTED` |
+| Revoked (deleted) key | 401 → `KEY_REJECTED` |
+| Expired key | 401 → `KEY_REJECTED` |
+| Model not available (no zero-retention server takes the request) | 404 → `MODEL_UNAVAILABLE` |
+| No credit under the key's limit | 402 `openrouter_key_limit` → `ACCOUNT_OR_BILLING` |
+| Blocked content (Azure filter) | 200 with `finish_reason: content_filter` → `INVALID_OUTPUT` |
+| Rate limit | Observed 2026-10-23: 429 `openrouter_new_account` (a new account's limit, in the first minutes of a new key) → `RATE_LIMITED`; the model pauses 60 s and the mail goes on by itself |
+| Provider busy | Not produced. Busy is: OpenRouter 500 and 502, 503 with `provider_overloaded`, and a 200 answer whose error is `provider_overloaded` or `provider_unavailable` |
+
+Disclosure:
+- Checked on 2026-10-22 against OpenRouter's privacy policy (updated 2026-08-31) and its zero-data-retention page.
+- OpenRouter does not train on inputs or outputs, and it keeps no prompts unless prompt logging is turned on. `zdr: true` sends requests only to servers that keep nothing. OpenRouter's servers are in the US.
+- The owner approved the text on 2026-10-23 (`openrouter-2026-10-23`).
+
+Links (checked 2026-10-23): the key and credits links go through OpenRouter's sign-in to the keys and credits pages, and the privacy link opens the privacy policy.
 
 **OpenRouter notes (2026-10-17):**
 - Owner decisions, 2026-10-17: two small models only. Every request asks for servers that keep nothing (`zdr`) and that take every parameter sent (`require_parameters`). No block by country or company for now; decide again before real users. Hidden until certified.
