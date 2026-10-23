@@ -97,7 +97,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
 9. **Provider credential and refusal errors do not consume the normal email retry attempts.** A refusal (rejected key, account or permission problem, provider limit, busy provider) is a rejection made before any work is done, so it is not charged. It pauses or cools down that user's AI, and the email stays pending. Calls that returned unusable output keep the current conservative handling. Calls with no answer in time follow decision 10.
 
-   **Owner decision, 2026-10-14:** a short server error counts as a busy provider: the email waits and is tried again, and no attempt is used. Busy means Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); and 409 from OpenAI or Anthropic. Google's own 504 is not busy: it is "no answer in time" (decision 10).
+   **Owner decision, 2026-10-14:** a short server error counts as a busy provider: the email waits and is tried again, and no attempt is used. Busy means Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); and 409 from OpenAI or Anthropic. OpenRouter 500 and 502, 503 with `provider_overloaded`, and a 200 answer whose error is `provider_overloaded` or `provider_unavailable` (not yet seen live, 2026-10-23). Google's own 504 is not busy: it is "no answer in time" (decision 10).
 
 10. **User-approved retry is the recovery mechanism for held operations.** The user who pays may explicitly approve one more attempt, accepting a possible duplicate charge.
 
