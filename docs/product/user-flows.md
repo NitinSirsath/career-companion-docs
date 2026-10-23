@@ -344,7 +344,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 **Entry point:** "AI providers" in the navigation, or the AI notice on the Mails page and Gmail page ("AI is not set up", a key or billing problem, or a pause).
 
-Owner decision, 22 Oct 2026: a user can connect several providers, one key each. One is active and reads the mail. Mock: https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv, board "AI providers: several connected, one active".
+Owner decision, 22 Oct 2026: a user can connect several providers, one key each. One is active and reads the mail. Approved mock board "AI providers: several connected, one active".
 
 **User intent:** Let Career Companion read job emails with the user's own AI account, knowing what is sent and what it costs.
 

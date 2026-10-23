@@ -1,6 +1,6 @@
 # Career Companion Design System
 
-Design part 1 was built on 18 Oct 2026 (plan approved 17 Oct 2026, mock https://claude.ai/artifact/VWAgcutaXtATYMXhRXc4Mx). Design part 2 restyled it on 22 Oct 2026 from the mock the owner approved that day: https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv, boards "Mails list", "Mail conversation" and "Applications list" (the "Render detail pass" at the end of each board's style is the final look). The rules every agent must follow are in [AI_UI_RULES.md](AI_UI_RULES.md).
+Design part 1 was built on 18 Oct 2026 (plan approved 17 Oct 2026). Design part 2 restyled it on 22 Oct 2026 from the mock the owner approved that day, boards "Mails list", "Mail conversation" and "Applications list" (the "Render detail pass" at the end of each board's style is the final look). The rules every agent must follow are in [AI_UI_RULES.md](AI_UI_RULES.md).
 
 The base is IBM Carbon (the blue, the status colours, square corners, motion times and curves, Carbon icons) with the look of the Render dashboard: one flat background split by thin lines, a top bar with the breadcrumb, and the Geist font. Not a copy of Render. The goal is a mature, calm tool, not a showcase.
 
@@ -57,7 +57,7 @@ Geist and Geist Mono (free, loaded from Google Fonts in `index.html`), with no e
 
 ## Phones
 
-Up to 767px wide the app looks and works like a phone app (approved mock boards "Option B: Mails", "Option B: a mail" and "Option B: Applications", square corners, on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv). The phone parts are drawn only on phones (`useIsPhone` in `components/layout/useIsPhone.ts`), so a laptop never has them hidden in the page.
+Up to 767px wide the app looks and works like a phone app (approved mock boards "Option B: Mails", "Option B: a mail" and "Option B: Applications", square corners). The phone parts are drawn only on phones (`useIsPhone` in `components/layout/useIsPhone.ts`), so a laptop never has them hidden in the page.
 
 - **Top bar**, 56px, a row of square 48px cells split by thin lines: the menu, the page name, the page's own buttons (search, and "+" on Applications), the "Dev" or "Test" chip, the account button. A page puts its buttons there with `TopBarActions` and `TopBarButton` / `TopBarSearch` (`components/layout/TopBarButtons.tsx`).
 - **Menu** (`PhoneMenu.tsx`): the menu cell opens a drawer from the left with every page: the daily pages, the "Settings" label, the settings pages and the mail sandbox. A tap on a page closes it.
@@ -88,7 +88,7 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 | 150ms | dropdowns and menus open: they fade and grow out of the side next to their field; a page fades in (`animate-page-in`) |
 | 240ms | dialogs and toasts come and go; every change of size (below) |
 
-**Size changes are never a jump** (owner, 21 Oct 2026; demo "Motion: today vs new" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv). Three shared parts do it, so a page never builds its own:
+**Size changes are never a jump** (owner, 21 Oct 2026; approved demo "Motion: today vs new"). Three shared parts do it, so a page never builds its own:
 
 - `Collapse`: a section the user shows and hides (an older mail, the AI's reading, done steps). It grows from no height to its own and fades in, and leaves the same way.
 - `Reveal`: something that appears by itself, such as an error under a field. It grows and fades in. `InlineNotification` already uses it.
@@ -146,7 +146,7 @@ The to-do state ("Needs action", yellow) and the mail type never reuse these loo
 
 ## Loading, empty and error states
 
-- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv): the logo, the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
+- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the logo, the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
 - Loading: skeletons shaped like the content, never a bare "Loading…".
 - Empty: `EmptyState` says why and offers the next step.
 - Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
