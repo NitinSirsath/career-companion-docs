@@ -73,7 +73,9 @@ Up to 767px wide the app looks and works like a phone app (approved mock boards 
 - `PageHeader` (`components/layout/PageHeader.tsx`): one title, one line of description, actions on the right (at most one primary), and a line under it across the content. A detail page puts a row of facts under the title (for a mail: company, role, status, how many mails).
 - `Breadcrumb` (`components/layout/Breadcrumb.tsx`): written in the page, shown in the top bar: "Mails › BrightPath Analytics", with the section's icon on the first level. It leads back to the list as the user left it. A page without one shows its section in the top bar.
 - Detail pages: a main column and a 360px side column from `lg` up.
-- Settings pages (`SettingsSection`): each section is a row, title and short help on the left third, the controls in a card on the right.
+- Settings pages (`SettingsSection`, owner 22 Oct 2026): each section has its title and short help above, and the controls in a card across the full width. Sections are spaced apart with no line between them. There is no left label column.
+- Gmail sync (owner 22 Oct 2026, mock board "Gmail sync: compact"): the sync line and "Sync now" in the page header, as on Mails; one bordered strip with two cells, Account ("Connected as …", Disconnect) and Look back (the drop-down and one help line), stacked on phones; then the notices, and "Mails the app has read" with its tabs on the same line as its title.
+- AI providers (owner 22 Oct 2026, mock board "AI providers: several connected, one active"): "Reads your mail now" is a card for the active provider with its key buttons always in sight and one row per model role (name and help, the drop-down, the state tag); "Other connected providers" is a list with "Make active" and a "⋯" menu; "Use today" and "Try it" are two cards side by side. Keys are entered only in dialogs.
 
 ## Motion
 
