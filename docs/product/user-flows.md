@@ -340,31 +340,40 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 - A malformed application response shows a recoverable load error and disables editing; retained earlier data is labelled as not refreshed. Navigating away during a save applies the result only to the original application.
 - **Add Application:** if creation's response is lost, times out, fails with 5xx or is malformed, the draft is kept, "Creation outcome unknown" is shown, Save is blocked and the owned list is refreshed. Neither a similar entry nor a missing entry proves the outcome; the user can review applications, retry the refresh, or deliberately "Create anyway". There is no automatic resubmission or deduplication.
 
-### UF-10 — Set Up or Switch the AI Provider (ADR-0001)
+### UF-10 — Connect AI Providers and Choose the Active One (ADR-0001)
 
-**Entry point:** "AI Provider" in the navigation, or the AI notice on the Mails page and Gmail page ("AI is not set up", a key or billing problem, or a pause).
+**Entry point:** "AI providers" in the navigation, or the AI notice on the Mails page and Gmail page ("AI is not set up", a key or billing problem, or a pause).
+
+Owner decision, 22 Oct 2026: a user can connect several providers, one key each. One is active and reads the mail. Mock: https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv, board "AI providers: several connected, one active".
 
 **User intent:** Let Career Companion read job emails with the user's own AI account, knowing what is sent and what it costs.
 
 **Main flow:**
 
-1. User chooses a provider from the curated cards: name, "Free tier available" or "Requires paid API billing", a one-line data-use summary. The page notes that an app subscription is not an API key.
-2. The guided steps link to the provider's key and billing pages. A paid-only provider says so before the key is pasted.
+1. With nothing connected, the page shows a card per offered provider: name, "Free tier available" or "Paid API billing", a short note. The page notes that an app subscription is not an API key. Later, "Connect a provider" in the header opens a list of the offered providers, with the connected ones marked "Connected".
+2. The connect dialog's steps link to the provider's key and billing pages. A paid-only provider says so before the key is pasted.
 3. User pastes the key into a password field that is never prefilled.
-4. Recommended models are shown per role. "Advanced" offers only tested models.
-5. The page states the Career Companion safety limit (its own safeguard, not the provider's quota) and exactly what is sent. The user confirms consent for this provider.
-6. **Save and verify:** a content-free check with the provider.
-   - **Verified:** saved, Ready; waiting emails resume.
+4. The dialog names the recommended models; they can be changed on the page afterwards.
+5. The dialog states exactly what is sent. The user confirms consent for this provider.
+6. With another provider active, a box "Make <name> active now" is unticked by default. With none active, the new provider becomes active by itself.
+7. **Connect and verify:** a content-free check with the provider.
+   - **Verified:** saved; when it is active, waiting emails resume.
    - **Rejected:** nothing saved; the provider-specific cause and one fix are shown, and the key field is cleared.
-   - **Inconclusive:** saved, Ready, shown as not yet confirmed.
-7. Optional: "Try a sample email" runs both AI steps on a built-in example email, never the user's mail, and shows the result. It costs a few tokens and is not stored.
+   - **Inconclusive:** saved, shown as not yet confirmed.
+8. Optional: "Try a sample email" runs both AI steps with the active provider on a built-in example email, never the user's mail, and shows the result. It costs a few tokens and is not stored.
 
-**End state:** one active provider setup. The status shows provider, models, access state with one fix, Career Companion's own counts and the safety limit.
+**End state:** "Reads your mail now" shows the active provider (tags Active and its state, the key line, "Check key", "Replace key", "Remove") and its two models. "Other connected providers" lists the rest with "Make active". "Use today" shows Career Companion's own counts and safety limit, for all providers together.
+
+**More flows:**
+
+- **Change a model:** a drop-down per role on the active provider, with the recommended model first. The new model is checked with the saved key and saved at once ("Saved. New mails use …"); a model the key cannot use changes nothing.
+- **Replace a key:** a small dialog with only the key field. The saved key keeps working until the new one is verified.
+- **Make another provider active:** "Use <name> for new mails?" names its models, says that mails already read stay as they are and waiting mails go to it, and that the old provider stays connected. A provider whose last check found a key problem cannot be made active.
 
 **Edge/error states:**
 
-- **Switching provider** uses the same flow with a new key and consent. The current setup keeps working until the new key is verified. Completed emails are not reprocessed and keep their own provenance.
-- **Remove** deletes the setup and key. New emails wait; processed data stays.
+- **Switching provider** never happens by itself. When the active provider has a key or billing problem and another connected provider is ready, the notice offers "Use <other> instead", which opens the same confirm. Completed emails are not reprocessed and keep their own provenance.
+- **Remove** deletes that provider's key; processed data stays. For the active provider it asks which connected provider reads new mail next, or "No provider: new mails wait". With no provider active, the page says so and new emails wait.
 - **Needs attention** (key rejected, billing or permission, model unavailable, key unreadable) or **Limited** (provider rate limit or outage, Career Companion's daily safety limit, paused): emails wait as `PENDING`, shown as "Waiting for AI". They resume after the fix. After a provider pause they are read by themselves when the pause ends, and the notice offers **Read waiting mails now** for a new try at once. It sends 1 waiting mail first, as a test, and the others follow only if it works. A test that is still busy does not make the pause longer. A busy model is shown as busy ("Gemini 3.8 Flash is busy right now"), not as a limit on the user's account.
 - **Retry anyway:** a mail with no answer in time is tried again by itself, up to 3 tries; after the 3rd try, or after an unusable answer, it waits for the user's OK and is not tried again by itself. A batch with no answer in time is held at once. "Manual Retry" explains where the earlier attempt went and that one more attempt may be charged again. It names the new provider if the user switched. Only "Retry anyway" sends exactly one more attempt.
 

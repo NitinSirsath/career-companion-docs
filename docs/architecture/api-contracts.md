@@ -43,6 +43,22 @@ Canonical examples are in `career-companion-backend/src/middleware/auth.ts` and 
 - The path is kept in a signed, HttpOnly, SameSite=Lax cookie that lasts 5 minutes, like the sign-in state. `GET /api/auth/callback` checks it again, clears it, and after a successful sign-in redirects to `${FRONTEND_URL}<path>`. A failed sign-in goes to `/login?error=<code>`, with `&next=<path>` added when there was a path other than `/`. Neither ever redirects outside the app.
 - The sign-in pages read `next` from their address with the same rule (and never return to a sign-in page): password and test-account sign-in open it afterwards, and the Google button passes it on as `returnTo`.
 
+## AI providers (ADR-0001, 22 Oct 2026)
+
+Schemas: `src/contracts/ai.ts` in the backend. A user can connect several providers, one key each; one is active and does all AI work. No response ever holds a key in any form.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/ai/settings` | The active setup in the top-level fields (provider, models, access, consent, use today, safety limit), and every connected provider in `connections`: the active one first, then the others in the order connected. Each has `provider`, `active`, `state`, `reason`, `modelId`, `failure`, `models`, `verified`, `lastCheckedAt` and `consentCurrent`. |
+| `PUT /api/ai/providers/:provider` | Connects a provider, replaces its key or changes its models: `{ apiKey?, models?: { fast?, detailed? }, consentDisclosure?, makeActive? }`. A provider not connected yet needs the key and the current consent. The key and models are verified first; 422 `AI_ACCESS_REJECTED` saves nothing. The first provider, or one connected while nothing is active, becomes active; any other stays inactive unless `makeActive` is true. A model `null` follows the recommended one. Answers the settings with `verification` (`VERIFIED` or `INCONCLUSIVE`) and `verificationFailure`. |
+| `POST /api/ai/providers/:provider/activate` | Makes a connected provider the active one; the one it replaces stays connected. Doing it twice changes nothing. Errors: 404 `AI_PROVIDER_NOT_CONNECTED`, 409 `AI_PROVIDER_NOT_READY` (its last check found a key, billing or model problem; `details.reason`), 409 `AI_PROVIDER_UNSUPPORTED`, 409 `AI_SETTINGS_CHANGED` (the setup changed meanwhile; try again). |
+| `POST /api/ai/providers/:provider/check` | Checks a connected provider's key and models again. For an inactive provider only its own state changes. Answers with `verification` (`VERIFIED`, `REJECTED` or `INCONCLUSIVE`). 404 `AI_PROVIDER_NOT_CONNECTED`. |
+| `DELETE /api/ai/providers/:provider` | Removes the key. For the active provider, `?then=<provider>` makes that connected provider active, and `then=none` (the default) leaves none active, so new mail waits. Removing a provider that is not connected changes nothing. |
+| `POST /api/ai/settings/sample-test` | Runs both AI steps on a built-in sample mail with the active provider. 404 `AI_NOT_CONFIGURED` when none is active. |
+| `POST /api/ai/waiting/read` | "Read waiting mails now", on the active provider. |
+
+The old `PUT /api/ai/settings`, `DELETE /api/ai/settings` and `POST /api/ai/settings/check` are gone.
+
 ## Validation
 
 Validate API input at the boundary with Zod.

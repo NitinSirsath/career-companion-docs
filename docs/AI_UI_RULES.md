@@ -19,6 +19,7 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 - Owner decision, 17 Oct 2026: the menu can collapse to icons, and the app remembers the choice. Agenda stays out of the menu until it works.
 - Owner decision, 18 Oct 2026: the Dashboard is not part of design part 1; it stays as it is and is a [Later] issue.
 - Owner decision, 22 Oct 2026: on phones the app feels like a phone app (mock option B with square corners): a top bar of square cells (menu, page name, search, "+", account), a menu drawer from the left, three pages in the bottom bar, one tappable row per mail with swipe to mark done, a floating Reply button and a full-screen reply. Square corners as on laptops: only true circles are round.
+- Owner decision, 22 Oct 2026 (mock "Settings: AI providers and Gmail sync", "keep all"): the page and menu item are "AI providers"; settings pages have no left label column; models change with a drop-down in place, checked and saved at once, with no form; "Replace key" is its own small dialog and "Remove" is a visible button on the active provider; a newly connected provider stays inactive unless "Make active now" is ticked; on Gmail sync, "Sync now" sits in the page header and Account and Look back share one strip.
 - Owner decision, 21 Oct 2026: show/hide sections, dialogs and dropdowns never change size in one jump. They grow and shrink with the shared `Collapse`, `Reveal` and `AutoHeight` (demo "Motion: today vs new" on https://claude.ai/artifact/3j4wfD4Mvme1oGQ8p5bCNv).
 
 ## Do this

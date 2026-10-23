@@ -77,6 +77,10 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
    Switching provider replaces the configuration after the new key is verified. It affects future work only.
 
+   **Owner decision, 2026-10-22:** a user may connect several providers, with at most one key per provider. Exactly one is active and does all AI work: sorting, reading, retries, waiting mails and the sample test. The others are saved with their keys and are called only for a check, a key change or a model change that the user starts. The user switches by hand ("Make active"); a switch affects future work only, and mails waiting for AI go to the new active provider. Decision 11 stands: nothing switches by itself when the active provider fails. Consent is given per provider when it is connected. Career Companion's safety limit and its counts stay per user, for all providers together. Removing the active provider asks which connected provider reads new mail next, or none (new mail waits).
+
+   How it is stored: the active setup stays in `ai_configurations` (one row per user, so access resolution, pauses and the revision guard are unchanged). Each other connected provider has one row in `ai_saved_providers` (user, provider). Making a provider active swaps the two setups in one transaction, increments the revision, and ends the old setup's model pauses.
+
 6. **Credentials are bearer secrets of the user's billing account.**
    - Encrypted at rest with a key dedicated to AI credentials.
    - Write-only through the API and never shown again.
@@ -105,8 +109,8 @@ Most of its other structure answers tenant and administrator needs Career Compan
 
 ## Accepted V1 scope
 
-- **Providers:** Gemini, OpenAI and Claude. Each becomes officially supported only after passing Career Companion's synthetic AI evaluation. **Owner decision, 2026-10-17:** OpenRouter joins on the same terms, with two small models, and stays `hidden` until certified. **Certified 2026-10-23** ([provider evaluation](../../ai/provider-evaluation.md)): Claude Haiku 5.5, GPT-6 Luna, Gemini 3.8 Flash and GPT-6 Sol.
-- **Setup:** one active AI provider setup per user. Credentials are encrypted and write-only.
+- **Providers:** Gemini, OpenAI and Claude. Each becomes officially supported only after passing Career Companion's synthetic AI evaluation. **Owner decision, 2026-10-17:** OpenRouter joins on the same terms, with two small models, and stays `hidden` until certified.
+- **Setup:** one active AI provider setup per user. **Owner decision, 2026-10-22:** other providers can be connected too, one key each, and wait until the user makes one active (decision 5). Credentials are encrypted and write-only.
 - **Catalog:** providers and models are limited to Career Companion's supported catalog. The recommended model is used by default; Advanced selection is limited to tested supported models.
 - **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing.
 - **Unavailable AI:** emails that cannot be processed because AI is unavailable remain `PENDING` and resume through the existing processing flow.
@@ -122,7 +126,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
 - A usage reservation system or token budgets.
 - A separate AI or Integrations application.
 - User-entered endpoints, base URLs, custom headers or free-form model names.
-- Several saved configurations or backup providers.
+- Backup providers that take over by themselves. (Several saved configurations are part of decision 5 since the owner decision of 2026-10-22; switching stays the user's choice.)
 - A separate execution-log store.
 - Hosted AI.
 
@@ -170,6 +174,6 @@ Decided during implementation, within this decision:
 These are not designed now. The decision keeps each one additive.
 
 - **More providers on existing protocols:** catalog entry + evaluation + data-use disclosure. (Owner decision, 2026-10-17: a provider whose key check, errors or request rules differ gets a small adapter of its own, as OpenRouter did.)
-- **Backup provider or several saved keys:** more configurations per user plus an explicit user choice. Access resolution is the single place this would change.
+- **Backup provider or several saved keys:** more configurations per user plus an explicit user choice. Access resolution is the single place this would change. **Done, owner decision 2026-10-22** (decision 5): several connected providers, one active, switched by hand. Access resolution did not change: it still reads the one active setup.
 - **Career Companion-provided allowance:** a second source in access resolution, plus its own limit scope. States already speak of "AI access" rather than "key present".
 - **Explicit reprocessing with a new provider:** a user-initiated replay, built on the user-approved retry rule.

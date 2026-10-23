@@ -42,7 +42,8 @@ The model is intentionally production-minded but limited to the current MVP. It 
 - `Application` — current job application state.
 - `ApplicationEvent` — historical recruitment/application occurrence.
 - `Action` — user-facing obligation or required action.
-- `AIConfiguration` — the user's one active AI provider setup (ADR-0001): provider, sealed key, model choices, access state, consent.
+- `AIConfiguration` — the user's active AI provider setup (ADR-0001): provider, sealed key, model choices, access state, consent. All AI work runs on it.
+- `AISavedProvider` — another provider the user connected but did not make active (ADR-0001 decision 5, 22 Oct 2026): its sealed key, models, last check and consent. It does no AI work.
 - `IntegrationToken` — a per-user bearer token for the MCP endpoint (ADR-0002); only its hash is stored.
 - `ExternalSubmission` — evidence that the user's own automation reported a confirmed submission (ADR-0002).
 - `NotSubmittedJob` — a job the user's own automation looked at but did not apply to, with the reason (ADR-0002 amendment). Never an application.
@@ -172,7 +173,7 @@ This entity records the **latest AI processing state and validated output** for 
 
 ### 4.4a AIConfiguration and AI usage (ADR-0001)
 
-One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted with the user).
+One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted with the user). All AI work runs on it.
 
 | Field | Meaning |
 | --- | --- |
@@ -184,9 +185,11 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 | `consentDisclosure`, `consentedAt` | Which data-use text the user agreed to, and when. |
 | `revision` | Incremented on every save. Job-side state writes apply only to the revision they resolved. |
 
-`ai_model_pauses` (user, model) holds each model's own pause (COM-229): `reason` (rate limited, or provider busy, which also covers no answer in time; `PROVIDER_UNAVAILABLE` on pauses moved from before COM-229), `resumesAt`, `consecutiveFailures` (each failure in a row makes the next pause longer), the test mail of "Read waiting mails now" (`testEmailId`, `testStartedAt`, `testResult`), and `lastFailure`, the exact failure that started or last extended the pause (COM-230). A success on the model removes its row. A busy model never stops another model.
+`ai_saved_providers` (user, provider) holds each other connected provider (owner, 22 Oct 2026): the same fields as above except `revision`. With the active setup, a user holds at most one key per provider. A saved provider is called only for a check, a key change or a model change the user starts, and its `accessIssue` comes from its own last check. Making it active swaps it with the active setup in one transaction: the revision goes up, and the old setup's pauses end. Deleted with the user.
 
-`ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications. These are not provider billing data.
+`ai_model_pauses` (user, model) holds each model's own pause (COM-229) of the active setup: `reason` (rate limited, or provider busy, which also covers no answer in time; `PROVIDER_UNAVAILABLE` on pauses moved from before COM-229), `resumesAt`, `consecutiveFailures` (each failure in a row makes the next pause longer), the test mail of "Read waiting mails now" (`testEmailId`, `testStartedAt`, `testResult`), and `lastFailure`, the exact failure that started or last extended the pause (COM-230). A success on the model removes its row. A busy model never stops another model.
+
+`ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications, for all of the user's providers together. These are not provider billing data.
 
 Access is one of four states, derived from these facts: **Not set up**, **Ready**, **Needs attention**, **Limited**. While access is not Ready, emails needing AI wait as `PENDING`; this is not a processing failure.
 

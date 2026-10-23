@@ -10,7 +10,7 @@
 This document explains how Career Companion uses AI once each user brings their own AI account from one of several providers. It aims for a real choice of provider with a controlled scope. That means:
 - a small curated set of providers
 - three protocol adapters
-- one configuration per user
+- one active configuration per user (since 22 Oct 2026, other providers can be connected too and wait until the user makes one active)
 - reuse of what already works: capability interfaces, operation ledger, bounded retries, Gmail sync recovery, sanitized errors
 
 ---
@@ -123,6 +123,8 @@ AI settings sit alongside the Gmail connection: Career Companion's two accounts.
 - the Career Companion safety limit in effect
 - actions: Check again · Try a sample email · Change models · Switch provider · Remove
 
+**Owner decision, 22 Oct 2026:** the page is now "AI providers" with several connected providers and one active (ADR-0001 decision 5). [User flows](../product/user-flows.md) UF-10 has the current page; this section keeps the original design.
+
 ### 3.2 UF-10 — Set up or switch AI provider
 
 *Canonical home will be [user flows](../product/user-flows.md) after Sprint 6 (§14).*
@@ -144,6 +146,8 @@ AI settings sit alongside the Gmail connection: Career Companion's two accounts.
 - The current configuration keeps working until the new key is verified.
 - Then the old key is deleted.
 - Future emails use the new provider. Completed results are not reprocessed, and each keeps its own provenance.
+
+Since 22 Oct 2026 (owner) the old key is not deleted: the old provider stays connected and inactive, and the user can switch back with "Make active". See ADR-0001 decision 5.
 
 **Removing** deletes the configuration. Processed data stays.
 
@@ -310,7 +314,7 @@ This is also the only place future sources would be added (a backup provider, a 
 
 ### 7.1 Ownership
 
-- One active configuration per user, keyed by `userId`, cascading with the user.
+- One active configuration per user, keyed by `userId`, cascading with the user. Other connected providers are in `ai_saved_providers` (user, provider) and do no AI work (22 Oct 2026); access resolution reads only the active one.
 - The API derives the user from the session only.
 - The worker reads only the configuration of the job's `userId`.
 
@@ -540,7 +544,7 @@ Test applied to every pattern: *what problem does it solve for Career Companion?
 | Separate AI and Integrations applications | One user owns both credentials and settings |
 | Tenant roles and permissions | No tenants or administrators |
 | Free-form models; custom base URLs and headers | Unverifiable quality; server-side requests to user-chosen URLs |
-| Several provider configurations active per user | One active account meets the requirements; a backup provider is later |
+| Several provider configurations active per user | One active account meets the requirements. Since 22 Oct 2026 several can be connected, but still only one is active, and the user switches by hand |
 | Per-feature model routing; feature and trigger switches | Two email capabilities, no administrator |
 | Prompt/schema fingerprints; selection and policy revisions | Explicit contract versions already identify results |
 | Usage reservations, queues, token budgets | A per-user safety limit and each model's pause suffice |
@@ -639,7 +643,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 - **Providers:** Gemini, OpenAI and Claude, through protocol adapters. Each is officially supported only after passing Career Companion's synthetic AI evaluation.
   - **Owner decision, 2026-10-17:** OpenRouter joins as a fourth provider with its own small adapter and two small models, `hidden` until certified ([ADR-0001](decisions/ADR-0001-user-provided-ai.md), decision 3).
 - **Contracts:** provider-neutral, owned by Career Companion.
-- **Setup:** one active AI provider setup per user. Credentials are encrypted and write-only (§7), and the privacy lists in §8 apply.
+- **Setup:** one active AI provider setup per user; since 22 Oct 2026 other providers can be connected and wait, one key each (ADR-0001 decision 5). Credentials are encrypted and write-only (§7), and the privacy lists in §8 apply.
 - **Catalog:** providers and models are limited to Career Companion's code-defined catalog with fixed base URLs. The recommended model is the default; Advanced selection is limited to tested supported models.
 - **Safety limit:** a per-user Career Companion AI safety limit, which is an application control, not provider quota or billing. Each model pauses on its own, per user (COM-229, `ai_model_pauses`); a busy model never stops another model.
 - **Unavailable AI:** emails remain `PENDING` and resume through the existing processing flow.
