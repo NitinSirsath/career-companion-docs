@@ -98,7 +98,7 @@ Every adapter's output is validated against the same Zod schema, exactly as toda
 
 **Decision (accepted 2026-10-02):** the V1 provider set is Gemini, OpenAI and Claude, under the release gate above. Kimi, DeepSeek and Mistral are V1.x candidates, each subject to evaluation and a data-use and residency decision (O6).
 
-**Owner decision, 2026-10-17:** OpenRouter becomes a V1.x provider with its own small adapter and two small models. It stays `hidden` until it passes evaluation and the owner approves its data-use text ([ADR-0001](decisions/ADR-0001-user-provided-ai.md), decision 3).
+**Owner decision, 2026-10-17:** OpenRouter becomes a V1.x provider with its own small adapter and two small models. It stays `hidden` until it passes evaluation and the owner approves its data-use text ([ADR-0001](decisions/ADR-0001-user-provided-ai.md), decision 3). **Certified 2026-10-23** with four models ([provider evaluation](../ai/provider-evaluation.md)).
 
 ---
 
@@ -428,7 +428,7 @@ The operation ledger stays as it is:
 | **Access: key rejected** | Invalid or revoked key | Claim released, attempt not used; Needs attention; email pending | Replace key (provider key link) |
 | **Access: account, billing or model** | No billing or credit, API disabled, region, model not available to this key | Same | Provider billing or permission link, or "choose another model" |
 | **Access: limited** | Provider rate limit, quota exhausted or busy; Career Companion safety limit reached | Claim released, attempt not used; that model pauses for this user, or wait for the next day for the safety limit; email pending | Resumes about <time> |
-| **Provider busy** (owner decision, 2026-10-14) | A short server error: Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); 409 from OpenAI or Anthropic | Same as Access: limited | Resumes about <time> |
+| **Provider busy** (owner decision, 2026-10-14) | A short server error: Google 503, 500 and 502; OpenAI 500, 502, 503 and 504; Anthropic 500, 503, 504 and "overloaded" (529); 409 from OpenAI or Anthropic; OpenRouter 500 and 502, 503 with `provider_overloaded`, and a 200 answer whose error is `provider_overloaded` or `provider_unavailable` (not yet seen live, 2026-10-23) | Same as Access: limited | Resumes about <time> |
 | **No answer in time** (owner decision, 2026-10-14; was "Outcome unknown") | Our own timer; Google's 504 "deadline expired"; a connection that dropped after sending | Per-email reads: 1 of 3 attempts used; email pending; paused as for busy, then tried again by itself. After the 3rd attempt: held | "Retry anyway" after the 3rd attempt (§9.5) |
 | **Invalid output** (existing) | Empty, non-JSON, schema-invalid | Failed | "Retry anyway" (§9.5) |
 | **Invalid request** (existing) | Request rejected for a non-credential reason | Failed; engineering fix | Generic failure |
@@ -657,7 +657,7 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 | O3 | Data-use and residency statements per provider | Write from current terms at catalog entry; review when entries change |
 | O4 | Safety-limit value and bounds, and whether users may adjust it | Set from expected daily email volume; an application safeguard, not a quota estimate |
 | O5 | SDK or library behind the adapter interface | Decide in step 1 against the §5.2 criteria |
-| O6 | Whether V1.x providers with non-EU/US data residency are offered at all | Product decision before each entry; disclose clearly if offered. Owner decision, 2026-10-17 (OpenRouter): no block by country or company for now; only servers that keep nothing; decide again before real users. |
+| O6 | Whether V1.x providers with non-EU/US data residency are offered at all | Product decision before each entry; disclose clearly if offered. Owner decision, 2026-10-17 (OpenRouter): no block by country or company for now; only servers that keep nothing; decide again before real users. Owner decision, 2026-10-23 (certification): still no country limit; all four certified models run on Google or Microsoft Azure servers in the US or Europe. Decide again when a model on another company's servers is added. |
 | O7 | Authoritative repository and Sprint 6 commit | Required before an implementation branch |
 | O8 | Who relies on the hosted key in production today | Confirm; they choose a provider at rollout |
 | O9 | Catalog contents, default models, final UI wording | Decide during implementation and evaluation |
