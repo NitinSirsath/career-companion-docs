@@ -30,6 +30,7 @@ The Email Analyzer extracts structured data corresponding to the job application
 - **Assessments:** \`assessmentInfo\`, \`assessmentDeadline\`
 - **Outcomes:** \`offerInfo\`, \`rejectionInfo\`
 - **Next Steps:** \`actionRequired\`, \`requestedAction\`, \`actionDeadline\`, \`followUpRequired\`, \`followUpDate\`
+- **Fake offer:** \`fakeOfferWarning\` (from \`extraction/v4\`): one short reason when the email asks for money or bank, card or ID details to get or keep a job; otherwise null. See "Job offers that ask for money".
 
 All missing fields are explicitly set to \`null\`. The model must not hallucinate missing values.
 
@@ -142,11 +143,21 @@ Logs hold IDs and counts only.
 
 **LinkedIn:** a message or InMail where a named person reaches out about a specific role is Relevant. LinkedIn job alerts, recommendations and sponsored jobs are Irrelevant. The model decides from content, not only the sender address.
 
-Contracts: `classification/v3` (per-email) and `relevance-batch/v2` (batch) are current. `classification/v2` and `relevance-batch/v1` are frozen for emails that started on them.
+Contracts: `classification/v4` (per-email) and `relevance-batch/v3` (batch) are current: the strict rules plus the rule for job offers that ask for money (below). `classification/v3` and `relevance-batch/v2` (the strict rules alone), and `classification/v2` and `relevance-batch/v1` (before the strict rules), are frozen for emails that started on them.
 
 - **Categories:** the strict prompts offer only `RECRUITER`, `INTERVIEW`, `ASSESSMENT`, `OFFER`, `REJECTION` and `FOLLOW_UP`. `NEWSLETTER` and `SPAM` stay in the enum for older results.
 - **Pre-filter:** under the strict rules, Gmail's Social label no longer drops mail from a linkedin.com sender; the AI decides. Promotions and Spam are unchanged. Emails on the older rules keep the old label rule.
 - **Example models:** Gemini 3.5 Flash-Lite (fast) and Gemini 3.8 Flash (detailed). Google limits Gemini 2.5 models to projects that used them before.
+
+### Job offers that ask for money
+
+**Owner decision, 23 Oct 2026:** a mail that offers a job and asks the user to pay, or to send bank, card or ID details, is not dropped. It stays a job mail with a "probably a fake offer" warning, and Career Companion never suggests paying. Found in a 49-mail sandbox test: a fake "Google India" offer from a gmail.com address asking for a Rs 8,500 fee was read as a real Offer whose next step was to pay (Haiku 5.5 + Gemini 3.8 Flash, and GPT-6 Luna in batch mode), or dropped as not a job mail (GPT-6 Luna one mail at a time, GPT-6 Sol).
+
+- **First check** (`classification/v4`, `relevance-batch/v3`): such a mail is Relevant, even when it looks fake, with its category (usually Offer or Recruiter).
+- **Detailed read** (`extraction/v4`; `extraction/v5` when `AGENDA_EXTRACTION_V3_ENABLED` is on): `fakeOfferWarning` names the signs seen (the fee and its amount; a free-mail sender for a large company, an offer with no interview, a very short deadline). The AI must never put paying or sending bank, card or ID details in `requestedAction`.
+- **In code, not left to the AI:** when `fakeOfferWarning` is set, the next step is always "Don't pay. Check this job on the company's own careers site.", with no deadline. No application action or reminder is created from that mail. The mail never changes an application's status and is never linked to an application automatically; the user can still link it by hand.
+- **API:** `fakeOfferWarning` on a conversation (the newest warning among its received mails), on each mail's AI read, and on the sandbox mail result. The Mails page and the mail page show a yellow warning and a "Probably fake" chip.
+- `extraction/v2` and `extraction/v3` are frozen for emails whose first extraction ran on them.
 
 ### New mails only
 
