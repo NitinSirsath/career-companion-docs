@@ -79,7 +79,7 @@ The AI status never moves back in this order: Applied, Recruiter contact, Assess
 
 ## User-provided AI (ADR-0001, implemented 2026-10-02)
 
-- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI, Claude or OpenRouter, from the code catalog; owner decision, 2026-10-17: OpenRouter is hidden until certified; certified 2026-10-23). There is no Career Companion key and no fallback to another provider.
+- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI, Claude or OpenRouter, from the code catalog; owner decision, 2026-10-17: OpenRouter is hidden until certified; certified 2026-10-23), or the free AI the user chose. There is no fallback to another provider.
 - **The free AI** (owner decision, 2026-10-24): the provider `career-companion` runs OpenRouter with GPT-6 Luna on Career Companion's own key. Server settings:
   - `FREE_AI_OPENROUTER_KEY`: the key, a secret, set only on the server. Empty: the free AI is not offered.
   - `FREE_AI_ENABLED`: `false` stops it for everyone.
