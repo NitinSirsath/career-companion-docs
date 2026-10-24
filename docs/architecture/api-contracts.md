@@ -58,6 +58,7 @@ Schemas: `src/contracts/ai.ts` in the backend. A user can connect several provid
 | `POST /api/ai/waiting/read` | "Read waiting mails now", on the active provider. |
 
 The old `PUT /api/ai/settings`, `DELETE /api/ai/settings` and `POST /api/ai/settings/check` are gone.
+
 **The free AI (owner decision, 24 Oct 2026; ADR-0001 decision 1).** The catalog provider `career-companion` runs on Career Companion's own OpenRouter key, with GPT-6 Luna for both steps:
 - It is in `offeredProviders` only while the server has its key and it is switched on.
 - `PUT /api/ai/providers/career-companion` takes only `{ consentDisclosure, makeActive? }`. A key or a model choice is refused with 400 `VALIDATION_ERROR`, and nothing is checked with OpenRouter. It answers `verification: VERIFIED`.
