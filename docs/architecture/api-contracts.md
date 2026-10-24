@@ -56,6 +56,7 @@ Schemas: `src/contracts/ai.ts` in the backend. A user can connect several provid
 | `DELETE /api/ai/providers/:provider` | Removes the key. For the active provider, `?then=<provider>` makes that connected provider active, and `then=none` (the default) leaves none active, so new mail waits. Removing a provider that is not connected changes nothing. |
 | `POST /api/ai/settings/sample-test` | Runs both AI steps on a built-in sample mail with the active provider. 404 `AI_NOT_CONFIGURED` when none is active. |
 | `POST /api/ai/waiting/read` | "Read waiting mails now", on the active provider. |
+| `GET /api/ai/reading` | The AI reading status: how far the AI is with the user's newest mails, about how long the rest takes, and what it does now (below). |
 
 The old `PUT /api/ai/settings`, `DELETE /api/ai/settings` and `POST /api/ai/settings/check` are gone.
 
@@ -65,6 +66,15 @@ The old `PUT /api/ai/settings`, `DELETE /api/ai/settings` and `POST /api/ai/sett
 - `POST /api/ai/providers/career-companion/check` answers 409 `AI_PROVIDER_HAS_NO_KEY`. Activate and remove work as for any provider.
 - New access reasons (in `access.reason`, `connections[].reason`, `access.pauses[].reason` and the mail `aiStatus.reason`): `FREE_AI_BUSY` (OpenRouter busy or rate limited), `FREE_AI_BUDGET` (Career Companion's credit is used up), `FREE_AI_PROBLEM` (its key was refused or the model is gone) and `FREE_AI_OFF` (switched off). All are state `LIMITED`: they end by themselves, and the user never has to fix them. The first three are one pause shared by every user on the free AI, with no test mail; "Read waiting mails now" does not test it.
 - `safetyLimit.callsPerDay` is the free AI's own limit (`AI_FREE_DAILY_CALL_LIMIT`, default 250) while it is active.
+
+**The AI reading status (owner decision, 24 Oct 2026; approved mock `AI-PROGRESS-mock.html`).** `GET /api/ai/reading` is small, so the screens can ask every 5 seconds while mails are read. It only counts rows: no AI call.
+- `state`: `NONE` (nothing waits), `READING` (mails are read or wait in line), `PAUSED` (it goes on by itself at `resumesAt`: a model's pause, the free AI's shared pause, or the daily limit), `STOPPED` (no known end and nothing for the user to fix: the free AI's budget or a problem on Career Companion's side, the free AI switched off, or AI paused) or `NEEDS_YOU` (AI not set up, or the user's own key, billing or model).
+- `reason` (an access reason, which picks the words), `provider` (the active one) and `model` (the paused or failing model).
+- `notDone`, `done` and `total`: the user's batch. It starts at the sync that saved the user's oldest mail not done yet (mails saved more than 2 minutes apart belong to different syncs). A mail that stopped and waits for the user's OK counts as done.
+- `inLine`: none of the user's mails is done yet and other users' mails come first. Never another user's numbers.
+- `secondsLeft`: the estimate, shown as "about"; null during a pause that holds back part of the mail, in batch mode, or when the line cannot be read. `resumesAt`: when a pause or the daily limit ends.
+- `steps`: the newest AI steps of the batch, up to 10, oldest first: `emailId`, `subject`, `step` (`SORTING`, `READING_DETAILS`, `NOT_JOB`, `JOB` or `STOPPED`), the step's `provider` and `model`, and for a job mail its `category`, `companyName` and `jobTitle`, with `at`.
+- `jobMails`: how many job mails the batch found, and the newest three (`emailId`, `category`, `companyName`, `jobTitle`; the conversation opens by the mail's ID). With `NONE`, those of the last batch, so "done" names them all.
 
 ## Validation
 
