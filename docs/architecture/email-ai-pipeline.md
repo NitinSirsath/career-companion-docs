@@ -79,7 +79,14 @@ The AI status never moves back in this order: Applied, Recruiter contact, Assess
 
 ## User-provided AI (ADR-0001, implemented 2026-10-02)
 
-- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI, Claude or OpenRouter, from the code catalog; owner decision, 2026-10-17: OpenRouter is hidden until certified; certified 2026-10-23). There is no Career Companion key and no fallback to another provider.
+- **Whose AI:** every call uses the job user's own provider configuration (Gemini, OpenAI, Claude or OpenRouter, from the code catalog; owner decision, 2026-10-17: OpenRouter is hidden until certified; certified 2026-10-23), or the free AI the user chose. There is no fallback to another provider.
+- **The free AI** (owner decision, 2026-10-24): the provider `career-companion` runs OpenRouter with GPT-6 Luna on Career Companion's own key. Server settings:
+  - `FREE_AI_OPENROUTER_KEY`: the key, a secret, set only on the server. Empty: the free AI is not offered.
+  - `FREE_AI_ENABLED`: `false` stops it for everyone.
+  - `AI_FREE_DAILY_CALL_LIMIT`: calls per free AI user per day, default 250.
+  - `AI_EMAIL_WORKER_CONCURRENCY`: mails read at once, for all users together, 1 to 3, default 3 (picked by the load test of 24 Oct 2026).
+  - One pause per model is shared by its users (`free_ai_pauses`). A credit, key or model problem is tried again every hour and told to the owner once on Discord.
+- **Keeping the server awake:** sync runs every hour (owner decision, 2026-10-24). On Render's free plan the server sleeps after 15 minutes without requests, and then no sync and no AI reading runs, so an outside check calls `/health` every 10 minutes.
 - **Provider-neutral contracts:** \`classification/v2\`, \`extraction/v2\` and \`relevance-batch/v1\` (prompt, Zod schema, role, input bounds) are owned by Career Companion. Each adapter derives its schema dialect from Zod. Every result is validated with the same Zod schema.
 - **Access resolution:**
   - lazy, at most once per job, after completed-result adoption and the deterministic filter;

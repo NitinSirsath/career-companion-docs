@@ -308,6 +308,8 @@ One function answers "can this user's AI work run now, and with what?". It retur
 
 This is also the only place future sources would be added (a backup provider, a Career Companion allowance).
 
+**The free AI (owner decision, 2026-10-24; ADR-0001 decision 1)** is that Career Companion allowance. For a user whose active provider is `career-companion`, access resolution uses Career Companion's own OpenRouter key (`FREE_AI_OPENROUTER_KEY`) with GPT-6 Luna, instead of opening a user key. While that key is not set or `FREE_AI_ENABLED=false`, access is `LIMITED` with reason `FREE_AI_OFF` and its mails wait.
+
 ---
 
 ## 7. Credentials and security
@@ -423,6 +425,13 @@ The operation ledger stays as it is:
   - The value, bounds and whether users may adjust it are implementation decisions.
 - **Career Companion's own counts.** The same daily record counts the calls and input/output tokens Career Companion sent. They are diagnostics and user transparency, not billing. No currency estimates in V1.
 - **Each model's pause, per user** (COM-229, `ai_model_pauses`). Set by that user's provider refusals and calls with no answer in time on that model; grows with that model's failures in a row and ends on its first success. A busy model never stops another model. The safety limit counts every call sent. Together they bound any loop.
+- **The free AI** (owner decision, 2026-10-24):
+  - **Its own limit:** `AI_FREE_DAILY_CALL_LIMIT`, default 250 calls (about 200 mails, since a job mail takes 2 calls), per user. It also protects Career Companion's budget, about $10 a month, which the key's credit limit on OpenRouter enforces.
+  - **One pause, shared by everyone on it** (`free_ai_pauses`, one row per model). Every user on the free AI shares one key, so one busy answer holds them all back instead of each user asking OpenRouter again.
+    - A rate limit, a busy answer or no answer in time pauses it as a user's own model would, growing on the busy answers in a row (`FREE_AI_BUSY`).
+    - A used-up credit (402), a refused key or a missing model pauses it for an hour and tries again then (`FREE_AI_BUDGET`, `FREE_AI_PROBLEM`). It is never written to the user's setup as their problem, and the owner gets one Discord message per problem (`DISCORD_WEBHOOK_URL`).
+    - A success by any user ends it for everyone. Users on their own key are never affected.
+  - **Reading speed:** `AI_EMAIL_WORKER_CONCURRENCY` (1 to 3, default 3) is how many mails the mail reader works on at once, for all users together. The load test of 24 Oct 2026 picked 3: 10 users with 50 mails each, all syncing at once on the free AI, were read in 10 minutes at 3 and 30 at 1, with no busy answer from OpenRouter. Mails are read in queue order, so the users finish one after another.
 
 ### 9.3 Failure categories
 
@@ -458,6 +467,7 @@ Held operations are not tried again by themselves. For per-email reads, a call w
 
 "Waiting for AI" is simply `PENDING`. Gmail sync already re-offers up to 100 pending emails per user on every manual or scheduled sync. In addition:
 - when a model's pause or the daily safety limit ends, the waiting mail is read by itself, with no sync needed: the start of the pause, or a job that hits the limit, queues one delayed job (`ai-resume-job`, COM-202, COM-229) for that moment
+- on the free AI, a job or a sync that meets its shared pause queues the same job for its user, because the failure that started the pause was another user's
 - fixing access (save, or a successful "Check again") triggers the same bounded re-offer immediately
 - jobs for a user without usable access return without calling a provider and without using queue retries
 
@@ -678,3 +688,4 @@ This is not a plan of record. It names the work so it can be scheduled after Spr
 | 0.4 | 2026-10-02 | V1 provider set (Gemini, OpenAI, Claude, evaluation-gated) accepted. Added S6-R06 as a precondition. |
 | 0.5 | 2026-10-02 | ADR-0001 accepted in full. The per-user limit is defined as an application safety control, separate from provider quota and billing; its value and adjustability are left to implementation. User-approved retry moved into V1. §15 lists the accepted architecture and the implementation decisions. |
 | 0.6 | 2026-10-17 | OpenRouter moved from Later to V1.x as one curated entry with its own small adapter (ADR-0001 decision 3, owner amendment), two small models, servers that keep nothing only, `hidden` until certified. |
+| 0.7 | 2026-10-24 | The free AI (ADR-0001 decision 1, owner amendment): Career Companion's own OpenRouter key with GPT-6 Luna, opt-in, its own daily limit, one pause shared by its users, owner alerts, and the mail reader's speed setting (§6, §9.2, §9.6). |

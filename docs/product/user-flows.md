@@ -163,7 +163,7 @@ A partial sync must not be represented as a fully completed sync.
 
 The flow defines the required product behavior; the underlying mechanism for detecting new Gmail messages is an architecture decision for a later phase.
 
-> **Built (2026-10-15):** new mail is found by a sync, not detected as it arrives. A sync runs when the user presses Sync Now and by itself twice a day, at 00:00 and 18:00 India time (backend `services/gmailSchedule.ts`); a time missed while the server was off is caught up when it starts.
+> **Built (2026-10-15):** new mail is found by a sync, not detected as it arrives. A sync runs when the user presses Sync Now and by itself every hour, on the hour, India time (owner decision, 2026-10-24; it was twice a day, at 00:00 and 18:00, until then; backend `services/gmailSchedule.ts`). A time missed while the server was off is caught up when it starts. On a server that sleeps when idle (Render's free plan), an outside check calls `/health` every 10 minutes to keep it awake.
 
 ---
 
@@ -346,7 +346,9 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 
 Owner decision, 22 Oct 2026: a user can connect several providers, one key each. One is active and reads the mail. Approved mock board "AI providers: several connected, one active".
 
-**User intent:** Let Career Companion read job emails with the user's own AI account, knowing what is sent and what it costs.
+**User intent:** Let Career Companion read job emails with the user's own AI account, or with Career Companion's free AI, knowing what is sent and what it costs.
+
+Owner decision, 24 Oct 2026 (approved mock `FREE-AI-mock.html`): the free AI, below.
 
 **Main flow:**
 
@@ -375,6 +377,13 @@ Owner decision, 22 Oct 2026: a user can connect several providers, one key each.
 - **Switching provider** never happens by itself. When the active provider has a key or billing problem and another connected provider is ready, the notice offers "Use <other> instead", which opens the same confirm. Completed emails are not reprocessed and keep their own provenance.
 - **Remove** deletes that provider's key; processed data stays. For the active provider it asks which connected provider reads new mail next, or "No provider: new mails wait". With no provider active, the page says so and new emails wait.
 - **Needs attention** (key rejected, billing or permission, model unavailable, key unreadable) or **Limited** (provider rate limit or outage, Career Companion's daily safety limit, paused): emails wait as `PENDING`, shown as "Waiting for AI". They resume after the fix. After a provider pause they are read by themselves when the pause ends, and the notice offers **Read waiting mails now** for a new try at once. It sends 1 waiting mail first, as a test, and the others follow only if it works. A test that is still busy does not make the pause longer. A busy model is shown as busy ("Gemini 3.8 Flash is busy right now"), not as a limit on the user's account.
+- **The free AI** (owner decision, 24 Oct 2026; ADR-0001 decision 1):
+  - **New user:** right after connecting Gmail for the first time, a user with no AI provider is taken to this page. It says "Gmail is connected. One more step: choose how your mails are read." and shows two choices: "Use your own AI key" (Recommended) and "Career Companion free AI" (free, runs on OpenRouter, shared by everyone, so it can be slow sometimes; about 200 mails a day).
+  - **Connect it:** "Connect" opens "Use Career Companion free AI?": what is sent, who reads it (OpenRouter on Career Companion's account, GPT-6 Luna on servers that keep nothing), that it is shared and can pause, the daily limit of about 200 mails, and that it pauses if the free budget runs out. "Use free AI" stays off until the user ticks "I agree". It becomes the provider that reads the mail; one connected before stays connected.
+  - **While it reads:** "Reads your mail now" shows Career Companion free AI with the tags Active and Free, GPT-6 Luna for both steps ("Fixed on the free AI"), no key buttons and no model drop-downs, only "Remove". A banner says it is shared by everyone, so it can be slower and sometimes pauses for a few minutes, and offers "Connect your own key".
+  - **When it pauses** (one pause for everyone on it): busy ("The free AI is busy right now." with the time it reads again by itself), the free budget used up, or a problem on Career Companion's side (the owner is told; nothing for the user to do), or switched off. Each says the waiting mails are not lost and offers "Connect your own key". There is no "Read waiting mails now" for it.
+  - **When the user's own key fails,** the notice also offers "Use Career Companion free AI instead", which opens the same confirm. Nothing switches by itself.
+  - Connected but not active, it is listed under "Other connected providers" like any provider, with "Make active" and only "Remove…" in its menu.
 - **Retry anyway:** a mail with no answer in time is tried again by itself, up to 3 tries; after the 3rd try, or after an unusable answer, it waits for the user's OK and is not tried again by itself. A batch with no answer in time is held at once. "Manual Retry" explains where the earlier attempt went and that one more attempt may be charged again. It names the new provider if the user switched. Only "Retry anyway" sends exactly one more attempt.
 
 ### UF-11 — Connect the User's Own Automation (ADR-0002)
@@ -641,3 +650,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.3 | 2026-10-12 | Sign-in with email and password (COM-183): UF-01 renamed "Sign In"; added UF-17. Dev mode and its mail sandbox are a testing tool, described in engineering/dev-mode.md, not a user flow. |
 | 1.4 | 2026-10-13 | UF-16: reply to a mail from the app (COM-176); a reply goes to everyone on the mail unless the user chooses the sender alone, and a mail names the other people on it. UF-03 names the send permission. The Agenda is back in the navigation as "Coming soon". |
 | 1.5 | 2026-10-15 | Dated notes where the app differs: no first-run screen (UF-02); connecting does not start a sync (UF-03); sync runs on Sync Now and twice a day (UF-04); mail never creates an application by itself (UF-05); Discord for one configured user (§5). |
+| 1.6 | 2026-10-24 | UF-10: the free AI (owner decision): a new user goes to the AI providers page after connecting Gmail, the confirm dialog, its shared pauses, and "Use Career Companion free AI instead". UF-04: sync every hour. |

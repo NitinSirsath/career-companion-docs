@@ -177,8 +177,8 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 
 | Field | Meaning |
 | --- | --- |
-| `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`, `openrouter`). The catalog is code, not data. |
-| `encryptedApiKey` | The user's provider key as AES-256-GCM ciphertext bound to the user. Write-only: never returned, logged or sent anywhere except to the catalog's endpoint for that provider. |
+| `provider` | Catalog provider ID (`gemini`, `openai`, `anthropic`, `openrouter`, and `career-companion` for the free AI). The catalog is code, not data. |
+| `encryptedApiKey` | The user's provider key as AES-256-GCM ciphertext bound to the user. Write-only: never returned, logged or sent anywhere except to the catalog's endpoint for that provider. `null` only for the free AI (`career-companion`, owner, 24 Oct 2026), which runs on Career Companion's own key; a database check allows no key there and requires one everywhere else. |
 | `fastModel`, `detailedModel` | `null` follows the recommended model; otherwise a tested catalog model for that role. |
 | `accessIssue`, `accessIssueModel`, `accessFailure` | Why access needs the user's attention: key rejected, account/billing, model unavailable, key unreadable. `accessFailure` is the exact failure behind it (COM-230): status, the provider's short code, the model and our own times, never the provider's text. |
 | `verifiedAt`, `lastCheckedAt` | Content-free verification results. |
@@ -188,6 +188,8 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 `ai_saved_providers` (user, provider) holds each other connected provider (owner, 22 Oct 2026): the same fields as above except `revision`. With the active setup, a user holds at most one key per provider. A saved provider is called only for a check, a key change or a model change the user starts, and its `accessIssue` comes from its own last check. Making it active swaps it with the active setup in one transaction: the revision goes up, and the old setup's pauses end. Deleted with the user.
 
 `ai_model_pauses` (user, model) holds each model's own pause (COM-229) of the active setup: `reason` (rate limited, or provider busy, which also covers no answer in time; `PROVIDER_UNAVAILABLE` on pauses moved from before COM-229), `resumesAt`, `consecutiveFailures` (each failure in a row makes the next pause longer), the test mail of "Read waiting mails now" (`testEmailId`, `testStartedAt`, `testResult`), and `lastFailure`, the exact failure that started or last extended the pause (COM-230). A success on the model removes its row. A busy model never stops another model.
+
+`free_ai_pauses` (model) holds the free AI's pause, shared by every user on it (owner, 24 Oct 2026): `reason` (rate limited or busy; account or billing when Career Companion's credit is used up; key rejected or model unavailable), `resumesAt`, `consecutiveFailures` (busy answers in a row make the next pause longer), `lastFailure`, and `alertedAt` (when the owner was told about a credit, key or model problem). A success on the model removes its row. Users on their own key never use it.
 
 `ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications, for all of the user's providers together. These are not provider billing data.
 
