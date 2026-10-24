@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | **Accepted, 2026-10-02. Implemented locally 2026-10-02, not released.** Reviewed under [Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md). All providers are `hidden` until certified ([provider evaluation](../../ai/provider-evaluation.md)). See the [BYO AI execution report](../../planning/byo-ai/execution-report.md). |
+| Status | **Accepted, 2026-10-02. Implemented locally 2026-10-02, not released.** Reviewed under [Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md). All providers are `hidden` until certified ([provider evaluation](../../ai/provider-evaluation.md)). See the [BYO AI execution report](../../planning/byo-ai/execution-report.md). Amended by the owner: 2026-10-17 (OpenRouter, decision 3), 2026-10-22 (several connected providers, decision 5) and 2026-10-24 (the free AI, decision 1). |
 | Date | 2026-10-02 (proposed, revised after review and accepted the same day; design history in the [design document's versioning table](../ai-capability-architecture.md#document-versioning)) |
 | Decides | Whose AI access Career Companion uses, which providers it supports and how, where the provider boundary sits, how credentials are protected, and how AI failures affect processing |
 | Detail | [AI capability architecture](../ai-capability-architecture.md) |
@@ -41,6 +41,15 @@ Most of its other structure answers tenant and administrator needs Career Compan
 ## Decision
 
 1. **AI work for a user runs only on that user's own AI access.** There is no Career Companion key, and no fallback to one. One user's access, limits and failures never affect another user.
+
+   **Owner decision, 2026-10-24: the free AI.** A user may choose "Career Companion free AI" instead of a key of their own. It is the one Career Companion key: the owner's OpenRouter key, set only on the server (`FREE_AI_OPENROUTER_KEY`), never stored per user, logged or sent to the browser. The rules:
+   - **Opt-in.** The user connects it with one button and a confirm dialog that says what is sent and through whose account. Nothing is sent before they agree. It is never switched on by itself; a new user is taken to the AI providers page after connecting Gmail, where their own key is shown as recommended.
+   - **Fixed model.** GPT-6 Luna for both steps, on OpenRouter's servers that keep nothing. The user cannot change the model.
+   - **Budget.** About $10 a month, enforced by the key's own credit limit on OpenRouter.
+   - **Shared.** It is one provider, `career-companion`, in the "several connected, one active" model of decision 5. Because every user on it shares one key, one pause per model is shared by all of them: a busy or rate-limited answer pauses it for everyone and ends by itself. A used-up credit, a refused key or a missing model pauses it for an hour, tells the owner once, and is never shown as the user's problem. This is the one place where users affect each other, and only users who chose the free AI.
+   - **Its own limit.** About 200 mails a day per user (250 calls; decision 7). Users on their own key keep theirs.
+   - **Off switch.** `FREE_AI_ENABLED=false` stops it for everyone; its users' mails wait, and they can connect their own key.
+   - **No automatic fallback** (decision 11 stands): when a user's own key fails, the app offers "Use Career Companion free AI instead", and the user chooses.
 
 2. **Users choose from a curated set of providers and models.**
    - The set is defined in code.
@@ -88,7 +97,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
    - Never placed in job payloads, logs, errors, API responses or browser storage.
 
 7. **Career Companion applies a per-user AI safety limit.**
-   - It is an application safety control: it bounds how many AI calls Career Companion makes for one user per day, so a defect or loop cannot run unbounded.
+   - It is an application safety control: it bounds how many AI calls Career Companion makes for one user per day, so a defect or loop cannot run unbounded. On the free AI (decision 1, 2026-10-24) it is smaller, `AI_FREE_DAILY_CALL_LIMIT` (default 250 calls, about 200 mails), and it also protects Career Companion's budget.
    - It does not represent, mirror or predict the provider's quota, billing or rate limits. Those stay with the provider and reach Career Companion only as provider refusals (decision 9).
    - The existing global daily ceiling and global provider cooldown become per user, so one user never affects another.
    - Career Companion's own call and token counts are records of what Career Companion sent, not provider billing data.
@@ -116,6 +125,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
 - **Unavailable AI:** emails that cannot be processed because AI is unavailable remain `PENDING` and resume through the existing processing flow.
 - **Retries:** provider credential and refusal errors do not consume the normal email retry attempts. User-approved retry is the recovery mechanism for operations with uncertain outcomes.
 - **No automatic provider fallback.**
+- **Free AI (owner decision, 2026-10-24):** Career Companion's own OpenRouter key with GPT-6 Luna, opt-in, free for every user, with a shared pause and its own daily limit (decision 1).
 
 ## Not part of this decision
 
@@ -128,7 +138,7 @@ Most of its other structure answers tenant and administrator needs Career Compan
 - User-entered endpoints, base URLs, custom headers or free-form model names.
 - Backup providers that take over by themselves. (Several saved configurations are part of decision 5 since the owner decision of 2026-10-22; switching stays the user's choice.)
 - A separate execution-log store.
-- Hosted AI.
+- Hosted AI as the default. (The opt-in free AI is part of decision 1 since the owner decision of 2026-10-24.)
 
 ## Left to implementation
 
@@ -175,5 +185,5 @@ These are not designed now. The decision keeps each one additive.
 
 - **More providers on existing protocols:** catalog entry + evaluation + data-use disclosure. (Owner decision, 2026-10-17: a provider whose key check, errors or request rules differ gets a small adapter of its own, as OpenRouter did.)
 - **Backup provider or several saved keys:** more configurations per user plus an explicit user choice. Access resolution is the single place this would change. **Done, owner decision 2026-10-22** (decision 5): several connected providers, one active, switched by hand. Access resolution did not change: it still reads the one active setup.
-- **Career Companion-provided allowance:** a second source in access resolution, plus its own limit scope. States already speak of "AI access" rather than "key present".
+- **Career Companion-provided allowance:** a second source in access resolution, plus its own limit scope. States already speak of "AI access" rather than "key present". **Done, owner decision 2026-10-24** (decision 1): the free AI. Access resolution reads Career Companion's key for the provider `career-companion`; its limit is `AI_FREE_DAILY_CALL_LIMIT`, and its pause is shared by its users.
 - **Explicit reprocessing with a new provider:** a user-initiated replay, built on the user-approved retry rule.
