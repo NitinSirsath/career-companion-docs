@@ -113,9 +113,20 @@ Do not attempt to work around company GitHub permissions.
 
 This is the preferred mode when working on Career Companion from the office without downloading the repository locally.
 
-The office laptop does not contain a local Career Companion repository.
+The office laptop has no working Career Companion repository. Read-only clones are allowed: the repository-aware agent may keep them on the office laptop to read code and to run tests and the app with a dummy environment and synthetic data. Pushing from these clones is turned off, and they never hold real credentials or a real `.env`.
 
-The personal ChatGPT account acts as the coordination layer between the developer and repository-aware coding agents such as Codex or Fable.
+The personal ChatGPT account acts as the coordination layer between the developer and repository-aware coding agents such as Claude Code, Codex or Fable.
+
+### Everything stays local
+
+Owner rule, 24 Oct 2026. It applies to every agent used in this mode, Claude Code and Codex alike.
+
+- The agent keeps all of its work on the office laptop as local files: plans, mocks, test reports, prompts and screenshots.
+- The agent never publishes or saves anything to a cloud service: no Claude artifacts or Claude Docs, no Codex cloud tasks, no gists, no shared links, no file-sharing services.
+- Linear issues, pull requests and prompts name the local file or describe it in words. They never carry a link to a cloud copy.
+- The only things that leave the laptop are the branches and pull requests that personal ChatGPT makes, and the Linear changes the owner asked for.
+
+Why: AI accounts on the office laptop may be shared, so a cloud copy can be seen by other people.
 
 ### Capability and identity preflight
 
@@ -390,7 +401,8 @@ Career Companion supports three development modes:
    - Completed work is intentionally synchronized to the personal environment.
 
 3. **Office Laptop — Prompt-Only / Remote Repository Mode**
-   - No local repository.
+   - No working repository; read-only clones only, for reading and testing.
+   - All agent work stays local; nothing is published to a cloud service.
    - Personal ChatGPT coordinates implementation.
    - Codex/Fable inspect GitHub directly and produce detailed technical guidance.
    - Personal ChatGPT implements through a new branch and PR.
