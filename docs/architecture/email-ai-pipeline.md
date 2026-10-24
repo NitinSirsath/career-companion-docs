@@ -177,3 +177,15 @@ Every automatic sync change applies to newly synced email only. Sync, deploys an
 - Backend tests 46–51 in `src/tests/ai-triage.test.ts` enforce this. Do not weaken or remove them.
 
 A future ticket will split Relevant into sections (direct contact, application events, job discovery). Until then, job discovery email is Irrelevant.
+
+## The AI reading status (owner decision, 24 Oct 2026)
+
+`GET /api/ai/reading` (backend `services/ai/readingStatus.ts`) tells the screens how far the AI is with a user's newest mails. It only counts rows: no AI call, no cost.
+
+- **The batch** starts at the sync that saved the user's oldest mail not done yet (waiting or being read). The reader takes the oldest mail first, so the done mails of that sync are older than it. One sync saves its mails seconds apart and syncs run an hour apart, so the batch begins after the last gap of more than 2 minutes before that mail. A new sync while mails are read joins the batch. A mail that stopped and waits for the user's OK counts as done.
+- **The line ahead:** the mail reader (`email-processing-job`) is one line for all users, first in, first out. The mails ahead are other users' mail jobs that wait or run and were queued before the user's newest one, read from pg-boss's own job table (`pgboss.job`). When that table cannot be read, there is no time, only progress.
+- **The speed:** the AI's time for the mails finished in the last 5 minutes, both steps (`ai_operations.startedAt` to `completedAt`), divided by the mails read at once (`AI_EMAIL_WORKER_CONCURRENCY`). Time the reader stood idle does not count. With fewer than 6 mails in that time, 1.2 seconds a mail (the load test of 24 Oct 2026: 500 mails in 10.4 minutes, 3 at once). Worked out at most once every 5 seconds and shared by all users; an index on `ai_operations.completedAt` keeps it small.
+- **Time left** = (mails ahead + the user's mails not done) × seconds per mail. The screens round it: "less than a minute", "about 4 min", by 5 minutes up to an hour, then by the hour. Never an exact time.
+- **No time:** while a pause holds back the mails that need one of the models, in batch mode, or when the line cannot be read.
+- **What it waits for**, in the AI notice's order: the user's own problem (`NEEDS_YOU`), Career Companion's pause or the free AI switched off (`STOPPED`), the pause of every model the waiting mails need (`PAUSED` until the first ends; the free AI's budget or problem pause is `STOPPED`), then the daily limit (`PAUSED` until midnight UTC).
+- **Checked on 24 Oct 2026** in local dev mode with two users and a made-up AI that answers in 1.5 to 4 seconds: user B synced 60 mails, user A 40 mails 5 seconds later. A saw "Waiting in line" with about 85 seconds; A's last mail was done 97 seconds after its sync.
