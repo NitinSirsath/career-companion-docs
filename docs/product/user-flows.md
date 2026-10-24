@@ -163,6 +163,8 @@ A partial sync must not be represented as a fully completed sync.
 
 The flow defines the required product behavior; the underlying mechanism for detecting new Gmail messages is an architecture decision for a later phase.
 
+> **AI reading status (owner decision, 2026-10-24; approved mock `AI-PROGRESS-mock.html`):** while new mails wait or are read, the bottom of the side menu says so: "Reading your new mails", "12 of 50 done · about 4 min left" and one thin bar. Under the bar, the AI's step for every mail ("GPT-6 Luna · Is it a job mail?" with the subject, then "Not a job mail" or what it found), and "Job mails found" with the newest three; a click opens the mail. A small arrow minimizes that part. "Waiting in line" when other users' mails come first. A pause or the daily limit says when reading goes on; the free AI stopped offers "Connect your own key"; a key problem offers "Fix it on AI providers"; with no AI, "38 new mails wait for AI" and "Choose how they're read". When the last mail is done: "Done reading your new mails" for 5 seconds, then it hides. The collapsed menu shows one icon; phones show one cell in the top bar that opens the same status.
+
 > **Built (2026-10-15):** new mail is found by a sync, not detected as it arrives. A sync runs when the user presses Sync Now and by itself every hour, on the hour, India time (owner decision, 2026-10-24; it was twice a day, at 00:00 and 18:00, until then; backend `services/gmailSchedule.ts`). A time missed while the server was off is caught up when it starts. On a server that sleeps when idle (Render's free plan), an outside check calls `/health` every 10 minutes to keep it awake.
 
 ---
@@ -653,3 +655,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.5 | 2026-10-15 | Dated notes where the app differs: no first-run screen (UF-02); connecting does not start a sync (UF-03); sync runs on Sync Now and twice a day (UF-04); mail never creates an application by itself (UF-05); Discord for one configured user (§5). |
 | 1.6 | 2026-10-24 | UF-10: the free AI (owner decision): a new user goes to the AI providers page after connecting Gmail, the confirm dialog, its shared pauses, and "Use Career Companion free AI instead". UF-04: sync every hour. |
 | 1.7 | 2026-10-24 | UF-10: the free AI as a backup next to the user's own key (owner decision): "Add as backup", and "Use Career Companion free AI instead" then opens "Make active". |
+| 1.8 | 2026-10-24 | UF-04: the AI reading status in the side menu and the phone top bar (owner decision). |
