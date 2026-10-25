@@ -444,8 +444,8 @@ Owner decision, 24 Oct 2026 (approved mock `FREE-AI-mock.html`): the free AI, be
 
 1. The **Job mails** tab lists one row per conversation (a Gmail thread of job-related mail), with open requests first.
 2. Each row shows the subject, sender and company, the type of mail (Recruiter, Interview, Assessment, Offer, Rejection, Update), and a **New** mark until the user opens it.
-3. The **Action** column shows what the mail asks for, in the AI's words, with a due date when one is known. It works with or without an application. Its state is **Needs action**, **Replied** (the user sent a later message in the thread) or **Done**.
-4. The user marks an action done, reopens it, or, after a reply, asks to be reminded again.
+3. The **Action** column shows what the mail asks for, in the AI's words, with a due date when one is known, and **Past due** in red once it has passed. It works with or without an application. Its state is **Needs action**, **Replied** (the user sent a later message the AI has not read yet, or could not read) or **Done**, with why it closed: "Your reply answered it", "Replaced by a newer mail", "A newer mail confirmed it", "You said you did it" or "Closed with the application".
+4. There is no "Mark done" (owner, 24 Oct 2026): an ask closes when the user's reply answers it or a newer mail settles it. An ask done outside mail (a form, a test) has **I did this** in the row's "⋯" menu and the phone swipe. The user can reopen a closed ask, or after a reply ask to be reminded again.
 5. The **Application** column shows the application and its stage, or a **Create application** button.
 6. The user can search, filter by action, type and application, show new mail only, and sort by attention or by date. The filters live in the page address, so Back returns to the same view.
 
@@ -489,11 +489,12 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 **Main flow:**
 
 1. Career Companion fetches the conversation from Gmail at that moment and shows every message in order: sender, recipients, date, Gmail labels, the text, and attachments with a download link. Under the sender, a mail names the other people it went to ("to me, Daniel Okafor · cc Lena Fischer"). The user's own replies are shown as theirs.
-2. For a job mail, a panel beside the conversation shows the action with its buttons, the application or **Create application**, and what the AI read from each mail, labelled as the AI's reading.
+2. For a job mail, a panel beside the conversation shows the next step, what closes it ("Closes by itself when your reply answers it."), **I did this** in its "⋯" for an ask done outside mail, the application or **Create application**, and what the AI read from each mail, labelled as the AI's reading. While the AI reads the user's reply it says so ("GPT-6 Luna · Reading your reply"); a reply that does not answer keeps **Needs action** and says so. A closed step says why and links the mail or reply that closed it.
 3. For any other mail opened from the Gmail tab, only the conversation is shown, with a note that Career Companion did not analyze it and keeps nothing from it.
 4. **Reply.** Under the conversation the user writes a plain-text reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below. The box shows who it goes to; no address can be typed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
    - **Other people on the mail:** when the mail also went to other people, the reply goes to **all of them** unless the user says not. The box says "Reply to all" with the number of people, the person who wrote in **To** and everyone else in **Cc**. The user's own address is left out.
    - **Only the sender:** the link **Reply only to <sender>** sends the reply to that person alone; the box then says who will not get it, and **Reply to all** leads back. These are the only two choices: nobody can be added or removed one by one.
+   - **Reply with AI** (owner, 24 Oct 2026): above the text, up to three reply choices for a mail that expects an answer ("Send my free times") and **Write with AI** with an optional one-line hint ("I'm free Tue after 3"). One AI call per click; the box is locked while it writes, and **Stop** lets the user type instead. The draft goes into the box with "Written by GPT-6 Luna from the whole conversation. Check it before you send." Nothing is sent by itself. When the AI is busy or the daily limit is reached, one line says so; with no AI set up, one line says where to choose it.
 5. Opening a conversation ends its New mark.
 
 **Reply edge states:**
@@ -585,7 +586,7 @@ The exact domain model will be defined during data design.
 
 Career Companion should minimize persisted Gmail content and prefer structured job-search information and necessary metadata over permanently storing complete email bodies when possible. Temporary processing data should be distinguishable from persisted application data, and access must remain scoped to the authenticated user.
 
-Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied. Since 2026-10-13 the user can also reply from the app; that text is handed to Gmail and kept nowhere else.
+Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied. Since 2026-10-13 the user can also reply from the app; that text is handed to Gmail and kept nowhere else. Since 2026-10-25, when a conversation still needs something, the new text of the user's reply goes to their AI once to see what it answers, and "Write with AI" sends the whole conversation when the user clicks; neither text nor draft is kept.
 
 Specific retention periods and storage mechanisms will be defined during security/data design.
 

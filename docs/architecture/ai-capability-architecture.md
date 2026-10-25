@@ -397,6 +397,8 @@ Content goes to the user's chosen provider under the user's own agreement. Befor
 
 Consent is recorded per provider. Switching provider asks again. Each summary is checked against the provider's current terms when the catalog entry is added or reviewed.
 
+What is sent (`AI_DATA_SENT_SUMMARY`, and the free AI's own text) also names, since 2026-10-25: "When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation." Owner decision, 24 Oct 2026: only the words change; no new consent prompt and no new consent version, because the owner is the only user today.
+
 ### 8.4 Existing exposure (unchanged)
 
 Free-text output fields (classification `reasoning`, extraction `provenance`) can paraphrase email wording. A future contract version should give each a purpose and a length bound.

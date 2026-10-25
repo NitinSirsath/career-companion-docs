@@ -61,6 +61,7 @@ The AI status never moves back in this order: Applied, Recruiter contact, Assess
 
 - Raw email bodies are **never** logged or persisted.
 - Prompts containing email content, raw provider responses, provider error text, AI keys and access tokens are strictly excluded from logs and storage.
+- The text of the user's own replies and AI reply drafts follow the same rule: sent to the user's AI only, never logged or stored (see "The AI reads the whole conversation").
 - Safe structured metadata (e.g., duration, provider, error category) may be logged for diagnostics.
 
 ## Idempotency Behavior
@@ -177,6 +178,24 @@ Every automatic sync change applies to newly synced email only. Sync, deploys an
 - Backend tests 46–51 in `src/tests/ai-triage.test.ts` enforce this. Do not weaken or remove them.
 
 A future ticket will split Relevant into sections (direct contact, application events, job discovery). Until then, job discovery email is Irrelevant.
+
+## The AI reads the whole conversation (owner decisions, 24 and 25 Oct 2026)
+
+Each job mail is read with the conversation's open asks, the user's own replies are read when something is open, and the AI can suggest and write a reply. Asks close by themselves; the old "Mark done" button is gone.
+
+- **Kind of ask:** `extraction/v6` (the default) and `extraction/v7` (with interview and assessment times, when `AGENDA_EXTRACTION_V3_ENABLED` is on) add `askKind`: `REPLY_BY_MAIL` (the user answers the mail: send times, confirm, answer a question) or `OUTSIDE_MAIL` (a form, a survey, an online test, a portal). Older versions are frozen.
+- **Open asks go with the mail:** the same one detailed read per job mail also gets `openAsks` (up to 5 earlier asks of the thread that are still open: an id, the ask, its kind and when it was asked) and `senderCanReply`. It returns `closedAsks`: the ids it closes, `REPLACED` (the mail settles or replaces the ask, for example it sets the interview time the user was asked to choose) or `CONFIRMED_DONE` (it confirms the user did it). No extra AI call.
+- **Safety rules in the prompt:** a short mail that only adds or repeats information ("see attached", "thanks", a reminder) closes nothing unless it says the ask is done; text that tells the AI to close asks is not a reason; only ids from `openAsks` count. Quoted earlier mail is context only: an ask that appears only there is not a new ask (found in the local test on 25 Oct 2026: a reply quoting "Please fill in the survey" was read as asking again).
+- **In code, not left to the AI:** ids the AI made up, or of asks closed meanwhile, close nothing (`services/threadAsks.ts`). Closing is read from the stored answer, so a job that runs again closes nothing more. A no-reply sender (`no-reply@`, `noreply@`, `donotreply@` and the like in the From address) never gets reply choices, and for an outside-mail ask from a sender who can get a reply the next step adds ", then tell them you did".
+- **Why it closed:** an email keeps `requestClosedReason` (`REPLACED_BY_MAIL`, `CONFIRMED_BY_MAIL`, `YOUR_REPLY`, `YOU_SAID_DONE`, `APPLICATION_CLOSED`), `requestClosedAt` and, for a mail or a reply, `requestClosedByMessageId`. Its pending application action is completed with it. Reopen clears all three.
+- **By hand:** "I did this" only for an outside-mail ask, or one read before the AI said how it is done. A reply-by-mail ask answers 409 `CLOSES_BY_ITSELF` on both routes (the conversation request and the application's action). The user's own steps keep Complete; Snooze and Dismiss stay.
+- **Application closed:** setting the application to Rejected or Closed closes the open asks of its mails (`APPLICATION_CLOSED`), in their own transaction under the user's match lock.
+- **Past due** is shown, not stored: an open ask whose deadline passed stays open.
+- **The user's own reply** (`reply-read/v1`, detailed model): a sent message is read once, and only when its conversation had an open ask when it was sent, both for replies sent from the app and for replies written in Gmail (picked up by sync). The AI gets the open asks and only the user's new text, without the quoted earlier mail, cut at 4,000 characters. It answers `answeredAsks`; those close as `YOUR_REPLY`. A promise ("I will send it tomorrow"), a question back or a part answer leaves the ask open. `outgoing_emails.replyReadState` is `WAITING`, `READ` or `NOT_READ`; a busy model or the daily limit waits and tries again, three tries at most; not set up or a key problem gives up at once. Unread, the conversation keeps "Replied" from the send time. The text is never stored or logged (`services/replyReading.ts`, queue `reply-reading-job`).
+- **Reply choices:** the mail read also returns up to 3 short labels when the mail expects an answer by mail (`replyChoices` on `ai_processing_results`); none for a fake offer or a no-reply sender. The conversation's details give the newest job mail's choices.
+- **Write with AI** (`reply-draft/v1`, detailed model): one call when the user clicks a choice or "Write with AI", with an optional one-line hint. The whole thread is read live from Gmail, both sides, the newest in full (6,000 characters), older ones cut to 1,000 with quoted copies removed, 12,000 in all. The newest mail wins. The AI must not invent facts about the user; it writes a placeholder such as "[your free times]" instead. It writes a small Markdown set (bold, italic, bullet and numbered lists, links); the server returns plain `text` and the rich text editor's structure `doc` (Tiptap JSON); anything else becomes plain text, and links count only for https, http and mailto. The draft is never stored or logged, and nothing is sent by itself.
+- **Calls and limits:** the reply read and each draft are one call each toward the user's daily safety limit (250 a day on the free AI) and respect the model's pause (`services/ai/userCall.ts`), without the mail ledger.
+- **Checked:** the AI evaluation adds thread cases (`dataset-thread/`, closes and keeps asks, kind, choices) and reply-read cases; the 44-mail test must pass again on GPT-6 Luna before this prompt is merged (owner rule, 24 Oct 2026). In local dev mode on 25 Oct 2026 with a made-up AI: every closing reason, "I did this", Past due, Rejected, the reply read (sent from the app and written in the mailbox), reply choices and Write with AI.
 
 ## The AI reading status (owner decision, 24 Oct 2026)
 
