@@ -47,13 +47,25 @@ Geist and Geist Mono (free, loaded from Google Fonts in `index.html`), with no e
 - Page side padding 48px on laptops, 16px on phones. Spacing follows the 8px grid: 8, 16, 24, 32, 48.
 - Phones: no sideways scroll; lists are one tappable row or card each (see "Phones" below).
 
+## Logo
+
+The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mark** as its "o": a half sun over list lines (owner, 25 Oct 2026; approved mock `LOGO-W3-final-mock.html`, a local file). Both are in `components/layout/Logo.tsx`: `Wordmark` is the name, `Logo` is the mark alone.
+
+- **The name** (`Wordmark`) wherever there is room: the top bar with the side menu open, the sign-in pages' top bar, the top of the phone menu, the start-up screen and the privacy page. Letter spacing -0.045em. The "o" is the mark at 0.57em, set 0.011em after the "n", -0.031em before the "r" and 0.017em below the baseline. Screen readers hear "NorthList".
+- **The mark alone** (`Logo`) where the name does not fit: the top bar with the side menu collapsed, the browser tab and the phone home screen icon.
+- **Never the mark next to the name** (owner, 25 Oct 2026): the sun would show twice.
+- **Two drawings of the mark:** three list lines from 24px, and two thicker lines under 24px so they do not blur. Inside the name, the small mark is used under 28px.
+- **Colours:** the mark is the blue of `border-interactive` (`#0f62fe` light, `#4589ff` dark), the name the main text colour. The app icon is the white mark on a blue square. Flat only: no shadows, glows or gradients; never stretched or recoloured.
+- **Space:** keep empty space of at least half the mark's width around it.
+- **Files:** the masters are in [`brand/`](brand/): `northlist-mark.svg`, `northlist-mark-small.svg`, `northlist-mark-white.svg`, `app-icon.svg` and `favicon.svg`. The frontend's `public/` has the browser tab icons (`favicon.svg`, `favicon.ico`), the phone home screen icon (`apple-touch-icon.png`, 180px) and the link preview image (`og-image.png`, 1200 × 630), named in `index.html`.
+
 ## App shell
 
-- **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it, across the app: the logo in its own 56px square cell, then "Career Companion" in a cell as wide as the side menu (288px; only the logo cell when the menu is collapsed); then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
+- **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it, across the app: the name in a cell as wide as the side menu (288px), or only the mark in a 56px square cell when the menu is collapsed; then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
 - **Account menu** (`AccountMenu.tsx`), from the account button: name and email, Account, Theme (System, Light, Dark), Log out.
 - **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages, a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons.
 - **Phones:** see "Phones" below.
-- The sign-in pages have their own top bar with the logo and the chip.
+- The sign-in pages have their own top bar with the name and the chip.
 
 ## Phones
 
@@ -146,7 +158,7 @@ The to-do state ("Needs action", yellow) and the mail type never reuse these loo
 
 ## Loading, empty and error states
 
-- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the logo, the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
+- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
 - Loading: skeletons shaped like the content, never a bare "Loading…".
 - Empty: `EmptyState` says why and offers the next step.
 - Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
