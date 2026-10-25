@@ -34,7 +34,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 ### UF-01 — Sign In
 
-**Opening the app (built 22 Oct 2026):** until the app knows who is signed in, it shows a start-up screen: the logo, the name and a thin moving line, never the app's shape. Then:
+**Opening the app (built 22 Oct 2026):** until the app knows who is signed in, it shows a start-up screen: the name and a thin moving line, never the app's shape. Then:
 
 - Signed in: the page the user opened.
 - Signed out (the server answers 401): the sign-in page at once, with the page asked for kept as `next` (`/login?next=/applications/123`). After signing in, by password, test account or Google, the user lands on that page. A signed-in user who opens `/login?next=…` goes straight there. Only pages inside the app count as `next`.
