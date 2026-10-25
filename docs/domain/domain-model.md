@@ -5,6 +5,7 @@
 **Last Updated:** 2026-10-11
 
 ### Version History / Implementation Notes
+- **v1.5 (the AI reads the whole conversation, COM-333, 2026-10-25):** why and when an email's request closed (§4.3), the kind of ask and reply choices on the AI result (§4.4), and whether the AI read the user's reply on `OutgoingEmail` (§4.3b).
 - **v1.4 (mail-first walkthrough, COM-158):** conversations as a read model over `Email` (§4.3a), the New mark and the user's answer to a request on `Email`, and `OutgoingEmail` (§4.3b). An application can now also be created from a job-mail conversation, by the user's one click (§6).
 - **v1.4 (ADR-0002 amendment, 2026-10-21):** `ExternalSubmission` also keeps `applyUrl`, `resumeFilename` and `submittedAnswers`, and a repeat fills only empty fields; new `NotSubmittedJob` for jobs the automation did not apply to; `ApplicationResponse.automation` (§4.8).
 - **v1.3 (MCP feature, ADR-0002):** `IntegrationToken` and `ExternalSubmission` (§4.8), the `AUTOMATION_SUBMITTED` event, `submittedVia` on applications, and their ownership triggers. Automatic application creation is allowed for automation submissions only; Gmail never creates applications.
@@ -100,6 +101,9 @@ OAuth access/refresh credentials are sensitive infrastructure secrets and must n
 | `seenAt` | DateTime | No | When the user first opened the email's conversation. Null shows the conversation as new. |
 | `requestUserState` | Enum | No | `DONE`, `OPEN`. Set only by the user, for the request this email makes. Null means the user gave no answer. |
 | `requestUserStateAt` | DateTime | No | When the user gave that answer. |
+| `requestClosedReason` | Enum | No | Why the request closed: `REPLACED_BY_MAIL`, `CONFIRMED_BY_MAIL`, `YOUR_REPLY`, `YOU_SAID_DONE`, `APPLICATION_CLOSED`. Reopen clears it. |
+| `requestClosedAt` | DateTime | No | When it closed. |
+| `requestClosedByMessageId` | String | No | The Gmail ID of the newer mail or the user's reply that closed it. |
 | `createdAt` | DateTime | Yes | Creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
 
@@ -116,13 +120,15 @@ A **conversation** is the set of a user's job-related emails that share a Gmail 
 
 ```text
 DONE     → its application action is completed or dismissed,
+           or something closed it (requestClosedReason),
            or it has no action and the user marked it done
 REPLIED  → the user sent a message in the thread after the request arrived,
-           and did not reopen it after that
+           did not reopen it after that, and the AI did not read that message
+           without it settling the request
 OPEN     → otherwise
 ```
 
-- The user can mark a request done or open it again. When the request already has an application action, that action is completed or reopened too. A reply alone never completes an action.
+- Since 2026-10-25 a request closes by itself: a newer mail replaces it or confirms it, or the user's reply answers it. "I did this" closes only an ask done outside mail (`askKind` `OUTSIDE_MAIL`, or none for an older mail); the user can open any closed request again. When the request already has an application action, that action is completed or reopened too. Setting the application to Rejected or Closed closes its open requests.
 - An application action from an earlier request of the conversation shows Replied when the user sent a message after that request and before the next request arrived (2026-10-17).
 - The rule for what an email asks (`services/emailRequest.ts`) is shared with the matcher, so the conversation list and application actions cannot disagree.
 
@@ -137,6 +143,11 @@ OPEN     → otherwise
 | `gmailMessageId` | String | Yes | Gmail message ID; unique per user. |
 | `threadId` | String | Yes | Gmail thread ID of the conversation. |
 | `sentAt` | DateTime | Yes | When the user sent it. |
+| `replyReadState` | Enum | No | `WAITING`, `READ`, `NOT_READ`: whether the AI read it to see which open asks it settles. Null when nothing was open (since 2026-10-25). |
+| `replyReadTries` | Int | Yes | Tries used, three at most. |
+| `replyReadAt` | DateTime | No | When it was read. |
+
+The text of the message is never stored: it is read from Gmail for the one AI call and dropped.
 
 No text, subject or recipient is stored. A sent message is never an `Email` row and is never classified, matched or sent to AI. Messages in threads Career Companion does not hold are not recorded.
 
@@ -158,6 +169,8 @@ This entity records the **latest AI processing state and validated output** for 
 | `summary` | String | No | Brief factual AI summary, maximum 280 characters for MVP. Not a replacement for the email body. |
 | `errorMessage` | String | No | Processing error description only; must not contain raw model responses or email content. |
 | `processedAt` | DateTime | No | Set when processing completes or fails. |
+| `askKind` | Enum | No | How the user does the request: `REPLY_BY_MAIL` or `OUTSIDE_MAIL` (`extraction/v6` and `v7`). |
+| `replyChoices` | String[] | Yes | Up to three short replies the user could send; empty when the mail expects no answer by mail. |
 | `createdAt` | DateTime | Yes | Set on insert. |
 | `updatedAt` | DateTime | Yes | Tracks processing state changes. |
 
@@ -444,7 +457,8 @@ Manual status correction therefore does not require AIProcessingResult.
 
 - Raw email bodies should not be persisted unless a concrete MVP requirement requires them.
 - Email text shown on the Mails page is fetched from Gmail when the user opens the mail. It is never stored, cached or logged.
-- Of the user's own sent mail only `OutgoingEmail` is kept: IDs and the sent time.
+- Of the user's own sent mail only `OutgoingEmail` is kept: IDs, the sent time and whether the AI read it. Its text goes to the user's AI once when the conversation has an open ask, and is not kept (2026-10-25).
+- An AI reply draft is shown to the user and never stored.
 - Raw AI model responses must never be persisted in AIProcessingResult.
 - `summary` must remain a brief factual derivative, not a copy of the email body.
 - `extractedData` contains validated structured extraction only and must not become a second email/domain store.
