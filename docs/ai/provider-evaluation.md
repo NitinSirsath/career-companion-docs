@@ -43,6 +43,7 @@ The backend workflow `.github/workflows/ai-eval.yml` runs the evaluation on GitH
 - since COM-133, job alerts and job-platform newsletters are expected `IRRELEVANT`;
 - fictitious companies and people, reserved domains only (enforced by a CI test);
 - case 1 is the built-in sample email used by the user's "Try a sample email".
+- since 25 Oct 2026, a thread version (`extraction/v6`, the default, or `v7`) also runs the thread cases in `src/eval/ai/dataset-thread/` (8: mails read with open asks, which they must close or keep open, the kind of ask, reply choices, a quoted ask that is not new, and text that tells the AI to close asks) and the 8 reply-read cases in `src/eval/ai/replyRead.ts` (`reply-read/v1`: no wrong close, at least 90% exactly right). The 44-mail test must pass again on GPT-6 Luna before the thread prompt is merged (owner, 24 Oct 2026).
 
 ## Pass criteria (starting floors)
 
