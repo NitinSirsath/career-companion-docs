@@ -5,6 +5,7 @@
 **Last Updated:** 2026-10-11
 
 ### Version History / Implementation Notes
+- **v1.6 (Dashboard, owner decisions of 2026-10-27):** the status-change log `status_changes` (§4.6a) and the Dashboard's AI tip `dashboard_ai_tips` (§4.4a).
 - **v1.5 (the AI reads the whole conversation, COM-333, 2026-10-25):** why and when an email's request closed (§4.3), the kind of ask and reply choices on the AI result (§4.4), and whether the AI read the user's reply on `OutgoingEmail` (§4.3b).
 - **v1.4 (mail-first walkthrough, COM-158):** conversations as a read model over `Email` (§4.3a), the New mark and the user's answer to a request on `Email`, and `OutgoingEmail` (§4.3b). An application can now also be created from a job-mail conversation, by the user's one click (§6).
 - **v1.4 (ADR-0002 amendment, 2026-10-21):** `ExternalSubmission` also keeps `applyUrl`, `resumeFilename` and `submittedAnswers`, and a repeat fills only empty fields; new `NotSubmittedJob` for jobs the automation did not apply to; `ApplicationResponse.automation` (§4.8).
@@ -206,6 +207,8 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 
 `ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications, for all of the user's providers together. These are not provider billing data.
 
+`dashboard_ai_tips` (user) holds the Dashboard's latest AI tip (owner, 27 Oct 2026): `text`, `provider` and `model` that wrote it, `madeAt`, `numbersHash` (a fingerprint of the numbers it was made from) and `triedAt` (the last try, made or not; the next waits a day). The AI only ever sees counts, rates and the automation's site names. Deleted with the user.
+
 Access is one of four states, derived from these facts: **Not set up**, **Ready**, **Needs attention**, **Limited**. While access is not Ready, emails needing AI wait as `PENDING`; this is not a processing failure.
 
 ### 4.5 Application
@@ -267,13 +270,28 @@ The exact final status vocabulary should remain the smallest set required by the
 - No `title` or AI-generated `description` is required. Timeline presentation should derive from event type plus structured fields/evidence.
 - `scheduledAt` is meaningful for interview scheduling events; `deadline` is meaningful for assessment/deadline-bearing events. They remain null for unrelated event types.
 - `STATUS_CORRECTED` is not treated as a recruitment event. User status provenance is represented on Application through `userStatus` and `userStatusSetAt` for MVP.
-- Event records are historical; Application stores the materialized current state needed by the dashboard.
+- Event records are historical; Application stores the materialized current state. The Dashboard's step history is the status-change log (§4.6a), not these events.
 
 #### Implemented history boundary (Sprint 6)
 
 The implemented `application_events` table records processing events (for example `EMAIL_PROCESSED`) with `oldState/newState` describing **AI status only**, optional `emailId`, `description`/`provenance` (AI interpretation, not verified source text) and `createdAt`. It has no `occurredAt`, `scheduledAt` or `deadline` columns, and none are inferred. Responses add `recordedAt` (same instant as `createdAt`: when the app recorded it) and a bounded `sourceEmail` `{ id, subject, sender, receivedAt }` that is returned only when the email belongs to the requesting owner; otherwise it is null (and a foreign `emailId` is also nulled). `receivedAt` is shown as "Email date", which may come from a Date header and is not proof of when a recruitment event happened. History is ordered by recording time (`createdAt`, then `id`), not reconstructed chronology. Action responses keep their existing `emailId` link; action source evidence is deferred (D1, 2026-10-02).
 
 **`AUTOMATION_SUBMITTED` (ADR-0002):** one event per linked or created `ExternalSubmission`, keyed by a unique nullable `externalSubmissionId` (SetNull). It leaves `emailId`, `oldState`, `newState`, `description` and `provenance` null. Responses add a bounded, owner-checked `sourceSubmission` `{ platform, destinationHost, submittedAt, confirmationText }` for this type only (null on every other event and `recentEvent`), and `analyzedBy` is null. It is shown as "Submitted via automation", never as AI interpretation or missing email evidence. A backfilled submission keeps recording order and may appear after later emails.
+
+### 4.6a StatusChange (Dashboard, 2026-10-27)
+
+`status_changes` keeps one row for every change of the status the user sees (`userStatus ?? aiStatus`), so the Dashboard can count the furthest step a job reached even after it was rejected (owner, 27 Oct 2026). Ids, steps and times only, never mail text.
+
+| Field | Meaning |
+|---|---|
+| `applicationId` | The application. Deleted with it. |
+| `emailId` | The mail behind an AI change; null for the user's own change or a recount after a mail left. |
+| `source` | `AI` or `USER`. |
+| `fromStatus`, `toStatus` | The status the user saw before and after; null for none. |
+| `changedAt` | When it happened: the mail's `receivedAt` for the AI, the click for the user. |
+| `retiredAt` | Set when the mail behind it moved to another application or was unlinked: its step no longer counts there. |
+
+Written in the same transaction as the status: when the AI moves a status forward (`recordEmailOnTimeline`), when the AI status is worked out again after a mail moved (`refreshAiStatus`), and when the user sets or clears a status (`saveUserStatus`). An AI change hidden by the user's own status writes no row. The migration that made the table filled it once for existing applications by replaying their matched mails in arrival order with the AI's own rules, plus one `USER` row where the user had set a status.
 
 ### 4.7 Action
 

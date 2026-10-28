@@ -63,7 +63,7 @@ The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mar
 
 - **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it, across the app: the name in a cell as wide as the side menu (288px), or only the mark in a 56px square cell when the menu is collapsed; then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
 - **Account menu** (`AccountMenu.tsx`), from the account button: name and email, Account, Theme (System, Light, Dark), Log out.
-- **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages, a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons.
+- **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages (Dashboard, Mails, Applications; the Dashboard is the home page, owner 27 Oct 2026, and the logo leads to it), a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons.
 - **Phones:** see "Phones" below.
 - The sign-in pages have their own top bar with the name and the chip.
 
@@ -73,7 +73,7 @@ Up to 767px wide the app looks and works like a phone app (approved mock boards 
 
 - **Top bar**, 56px, a row of square 48px cells split by thin lines: the menu, the page name, the page's own buttons (search, and "+" on Applications), the "Dev" or "Test" chip, the account button. A page puts its buttons there with `TopBarActions` and `TopBarButton` / `TopBarSearch` (`components/layout/TopBarButtons.tsx`).
 - **Menu** (`PhoneMenu.tsx`): the menu cell opens a drawer from the left with every page: the daily pages, the "Settings" label, the settings pages and the mail sandbox. A tap on a page closes it.
-- **Bottom bar** (`MobileNav.tsx`): Mails, Applications and Dashboard only, the chosen one on the blue tint. No "More": the rest is in the menu.
+- **Bottom bar** (`MobileNav.tsx`): Dashboard, Mails and Applications only, the chosen one on the blue tint. No "More": the rest is in the menu.
 - **Page header**: the title is in the top bar, so the page shows no title and no description (`PageHeader phoneCompact`). The sync line is one short row under the tabs.
 - **Lists**: `DataTable` takes `phoneRow`, one row or card per item, with no header row. A job mail is one row edge to edge (`PhoneMailRow`): picture, sender, date, subject, what it needs, the tags. Swiping it to the right does its first action, such as "Mark done", with Undo in the toast. An application is a bordered card (`PhoneApplicationCard`).
 - **Filters**: the search box and the "Filters" button stay; Mails adds two one-tap chips, "Needs action" and "New only". Applications shows its status tabs as a row of chips that scrolls sideways.
@@ -88,6 +88,17 @@ Up to 767px wide the app looks and works like a phone app (approved mock boards 
 - Settings pages (`SettingsSection`, owner 22 Oct 2026): each section has its title and short help above, and the controls in a card across the full width. Sections are spaced apart with no line between them. There is no left label column.
 - Gmail sync (owner 22 Oct 2026, mock board "Gmail sync: compact"): the sync line and "Sync now" in the page header, as on Mails; one bordered strip with two cells, Account ("Connected as …", Disconnect) and Look back (the drop-down and one help line), stacked on phones; then the notices, and "Mails the app has read" with its tabs on the same line as its title.
 - AI providers (owner 22 Oct 2026, mock board "AI providers: several connected, one active"): "Reads your mail now" is a card for the active provider with its key buttons always in sight and one row per model role (name and help, the drop-down, the state tag); "Other connected providers" is a list with "Make active" and a "⋯" menu; "Use today" and "Try it" are two cards side by side. Keys are entered only in dialogs.
+
+## Charts and numbers
+
+The Dashboard (owner, 27 Oct 2026) is the only page with charts. The rules:
+
+- **One chart part:** shadcn's `chart` (`components/ui/chart.tsx`, on Recharts), changed for this app: square corners, the popup look for its tooltip, and the theme class `.theme-dark`. Bars only; no pies, no 3D, no animation on load.
+- **Colours** are tokens in `src/index.css`, for light and dark: `--chart-1` blue, `--chart-2` teal, `--chart-3` purple (Carbon's categorical palette), `--chart-4` grey, `--chart-5` red for rejections; `--chart-grid` for grid lines and `--chart-track` for the empty part of a bar. A step's colour follows its status tag.
+- **Cards** are a thin line on the page colour, 24px padding (16px on phones), a 14/20 semibold title and an aside on the right (a note or a link). The main number of a card is 32/40 light (28/36 on phones).
+- **Small numbers:** a rate shows only from 5 applications; below that, "1 of 3". "Too few" stands in a table cell.
+- **Every count leads somewhere:** to the list behind it (Applications with its step, Mails with its filter, Automation).
+- **Phones:** one column; the five numbers two per row.
 
 ## Motion
 

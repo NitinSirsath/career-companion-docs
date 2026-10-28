@@ -141,6 +141,16 @@ Mailbox errors: 409 `GMAIL_NOT_CONNECTED`, 404 `NOT_FOUND`, 502 `GMAIL_UNAVAILAB
 
 **Fake job offers (owner decision, 23 Oct 2026):** a conversation and each mail's AI read carry `fakeOfferWarning: string | null`, the AI's short reason when a mail offers a job and asks for money or bank, card or ID details. When it is set, the conversation's `request.text` is Career Companion's own safe step, "Don't pay. Check this job on the company's own careers site.", with no due date. The sandbox mail result carries the same field. See [Email AI pipeline](email-ai-pipeline.md), "Job offers that ask for money".
 
+## Dashboard (27 Oct 2026)
+
+Schema: `src/contracts/dashboard.ts` in the backend. The rules for every number are in [dashboard.md](../product/dashboard.md).
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/dashboard` | The signed-in user's job search in numbers. Query: `period` (`7d`, `30d` by default, `90d`, `all`) and `timeZone` (an IANA zone, as for `/api/workspace/actions`; weeks start on Monday in it). Answers the data line, the five totals for the period and the period before (`previous` is null for `all`), `rightNow`, `funnel`, `rejectedAfter`, 12 `weeks`, `goneQuiet` (count and up to 50 jobs), `answerSpeed`, `keepingUp`, `automation` (sites, work modes, coverage), `rates` (each a count with the number it rests on), `tips` and `aiTip`. One read snapshot; nothing is cached. 400 for an unknown period or time zone. |
+
+`tips` holds the rule tips as facts (`kind` with its numbers); the page writes the words. `aiTip` is `{ text, modelName, createdAt }` or null: the latest tip made by the queued `dashboard-tip-job`, shown only while the user's AI is ready. Reading the page never calls the AI; when a day has passed since the last try, it queues the job, which calls the AI once only if the numbers changed.
+
 ## Verification
 
 Cross-cutting contracts should be verified with focused automated tests where practical, especially:

@@ -209,7 +209,9 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 ### UF-06 — View Job Search Dashboard
 
-> **Changed 2026-10-11:** the Mails page (UF-14) is now the page the user lands on and does this flow's job. The Dashboard stays in the navigation and shows "Coming soon" until analytics are built. The Agenda is in the navigation too and also shows "Coming soon" (2026-10-13); until it is built, each interview and assessment date is shown on its mail. The text below is the original flow, kept for history.
+> **Changed 2026-10-27 (owner):** the Dashboard is built and is the page the user lands on, first in the menu. It shows the job search in numbers, as described in [dashboard.md](dashboard.md); to-dos and mails stay on the Mails page (UF-14). The Agenda still shows "Coming soon"; until it is built, each interview and assessment date is shown on its mail.
+>
+> **Changed 2026-10-11:** the Mails page (UF-14) became the page the user lands on, and the Dashboard showed "Coming soon". The text below is the original flow, kept for history; its edge states still apply.
 
 **Entry point:** Authenticated user with available job-search data opens the dashboard.
 
@@ -657,3 +659,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.6 | 2026-10-24 | UF-10: the free AI (owner decision): a new user goes to the AI providers page after connecting Gmail, the confirm dialog, its shared pauses, and "Use Career Companion free AI instead". UF-04: sync every hour. |
 | 1.7 | 2026-10-24 | UF-10: the free AI as a backup next to the user's own key (owner decision): "Add as backup", and "Use Career Companion free AI instead" then opens "Make active". |
 | 1.8 | 2026-10-24 | UF-04: the AI reading status in the side menu and the phone top bar (owner decision). |
+| 1.9 | 2026-10-27 | UF-06: the Dashboard is built and is the home page, first in the menu (owner decision); its numbers and rules are in dashboard.md. |
