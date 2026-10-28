@@ -22,7 +22,7 @@ Read this before writing or reviewing code. Each code repo's `AGENTS.md` has the
 3. **Decisions** (`src/lib/`): plain, unit-tested functions for labels, statuses, dates and formatting. No React. No decisions inside JSX. Copy `lib/statusLabels.ts`. *Today: `GmailPage` decides labels inside JSX, and `src/utils/gmail.ts` is a second helper folder (COM-156).*
 4. **UI parts** (`src/components/ui/`): use `Button`, `Badge`, `NativeSelect`, `Dialog` and `Input`. No hand-styled raw elements. *Today: 7 raw `<select>` elements, 5 raw `<button>` elements and a hand-made badge (COM-156).*
 5. **Feature components** (`src/components/`): one main component per file. Small private parts may stay with it. When an area has several components, group them in a folder (`components/ai/`). *Today: `FollowThrough.tsx` holds three stateful components in 520 lines (COM-156).*
-6. **Forms**: react-hook-form with `zodResolver` and the contract schema. Copy the create-application form in `routes/applications.tsx`. *Today: 5 forms keep each field in `useState` (COM-156).*
+6. **Forms**: react-hook-form with `zodResolver` and the contract schema. Copy the "Create application" form in `components/mails/ConversationApplication.tsx`. *Today: 5 forms keep each field in `useState` (COM-156).*
 7. **Contracts** (`src/contracts/`): never edit by hand. Run `npm run sync-contracts`. CI's contract-drift check fails otherwise.
 8. **Tests**: `src/tests/<area>.test.tsx`, with shared data in `src/tests/fixtures.ts`.
 
