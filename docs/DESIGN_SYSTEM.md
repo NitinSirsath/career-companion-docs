@@ -21,25 +21,28 @@ The theme is chosen in the account menu and on the Account page. Every colour is
 - Cards (side panels, settings, the mails of a conversation) are a thin line on the page colour, 24px padding.
 - In a conversation every mail sits on the same card, full width; the user's own mails carry the blue "You" picture.
 - Only things that float get a shadow: menus, dropdowns and dialogs use `shadow-popup` (a soft shadow, darker in Dark), because a flat page has no layers to set them apart.
-- **Chosen state:** the chosen menu item and the chosen tab have the light blue tint (`bg-tint`: `#edf5ff`, Dark `#1c2638`) with blue text (`text-tint-text`), at normal weight.
+- **Chosen state:** the chosen menu item and the chosen tab have the light blue tint (`bg-tint`: `#edf5ff`, Dark `#1c2638`) with blue text (`text-tint-text`). Menu items and tabs are medium weight, chosen or not (owner, 26 Oct 2026).
 - No rounded corners, except true circles: status dots and avatars.
 
 ## Type
 
-Geist and Geist Mono (free, loaded from Google Fonts in `index.html`), with no extra letter spacing:
+Geist (free, loaded from Google Fonts in `index.html`). Owner decision, 26 Oct 2026 (approved mock `TYPOGRAPHY-mock.html`): text is larger and stronger on a laptop than in design part 2.
 
 | Use | Size / line height | Weight |
 | --- | --- | --- |
-| Page title (`h1`) | 28 / 36, letter spacing -0.01em | regular |
-| Section title (`h2`) | 20 / 28 | regular |
-| Card and side panel title | 14 / 20 | semibold |
-| Names in tables | 15 / 22, underlined with a light line | regular |
-| Body | 14 / 20 | regular |
+| Page title (`h1`) | 28 / 36, letter spacing -0.02em (22 / 28 on phones) | semibold |
+| Section title (`h2`) | 20 / 28 | medium |
+| Card and side panel title | 15 / 22 | semibold |
+| Names in tables | 15 / 22, underlined with a light line | medium (semibold while new or unread) |
+| Body, table cells, descriptions (`text-sm`) | 15 / 22 | regular |
+| Buttons, tabs, the side menu | 14 / 18 to 20 | medium |
+| Fields, filter buttons, dropdown items, the top bar breadcrumb | 14 / 20 | regular |
 | Small text: help, meta, dates, field labels (`text-xs`) | 13 / 18 | regular |
-| Tags | 12 / 16 | regular |
-| Table header row | Geist Mono 12 / 16, uppercase, letter spacing 0.08em | regular |
+| Tags | 12 / 16 | medium |
+| Table header row | 13 / 16, grey (`text-text-secondary`), sentence case | medium |
+| Plain-text mail in a conversation | 15, line height 1.6 | regular |
 
-`text-xs` is 13 / 18 in this app (set in `src/index.css`), not Tailwind's 12 / 16. Mono uppercase is for table headers only: never for menu group labels, card titles, chips or small labels above titles. There is no small label above page titles. Sentence case everywhere ("Sync now", not "Sync Now").
+`text-sm` is 15 / 22 and `text-xs` is 13 / 18 in this app (set in `src/index.css`), not Tailwind's sizes. Controls (buttons, tabs, the menu, fields, dropdowns, filter buttons, the breadcrumb, toasts) use `text-[14px]`, so they keep their heights. The page uses the browser's own font smoothing (no `antialiased`, which makes Geist too thin on a Mac). No uppercase text and no extra letter spacing. Geist Mono is only for code, tokens and the small count after a table's first header label. There is no small label above page titles. Sentence case everywhere ("Sync now", not "Sync Now").
 
 ## Width and spacing
 
@@ -82,8 +85,8 @@ Up to 767px wide the app looks and works like a phone app (approved mock boards 
 
 ## Page structure
 
-- `PageHeader` (`components/layout/PageHeader.tsx`): one title, one line of description, actions on the right (at most one primary), and a line under it across the content. A detail page puts a row of facts under the title (for a mail: company, role, status, how many mails).
-- `Breadcrumb` (`components/layout/Breadcrumb.tsx`): written in the page, shown in the top bar: "Mails › BrightPath Analytics", with the section's icon on the first level. It leads back to the list as the user left it. A page without one shows its section in the top bar.
+- `PageHeader` (`components/layout/PageHeader.tsx`): one title, one line of description, actions on the right (at most one primary), and a line under it across the content, with a 24px gap below it on every page. Pages do not pass `mb-0` to it inside a `space-y-*` parent: since Tailwind 4, `mb-0` beats `space-y-*` and the gap is lost. A page that spaces its parts with a flex `gap` sets the gap so the header is still 24px from what follows. A detail page puts a row of facts under the title (for a mail: company, role, status, how many mails).
+- `Breadcrumb` (`components/layout/Breadcrumb.tsx`): written in the page, shown in the top bar: "Mails › BrightPath Analytics", with the section's icon on the first level. Every detail page names itself: a mail shows its company (read from the mail, or its application's), else its subject. It leads back to the list as the user left it. A page without one shows its section in the top bar.
 - Detail pages: a main column and a 360px side column from `lg` up.
 - Settings pages (`SettingsSection`, owner 22 Oct 2026): each section has its title and short help above, and the controls in a card across the full width. Sections are spaced apart with no line between them. There is no left label column.
 - Gmail sync (owner 22 Oct 2026, mock board "Gmail sync: compact"): the sync line and "Sync now" in the page header, as on Mails; one bordered strip with two cells, Account ("Connected as …", Disconnect) and Look back (the drop-down and one help line), stacked on phones; then the notices, and "Mails the app has read" with its tabs on the same line as its title.
@@ -133,7 +136,7 @@ Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the
 | `Select` | a short fixed list; never the browser's own select |
 | `Combobox` | a long list or one the server loads: type to search |
 | `OverflowMenu` (`menu.tsx`) | the "…" menu for actions that are not the main one; danger actions last and red |
-| `DataTable` | every list, with no outer frame: a mono header row (the first label with the row count) over a darker line, rows split by thin lines, underlined names, an optional last row such as "+ Add application"; sorting, filtering and paging stay on the server; skeleton rows while loading |
+| `DataTable` | every list, with no outer frame: a header row of grey medium labels (the first label with the row count) over a darker line, rows split by thin lines, underlined names, an optional last row such as "+ Add application"; sorting, filtering and paging stay on the server; skeleton rows while loading |
 | `Toolbar` | above a table: a bordered search that takes the free width, then each filter as a bordered button ("Action: All"); on phones the filters open in a sheet; `ToolbarSearch` takes an `id` for the phone top bar's search |
 | `Tabs` | switching between views of one list: segmented, in a bordered group, each with its count ("Job mails (5)"); `phoneLook="chips"` makes a long set a row of chips on phones |
 | `Pagination` | under a list, with no frame: the page, and two small bordered arrow buttons |
