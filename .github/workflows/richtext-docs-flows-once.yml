@@ -1,0 +1,54 @@
+name: Rich text docs user flows once (temporary)
+# Commits the reviewed change on docs/rich-text-reply and nothing else.
+# Lives only on the throwaway branch tmp/richtext-docs-flows, which is deleted afterwards.
+on:
+  push:
+    branches: [tmp/richtext-docs-flows]
+permissions:
+  contents: write
+concurrency:
+  group: richtext-docs-flows-once
+  cancel-in-progress: false
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: docs/rich-text-reply
+      - name: Check the branch
+        run: |
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "b1fa11bad46ae515df17dc2bdb5374cc9c135bf6" ]; then
+            echo "docs/rich-text-reply is not at the expected commit. Nothing was changed."
+            exit 1
+          fi
+      - name: Apply the reviewed change
+        run: |
+          cat > /tmp/change.diff <<'PATCH'
+          diff --git a/docs/product/user-flows.md b/docs/product/user-flows.md
+          index b4815bb..94a2910 100644
+          --- a/docs/product/user-flows.md
+          +++ b/docs/product/user-flows.md
+          @@ -496 +496 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
+          -4. **Reply.** Under the conversation the user writes a plain-text reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below. The box shows who it goes to; no address can be typed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
+          +4. **Reply.** Under the conversation the user writes a reply and chooses **Send reply**. It goes to the person who wrote, in the same Gmail conversation, with the earlier mail quoted below (also when that mail came as HTML only; Gmail folds the quote behind "•••"). The box shows who it goes to; no address can be typed. The reply then shows in the conversation, and a job mail's action shows **Replied** at once. **Open in Gmail** and **Reply in Gmail** still lead to Gmail.
+          @@ -499 +499,3 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
+          -   - **Reply with AI** (owner, 24 Oct 2026): above the text, up to three reply choices for a mail that expects an answer ("Send my free times") and **Write with AI** with an optional one-line hint ("I'm free Tue after 3"). One AI call per click; the box is locked while it writes, and **Stop** lets the user type instead. The draft goes into the box with "Written by GPT-6 Luna from the whole conversation. Check it before you send." Nothing is sent by itself. When the AI is busy or the daily limit is reached, one line says so; with no AI set up, one line says where to choose it.
+          +   - **Formatting** (owner, 25 Oct 2026, mock `RICHTEXT-mock.html`): bold, italic, underline, bullet and numbered lists, and links, in the calm look of Linear and Notion. The text sits on the reply card. On a laptop a small bar floats over selected words; quiet format icons sit beside **Send reply** for people who do not select first, and each names its shortcut (⌘B, ⌘I, ⌘U, ⌘K). Typing `**word**`, `_word_`, "- " or "1. " formats as you go, and pasted Markdown turns into formatting. ⌘K turns the floating bar into one link field: paste, then Enter; on a link, a small card offers edit, remove and open. Text pasted from Word or a web page keeps only these formats. On a phone there is no floating bar: the format row sits above the keyboard, and **Send** sits in the reply screen's top bar.
+          +   - **Unsent text** stays in this browser only, so a reload does not lose it. The closed reply bar then says "Draft" with the first words (on a phone the floating button says **Open draft**), and the open box says "Not sent yet. Kept on this device only." with **Discard** (and an Undo). Sending, discarding or signing out removes it.
+          +   - **Reply with AI** (owner, 24 Oct 2026): above the text, up to three reply choices for a mail that expects an answer ("Send my free times") and **Write with AI** with an optional one-line hint ("I'm free Tue after 3"). One AI call per click; the box is locked while it writes, and **Stop** lets the user type instead. The draft goes into the box with its formatting (owner, 25 Oct 2026) and "Written by GPT-6 Luna from the whole conversation. Check it before you send." Nothing is sent by itself. When the AI is busy or the daily limit is reached, one line says so; with no AI set up, one line says where to choose it.
+          PATCH
+          git apply --unidiff-zero /tmp/change.diff
+          git add -A
+          if [ "$(git write-tree)" != "69c60d3b60cb0c25bdbcd96cf922ea26bceaebbd" ]; then
+            echo "The result does not match the reviewed files. Nothing was pushed."
+            git status --short
+            exit 1
+          fi
+      - name: Commit only the reviewed result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(mail): docs/product/user-flows.md'
+          git push origin HEAD:docs/rich-text-reply
