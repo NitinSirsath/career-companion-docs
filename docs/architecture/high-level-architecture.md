@@ -147,7 +147,7 @@ Gmail
     - Gmail label CATEGORY_SOCIAL → skip
     - Gmail label SPAM → skip
     - Sender domain on known marketing/newsletter blocklist → skip
-    Skipped emails: stored with relevanceState=IRRELEVANT, retained in DB (recoverable)
+    Skipped emails: relevanceState=IRRELEVANT; only IDs and date kept, deleted after 35 days
   ↓ (passed pre-filter)
 [3] RelevanceClassifier  (fast Gemini model, metadata only, ~200 tokens)
     Output structured JSON:
@@ -157,7 +157,7 @@ Gmail
                           "OFFER" | "REJECTION" | "FOLLOW_UP" | null,
         "confidence": 0.0–1.0
       }
-    → IRRELEVANT: relevanceState=IRRELEVANT, stop (retained, recoverable)
+    → IRRELEVANT: relevanceState=IRRELEVANT, subject and sender cleared, stop
     → RELEVANT or UNCERTAIN: proceed
   ↓
 [4] Full email content fetch
@@ -378,7 +378,7 @@ These are non-negotiable for V1.
 
 3. **User-confirmed status (`userStatus`) is never overwritten by AI.** Domain promotion writes only to `Application.aiStatus`. `userStatus` is written exclusively by user-initiated actions.
 
-4. **Filtered emails are retained, not deleted.** `relevanceState=IRRELEVANT` is a mutable flag. Emails can be reprocessed if filter logic changes.
+4. **Filtered emails keep almost nothing.** A mail that is not about a job keeps only its Gmail IDs, date and decision, so it is not read twice, and is deleted after 35 days (owner, 2026-10-26). It is never read again by the AI.
 
 5. **Raw email bodies are never persisted.** Bodies are fetched for processing only; discarded after `AIProcessingResult` is written.
 

@@ -342,7 +342,7 @@ User-confirmed status must not be silently overwritten by subsequent AI processi
 - **Timeout, lost response, 5xx or malformed success** may have committed: the app re-reads the application and asks the user to review it. If that read fails, "Save outcome unknown" stays visible and Save stays disabled until "Retry loading status" succeeds. No path resends the PATCH with a fresh revision.
 - **400** keeps the draft editable; **404** marks the application unavailable; **401** follows the normal login recovery.
 - A malformed application response shows a recoverable load error and disables editing; retained earlier data is labelled as not refreshed. Navigating away during a save applies the result only to the original application.
-- **Add Application:** if creation's response is lost, times out, fails with 5xx or is malformed, the draft is kept, "Creation outcome unknown" is shown, Save is blocked and the owned list is refreshed. Neither a similar entry nor a missing entry proves the outcome; the user can review applications, retry the refresh, or deliberately "Create anyway". There is no automatic resubmission or deduplication.
+- **No manual entry (owner, 2026-10-26):** applications come from mails ("Create application" on a conversation) and the automation link, and to-dos from mails. There is no "Add application" and no "Add follow-up"; follow-ups saved before keep Complete, Snooze and Dismiss.
 
 ### UF-10 — Connect AI Providers and Choose the Active One (ADR-0001)
 
@@ -590,7 +590,7 @@ Career Companion should minimize persisted Gmail content and prefer structured j
 
 Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is fetched from Gmail when the mail is opened and is never stored or logged. Of the user's own sent mail, only the message ID, thread ID and sent time are kept, to show that they replied. Since 2026-10-13 the user can also reply from the app; that text is handed to Gmail and kept nowhere else. Since 2026-10-25, when a conversation still needs something, the new text of the user's reply goes to their AI once to see what it answers, and "Write with AI" sends the whole conversation when the user clicks; neither text nor draft is kept.
 
-Specific retention periods and storage mechanisms will be defined during security/data design.
+Since 2026-10-26 the app keeps almost nothing of mail that is not about a job: only Gmail's IDs and the date, deleted after 35 days, and no Not job mails list. The user can delete a conversation or an application from its "…" menu, and block a company's new mail (Mails › Restricted lists the blocks). Gmail itself is never changed.
 
 ### 4.7 External service failure isolation
 

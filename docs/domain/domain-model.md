@@ -483,6 +483,8 @@ Manual status correction therefore does not require AIProcessingResult.
 - Error messages must not contain raw email content or model response dumps.
 - Deleting a User should delete associated domain and processing data according to the eventual database deletion policy.
 - AIProcessingResult retention should follow Email retention in MVP; it does not require an independent long-term retention lifecycle.
+- Mails that are not about a job keep only their Gmail IDs, date and decision: subject, sender and error text are cleared when the decision is made, and a daily job deletes them 35 days after they arrived, past the 30-day sync limit, so they are never fetched again (owner, 2026-10-26).
+- A conversation the user deletes keeps the same bare rows, so a sync does not bring it back; its AI reading, steps, history and agenda items are deleted at once. A blocked company (`BlockedSender`, a whole domain; never LinkedIn or a shared mail provider) has its new mail skipped before anything is saved (2026-10-26).
 
 ## 10. Conceptual Database Constraints
 
