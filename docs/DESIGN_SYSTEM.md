@@ -136,7 +136,7 @@ Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the
 | `Select` | a short fixed list; never the browser's own select |
 | `Combobox` | a long list or one the server loads: type to search |
 | `OverflowMenu` (`menu.tsx`) | the "…" menu for actions that are not the main one; danger actions last and red |
-| `DataTable` | every list, with no outer frame: a header row of grey medium labels (the first label with the row count) over a darker line, rows split by thin lines, underlined names, an optional last row such as "+ Add application"; sorting, filtering and paging stay on the server; skeleton rows while loading |
+| `DataTable` | every list, with no outer frame: a header row of grey medium labels (the first label with the row count) over a darker line, rows split by thin lines, underlined names; sorting, filtering and paging stay on the server; skeleton rows while loading |
 | `Toolbar` | above a table: a bordered search that takes the free width, then each filter as a bordered button ("Action: All"); on phones the filters open in a sheet; `ToolbarSearch` takes an `id` for the phone top bar's search |
 | `Tabs` | switching between views of one list: segmented, in a bordered group, each with its count ("Job mails (5)"); `phoneLook="chips"` makes a long set a row of chips on phones |
 | `Pagination` | under a list, with no frame: the page, and two small bordered arrow buttons |
