@@ -2,14 +2,15 @@
 
 When you change the Career Companion frontend as an AI coding agent, you **must** follow these rules. They come from design part 1, which the owner approved on 17 Oct 2026, and design part 2, approved on 22 Oct 2026. The base is IBM Carbon with a Render-style look; [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) has the themes, type, the app shell, motion and the list of shared parts.
 
-## Owner decisions (17 to 22 Oct 2026)
+## Owner decisions (17 to 26 Oct 2026)
 
 - Owner decision, 17 Oct 2026: great UX and a clear, working UI come first; looks come second. Behaviour and motion are modern.
 - Owner decision, 21 and 22 Oct 2026 (design part 2): keep the IBM Carbon base (the blue, the status colours, square corners, motion, Carbon icons) and take the look of the Render dashboard: one flat background split by thin lines, a top bar with the breadcrumb, tables with no outer frame, segmented tabs with counts, bordered search and filter buttons. Not a copy of Render.
 - Owner decision, 22 Oct 2026: the font is Geist and Geist Mono (free). Render's own fonts are paid and are not used.
-- Owner decision, 22 Oct 2026: text sizes stay small: body 14/20, small text 13/18, names in tables 15/22, page title 28/36.
-- Owner decision, 22 Oct 2026: mono uppercase only for table headers. No small label above page titles.
-- Owner decision, 22 Oct 2026: the chosen menu item and the chosen tab have a light blue tint with blue text, at normal weight. The main button stays IBM blue.
+- Owner decision, 26 Oct 2026 (approved mock `TYPOGRAPHY-mock.html`): text is larger and stronger on a laptop: body and table cells 15/22, small text 13/18, names in tables 15/22 medium, page title 28/36 semibold; buttons, tabs and the side menu 14 medium; table headers Geist 13 medium grey in sentence case; the browser's own font smoothing. It replaces the 22 Oct 2026 decisions on text sizes, mono uppercase table headers and normal-weight chosen items.
+- Owner decision, 22 Oct 2026 (replaced on 26 Oct 2026, see above): text sizes stay small: body 14/20, small text 13/18, names in tables 15/22, page title 28/36.
+- Owner decision, 22 Oct 2026: no small label above page titles. (Its mono uppercase table headers were replaced on 26 Oct 2026, see above.)
+- Owner decision, 22 Oct 2026: the chosen menu item and the chosen tab have a light blue tint with blue text. The main button stays IBM blue. (Normal weight was replaced by medium on 26 Oct 2026, see above.)
 - Owner decision, 17 Oct 2026: pages use the full width up to 1584px and are centred only beyond that.
 - Owner decision, 17 Oct 2026: one page header and one breadcrumb style on every page.
 - Owner decision, 17 Oct 2026: the mail page is a chat-like conversation. Each mail shows only its new text, the quoted history is hidden behind "···", and the AI's reading sits under the mail it read. A reply sent from the app still quotes the earlier mail, as normal mail does; only the app hides it.
@@ -47,7 +48,8 @@ When you change the Career Companion frontend as an AI coding agent, you **must*
 - A grey page or grey cards to set parts apart. Pages, cards and tables share one flat colour; a thin line sets a card apart.
 - Em dashes in on-screen text.
 - Shadows anywhere but on things that float (menus, dropdowns, dialogs use `shadow-popup`), and rounded corners (true circles such as status dots and avatars are fine).
-- Mono or uppercase text anywhere but a table's header row.
+- Uppercase text, and mono text anywhere but code, tokens and the count after a table's first header label.
+- `className="mb-0"` on `PageHeader` inside a `space-y-*` parent: Tailwind 4 lets it remove the gap under the header.
 - Font sizes outside the scale in DESIGN_SYSTEM.md, and extra letter spacing (Carbon's 0.16px and 0.32px are gone with IBM Plex).
 - Animation on hover only, bouncy or endless animation, and motion longer than 400ms. Motion uses Carbon times (70 to 400ms) and curves, in CSS only, and turns off when the computer asks for reduced motion. The one exception is `AutoHeight`: it must measure its content, so it uses the browser's own animation API. No animation library.
 - A transition that lists only `transform` for Tailwind's `translate-*`, `scale-*` or `rotate-*` classes. Tailwind 4 sets the `translate`, `scale` and `rotate` properties, so list those (or use `transition-transform`), or the movement snaps.
