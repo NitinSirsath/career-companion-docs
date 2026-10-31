@@ -60,7 +60,9 @@ The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mar
 - **Two drawings of the mark:** three list lines from 24px, and two thicker lines under 24px so they do not blur. Inside the name, the small mark is used under 28px.
 - **Colours:** the mark is the blue of `border-interactive` (`#0f62fe` light, `#4589ff` dark), the name the main text colour. The app icon is the white mark on a blue square. Flat only: no shadows, glows or gradients; never stretched or recoloured.
 - **Space:** keep empty space of at least half the mark's width around it.
-- **Files:** the masters are in [`brand/`](brand/): `northlist-mark.svg`, `northlist-mark-small.svg`, `northlist-mark-white.svg`, `app-icon.svg` and `favicon.svg`. The frontend's `public/` has the browser tab icons (`favicon.svg`, `favicon.ico`), the phone home screen icon (`apple-touch-icon.png`, 180px) and the link preview image (`og-image.png`, 1200 × 630), named in `index.html`.
+- **Files:** the masters are in [`brand/`](brand/): `northlist-mark.svg`, `northlist-mark-small.svg`, `northlist-mark-white.svg`, `app-icon.svg` and `favicon.svg`. The frontend's `public/` has the browser tab icons (`favicon.svg`, `favicon.ico`), the iPhone home screen icon (`apple-touch-icon.png`, 180px), the installed app icons (below) and the link preview image (`og-image.png`, 1200 × 630), named in `index.html`.
+- **Installed app** (owner, 29 and 30 Oct 2026; approved mock `PWA-icons-mock.html`, a local file): people can install NorthList from the browser menu; it opens in its own window with no browser bar. `public/manifest.webmanifest` names the app icons, made from `brand/app-icon.svg`: `icon-192.png` and `icon-512.png` are the blue tile with rounded corners (112 of 512) and a see-through outside, because computers do not round icons themselves; `icon-maskable-512.png` is the full blue square, with the mark inside the safe middle circle, for phones that cut icons into their own shape. Remake all three when the app icon changes.
+- **Window bar colour:** the installed window's bar is the page colour, `#ffffff` in Light and `#0d0d0d` in Dark. `ThemeProvider` sets the `theme-color` meta whenever the theme changes, so the bar follows NorthList's own theme switch, not only the computer's setting. The Android start screen stays white in Dark: the manifest allows one colour only.
 
 ## App shell
 
@@ -172,8 +174,19 @@ The to-do state ("Needs action", yellow) and the mail type never reuse these loo
 
 ## Loading, empty and error states
 
-- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones).
+- Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones). With no network but a copy saved on this device, the app opens at once, read-only (see "Offline and alerts").
 - Loading: skeletons shaped like the content, never a bare "Loading…".
 - Empty: `EmptyState` says why and offers the next step.
 - Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
 - A save that may or may not have happened is read back from the server and never sent again by itself.
+
+## Offline and alerts
+
+Owner, 29 and 30 Oct 2026 (approved mock `PUSH-OFFLINE-mock.html`, a local file).
+
+- **The offline line** (`components/layout/OfflinePage.tsx`): under the top bar, on every page while offline: a grey strip (`bg-surface-subtle`, a line under it) with the offline icon, "You're offline." and, in secondary text, "Showing what was here at 10:42 AM." ("yesterday at", "on Oct 28 at"), from the oldest data on the page. It goes away when the device is back online, and the page refreshes by itself.
+- **A page with no copy:** "No copy of this page yet", one sentence and "Try again" (tertiary), centred, with the large offline icon. The page stays mounted under it and shows once its data comes.
+- **What is kept** (`lib/offlineCopy.ts`): the data of the Dashboard, Mails, a conversation, Applications, an application and the Account page, and what they show around them, for the signed-in user only. A copy is dropped after 7 days or with a new version of the app, and wiped on sign-out. The service worker (`public/sw.js`) keeps the app's files.
+- **A change offline:** a toast with the offline icon instead of the tick: "You're offline. Nothing was changed." A reply: "You're offline. Your reply was not sent. It stays here; send it when you're back online." No other message next to it, and nothing is sent later.
+- **Alerts on this device** (`components/auth/AlertsSection.tsx`, Account page, after "Appearance"): a state line with a small round dot (green on, grey off, red blocked) and one button: "Turn on alerts" (tertiary) or "Turn off" (ghost). Other states: blocked in the browser (how to allow it), iPhone or iPad before the app is on the Home Screen (three steps), a browser without alerts (one line). Hidden while the server has no alert keys. A button, not a switch: corners are square here.
+- **An alert:** the company as the title, the step as the text, the app icon, and on Android the small one-colour mark `public/alert-badge.png` (the small mark in white on a see-through square). A tap opens that application. The first alert after turning on: "Alerts are on" / "You'll get an alert here when something needs you."
