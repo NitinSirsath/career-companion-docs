@@ -1,4 +1,3 @@
-
 # Career Companion: MVP Architecture & Known Limitations
 
 This document describes the Sprint 4.5 MVP with the 2026-09-26 stabilization corrections, updated for the Sprint 6 status/evidence boundary (§9, 2026-10-02) automation submissions through MCP (§10, ADR-0002, 2026-10-02) the mail-first walkthrough (§11, 2026-10-11) and dev mode with sign-in by password (§12, 2026-10-12). See the [audit evidence and roadmap gates](../engineering/stabilization-audit.md) and backend [release/recovery guide](https://github.com/NitinSirsath/career-companion-backend/blob/main/STABILIZATION.md). Local verification does not establish live production readiness.
