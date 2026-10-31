@@ -156,6 +156,18 @@ Schema: `src/contracts/dashboard.ts` in the backend. The rules for every number 
 
 `tips` holds the rule tips as facts (`kind` with its numbers); the page writes the words. `aiTip` is `{ text, modelName, createdAt }` or null: the latest tip made by the queued `dashboard-tip-job`, shown only while the user's AI is ready. Reading the page never calls the AI; when a day has passed since the last try, it queues the job, which calls the AI once only if the numbers changed.
 
+## Push alerts (30 Oct 2026)
+
+Schema: `src/contracts/alerts.ts` in the backend. An alert goes to every device of a user when NorthList makes a new step that needs them (an `ACTION_REQUIRED` or `FOLLOW_UP_REQUIRED` action), with the same checks as the Discord notification: one per step, never twice, none for a snoozed, archived, done or closed step. The message the service worker gets is `{ title, body, url, tag }`: the company, the step, the application's path and the action's id. Mail text is never sent.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/alerts/key` | `{ available, publicKey }`: the public VAPID key a browser needs to turn alerts on, or `available: false` and `null` when the server has no alert keys. |
+| `POST /api/alerts/devices` | Turns alerts on for this device: `{ endpoint, keys: { p256dh, auth } }` as `PushSubscription.toJSON()` gives them. The same endpoint again updates its row, also for another user signed in on that device. Then sends the first alert to this device and answers `{ on: true, firstAlertSent }`. Errors: 409 `ALERTS_NOT_AVAILABLE` (no keys), 400 `ALERT_ENDPOINT_NOT_ALLOWED` (not https on a known push service: Google, Mozilla, Apple, Microsoft), 409 `ALERT_DEVICE_GONE` (the push service said the device is gone; nothing is kept). |
+| `POST /api/alerts/devices/off` | Turns alerts off for this device: `{ endpoint }`. Removes it only when it belongs to the signed-in user; always `{ on: false }`. |
+
+The request bodies hold the device's keys and are never logged; an endpoint is logged by its host only.
+
 ## Verification
 
 Cross-cutting contracts should be verified with focused automated tests where practical, especially:
