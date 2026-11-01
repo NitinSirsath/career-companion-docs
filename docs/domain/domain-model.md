@@ -5,6 +5,7 @@
 **Last Updated:** 2026-10-11
 
 ### Version History / Implementation Notes
+- **v1.7 (deleting an application, owner decision of 2026-11-01):** deleting an application also deletes its linked and created `ExternalSubmission` rows (§4.8, ADR-0002 amendment of 2026-11-01).
 - **v1.6 (Dashboard, owner decisions of 2026-10-27):** the status-change log `status_changes` (§4.6a) and the Dashboard's AI tip `dashboard_ai_tips` (§4.4a).
 - **v1.5 (the AI reads the whole conversation, COM-333, 2026-10-25):** why and when an email's request closed (§4.3), the kind of ask and reply choices on the AI result (§4.4), and whether the AI read the user's reply on `OutgoingEmail` (§4.3b).
 - **v1.4 (mail-first walkthrough, COM-158):** conversations as a read model over `Email` (§4.3a), the New mark and the user's answer to a request on `Email`, and `OutgoingEmail` (§4.3b). An application can now also be created from a job-mail conversation, by the user's one click (§6).
@@ -344,7 +345,7 @@ Written in the same transaction as the status: when the AI moves a status forwar
 | `receivedAt`, `tokenId` | When Career Companion recorded it, and the token used (SetNull). |
 | `matchState` | `NEEDS_REVIEW`, `LINKED`, `CREATED` or `IGNORED`. |
 | `resolvedBy`, `resolvedAt` | `AUTOMATIC` (rule-based, never AI) or `USER`, and when. Both null exactly while `NEEDS_REVIEW` (CHECK). |
-| `applicationId` | The linked or created application (SetNull). |
+| `applicationId` | The linked or created application (SetNull). Deleting the application in the app deletes these rows (2026-11-01). |
 
 Rules:
 - A submission is evidence, not a replica: a later call with the same ref fills only optional fields that are still empty and never changes a saved value or the match (amended 2026-10-21). A user resolution is final in v1.
@@ -352,6 +353,7 @@ Rules:
 - Created applications get the submitted company, title and location, and `appliedAt = submittedAt`. Linking sets `appliedAt` only when it is empty. `aiStatus`, `userStatus` and `deriveStatus` are never touched.
 - `ApplicationResponse.automation` holds the platform, job link and submitted time of the newest linked or created submission (owner-checked), or null. `GET /api/applications/:id/submissions` returns every stored field of those submissions.
 - `ApplicationResponse.submittedVia` is `AUTOMATION` when a linked or created submission exists. The UI shows "Applied · via automation" only while `statusSource` is `UNKNOWN`; a user or AI status always wins.
+- Deleting an application (`deleteApplication`) deletes its linked and created submissions with it (owner, 2026-11-01); their `AUTOMATION_SUBMITTED` events go with the application. Submissions waiting for review or ignored stay until the user is deleted.
 **NotSubmittedJob** (`not_submitted_jobs`, deleted with the user; added 2026-10-21)
 
 | Field | Meaning |
@@ -362,7 +364,7 @@ Rules:
 | `reason` | The skip reason, or the unanswered question or next step, 1–1000 characters. |
 | `loggedAt`, `receivedAt`, `tokenId` | When the automation wrote the entry, when Career Companion recorded it, and the token used (SetNull). |
 
-Rules: it never creates, links or changes an application. A repeat fills only an empty job link. Listed newest first on the Automation page ("Not submitted").
+Rules: it never creates, links or changes an application. A repeat fills only an empty job link. Listed newest first on the Automation page ("Not submitted"). The app has no delete for it; it stays until the user is deleted.
 
 - Ownership triggers reject: a submission linked to another owner's application or token; a change of a submission's or token's owner; an event whose submission belongs to someone other than the application's owner. Links are checked when set or changed, so SetNull deletions never fail.
 
