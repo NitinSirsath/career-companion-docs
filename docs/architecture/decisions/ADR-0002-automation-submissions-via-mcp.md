@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Status | **Accepted** by the owner on 2026-10-02 after explicit review ([Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md)). **SDK line decided by MCP-00 (2026-10-02): v2**: `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. The spike also used `/express` 2.0.1, but Career Companion does not: it re-types `req.auth` for the whole app (plan review 2026-10-02, MCP-04). Claude Code is verified on 2026-07-28. Antigravity is the target client and is verified in MCP-09. Codex is unsupported in the owner's environment ([spike report](../../planning/mcp-feature/MCP-00-spike-report.md)). **Implemented locally 2026-10-02** (MCP-01 to MCP-07 and MCP-09 part A; [execution report](../../planning/mcp-feature/execution-report.md)). MCP-08 is staged for the automation repository, and MCP-09 part B (Antigravity) is run by the owner. |
-| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)) |
+| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)) and **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)) |
 | Decides | How applications submitted by `job-application-automation` reach Career Companion: where the MCP server lives, which data crosses the boundary, how it is authenticated, how it is matched to existing applications, and which system owns what |
 | Plan | [MCP Feature Planning — Automation submissions](../../planning/mcp-feature/README.md) |
 
@@ -249,3 +249,17 @@ Decided by the owner on 2026-10-21 (Linear COM-277; backend COM-278, frontend CO
 7. **Deleting automation applications is not part of this amendment.** The owner dropped it on 2026-10-21; archive stays the way to hide one.
 
 Ownership changes accordingly: Career Companion now also keeps a copy of the submitted answers, the resume file name, the apply page link and the not-submitted outcomes. The automation's daily file stays the source of truth.
+
+## Amendment of 2026-11-01: deleting an application
+
+Decided by the owner on 2026-11-01 (Linear COM-414; backend COM-415, frontend COM-416, docs COM-417). Where this section and the text above differ, this section wins.
+
+**Why:** since 2026-10-26 the user can delete any application from its "…" menu, which replaces item 7 of the amendment of 2026-10-21. Until now a delete only unlinked the automation's records (`applicationId` SetNull). Unlinked, a record and its answers were shown nowhere in the app, so the user could neither see nor remove it, and the privacy policy did not say it was kept.
+
+1. **Deleting an application deletes its linked and created submissions** (`deleteApplication` in `src/services/removal.ts`, under the email-match lock and then the submission lock; no other path takes both). Their `AUTOMATION_SUBMITTED` events go with the application.
+2. **Records waiting for review, ignored records and not-submitted jobs stay** until the account is deleted: they belong to no application, and the app has no delete for them.
+3. **Revoked tokens stay listed** with their name, prefix and dates, as before.
+4. **A deleted record does not come back by itself:** the automation never sends an entry again once its daily file marks it `sent` or `already recorded`; a replay of a day sends only entries that are missing or `failed`.
+5. The foreign key stays `SetNull`. Only the app's delete removes the records; a delete straight in the database still only unlinks them.
+
+The privacy policy and the "Your data" page say what is kept from the automation and what a delete removes (frontend, same date).

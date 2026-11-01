@@ -594,6 +594,8 @@ Since 2026-10-11 the user can read a mail's text in the app (UF-16). The text is
 
 Since 2026-10-26 the app keeps almost nothing of mail that is not about a job: only Gmail's IDs, the date and that it is not a job mail, deleted after 35 days, and no Not job mails list. The user can delete a conversation or an application from its "…" menu, and block a company's new mail (Mails › Restricted lists the blocks). Gmail itself is never changed.
 
+Since 2026-11-01 deleting an application also deletes what the user's automation reported for it (links, answers, resume file name, confirmation). Jobs the automation did not apply to, and submissions ignored in "Waiting for a match", have no delete and stay until the account is deleted. A revoked token stays listed with its name and dates.
+
 ### 4.7 External service failure isolation
 
 Failure of Gmail or the AI provider should not unnecessarily destroy already persisted Career Companion data. A downstream notification integration is not part of the MVP user flows.
@@ -662,3 +664,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.7 | 2026-10-24 | UF-10: the free AI as a backup next to the user's own key (owner decision): "Add as backup", and "Use Career Companion free AI instead" then opens "Make active". |
 | 1.8 | 2026-10-24 | UF-04: the AI reading status in the side menu and the phone top bar (owner decision). |
 | 1.9 | 2026-10-27 | UF-06: the Dashboard is built and is the home page, first in the menu (owner decision); its numbers and rules are in dashboard.md. |
+| 2.0 | 2026-11-01 | §4.6: deleting an application also deletes what the automation reported for it; jobs not applied to and ignored submissions stay until the account is deleted (owner decision). |
