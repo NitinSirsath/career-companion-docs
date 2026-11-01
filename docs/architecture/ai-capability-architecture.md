@@ -397,7 +397,7 @@ Content goes to the user's chosen provider under the user's own agreement. Befor
 
 Consent is recorded per provider. Switching provider asks again. Each summary is checked against the provider's current terms when the catalog entry is added or reviewed.
 
-What is sent (`AI_DATA_SENT_SUMMARY`, and the free AI's own text) also names, since 2026-10-25: "When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation." Owner decision, 24 Oct 2026: only the words change; no new consent prompt and no new consent version, because the owner is the only user today.
+What is sent (`AI_DATA_SENT_SUMMARY`, and the free AI's own text) also names, since 2026-10-25: "When a conversation still needs something from you, also the new text of your own replies in it. When you ask the AI to write a reply, the whole conversation." Owner decision, 24 Oct 2026: only the words change; no new consent prompt and no new consent version, because the owner is the only user today. Since 2026-11-01 the draft sentence names everything a draft sends: "When you ask the AI to write a reply, the whole conversation, any hint you type or reply choice you click, and your first name." The same rule applies: only the words change, with no new consent prompt and no new consent version.
 
 ### 8.4 Existing exposure (unchanged)
 
