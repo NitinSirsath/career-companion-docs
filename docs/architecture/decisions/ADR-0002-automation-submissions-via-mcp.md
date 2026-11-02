@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Status | **Accepted** by the owner on 2026-10-02 after explicit review ([Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md)). **SDK line decided by MCP-00 (2026-10-02): v2**: `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. The spike also used `/express` 2.0.1, but Career Companion does not: it re-types `req.auth` for the whole app (plan review 2026-10-02, MCP-04). Claude Code is verified on 2026-07-28. Antigravity is the target client and is verified in MCP-09. Codex is unsupported in the owner's environment ([spike report](../../planning/mcp-feature/MCP-00-spike-report.md)). **Implemented locally 2026-10-02** (MCP-01 to MCP-07 and MCP-09 part A; [execution report](../../planning/mcp-feature/execution-report.md)). MCP-08 is staged for the automation repository, and MCP-09 part B (Antigravity) is run by the owner. |
-| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)) and **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)) |
+| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)), **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)) and **2026-11-02** (see [Amendment of 2026-11-02](#amendment-of-2026-11-02-northlist-apply)) |
 | Decides | How applications submitted by `job-application-automation` reach Career Companion: where the MCP server lives, which data crosses the boundary, how it is authenticated, how it is matched to existing applications, and which system owns what |
 | Plan | [MCP Feature Planning — Automation submissions](../../planning/mcp-feature/README.md) |
 
@@ -263,3 +263,16 @@ Decided by the owner on 2026-11-01 (Linear COM-414; backend COM-415, frontend CO
 5. The foreign key stays `SetNull`. Only the app's delete removes the records; a delete straight in the database still only unlinks them.
 
 The privacy policy and the "Your data" page say what is kept from the automation and what a delete removes (frontend, same date).
+
+## Amendment of 2026-11-02: NorthList Apply
+
+Decided by the owner on 2026-11-02. Where this section and the text above differ, this section wins. The text above keeps the old names as history.
+
+**Why:** the app is now called NorthList, and long automation runs were slow: the automation's rules told the agent to re-read its growing daily file before every job, so the chat overflowed. The automation was reworked to load less and to search instead of re-reading, and it was renamed.
+
+1. **Name.** The automation is NorthList Apply. Its repository `NitinSirsath/job-application-automation` is renamed `NitinSirsath/northlist-apply`; GitHub keeps the old address working.
+2. **Profile line, sync line, replay.** Sync is on when `NorthList server:` in the automation profile holds the server address; the old `Career Companion server:` still works. The app's Automation › Setup shows the new line. The entry line is `NorthList sync: sent | already recorded | failed (<reason>)`, and old `Career Companion sync:` lines are read the same way. A replay is asked for with `sync NorthList for YYYY-MM-DD`; the old wording still works.
+3. **Server name.** The MCP server is named `northlist`, and the submission tool's description says NorthList. Tool names, inputs and results do not change. The automation finds the two tools by name, whatever the server is called in the AI app.
+4. **Daily file.** New entries are added at the end, in time order, without per-site sections or cooldown and tab tables. The entry heading and fields do not change, so `sourceRecordRef` does not change. Older files stay as they are.
+5. **Only opened jobs become not-submitted jobs.** The agent writes a `skipped` entry only for a job it opened and then turned down; jobs passed over in a results list get no entry, so they are not sent. `needs_user` entries are sent as before. The tool and its contract do not change.
+6. **One retry with the next send.** A failed send is retried once together with the next send, if that is at least 60 seconds later, and failed sends are resent at the end of the session. The wake-up, the send after each `applied` entry, the end-of-session sends and the replay do not change.
