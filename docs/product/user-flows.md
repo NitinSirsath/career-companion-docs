@@ -401,7 +401,7 @@ Owner decision, 24 Oct 2026 (approved mock `FREE-AI-mock.html`): the free AI, be
 
 1. User names a token (for example the computer it is used on) and chooses an expiry (30, 90, 180 or 365 days; default 90).
 2. Career Companion shows the token once, with a copy button and a warning that it will not be shown again. "Done, I saved it" removes it from the page.
-3. The page shows the MCP server URL (the backend's own address, which differs from the page's on the deployed app) and the setup steps: add the server to the AI client's user-level settings with the `Authorization: Bearer` header (never in a repository file), allow the two tools, and add the line `- Career Companion server: <address>` to the automation profile. It lists every field that is sent.
+3. The page shows the MCP server URL (the backend's own address, which differs from the page's on the deployed app) and the setup steps: add the server to the AI client's user-level settings with the `Authorization: Bearer` header (never in a repository file), allow the two tools, and add the line `- NorthList server: <address>` to the automation profile (the old `Career Companion server:` line still works). It lists every field that is sent.
 4. The list shows each token's name, prefix, status (active, expired, revoked), last use and expiry.
 
 **Edge/error states:**
@@ -665,3 +665,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.8 | 2026-10-24 | UF-04: the AI reading status in the side menu and the phone top bar (owner decision). |
 | 1.9 | 2026-10-27 | UF-06: the Dashboard is built and is the home page, first in the menu (owner decision); its numbers and rules are in dashboard.md. |
 | 2.0 | 2026-11-01 | §4.6: deleting an application also deletes what the automation reported for it; jobs not applied to and ignored submissions stay until the account is deleted (owner decision). |
+| 2.1 | 2026-11-02 | UF-11: the automation is NorthList Apply, and its profile line is `- NorthList server: <address>`; the old `Career Companion server:` line still works (owner decision). |
