@@ -5,6 +5,7 @@
 **Last Updated:** 2026-10-11
 
 ### Version History / Implementation Notes
+- **v1.8 (Dashboard rework, owner decisions of 2026-11-03):** `mail_scan_days` counts the inbox mails taken in each day (§4.4a); `dashboard_ai_tips` is dropped with the AI tip.
 - **v1.7 (deleting an application, owner decision of 2026-11-01):** deleting an application also deletes its linked and created `ExternalSubmission` rows (§4.8, ADR-0002 amendment of 2026-11-01).
 - **v1.6 (Dashboard, owner decisions of 2026-10-27):** the status-change log `status_changes` (§4.6a) and the Dashboard's AI tip `dashboard_ai_tips` (§4.4a).
 - **v1.5 (the AI reads the whole conversation, COM-333, 2026-10-25):** why and when an email's request closed (§4.3), the kind of ask and reply choices on the AI result (§4.4), and whether the AI read the user's reply on `OutgoingEmail` (§4.3b).
@@ -208,7 +209,7 @@ One active AI setup per user (`ai_configurations`, keyed by `userId`, deleted wi
 
 `ai_usage_days` (user, UTC day) holds Career Companion's own counts: calls (the safety-limit counter), input and output tokens, and verifications, for all of the user's providers together. These are not provider billing data.
 
-`dashboard_ai_tips` (user) holds the Dashboard's latest AI tip (owner, 27 Oct 2026): `text`, `provider` and `model` that wrote it, `madeAt`, `numbersHash` (a fingerprint of the numbers it was made from) and `triedAt` (the last try, made or not; the next waits a day). The AI only ever sees counts, rates and the automation's site names. Deleted with the user.
+`mail_scan_days` (user, UTC day) holds how many inbox mails the sync took in that day, for "Mails scanned" on the Dashboard (owner, 3 Nov 2026): only the number, added to in the transaction that saves a new email. Mail that is not about a job is deleted after 35 days, so it is counted when it arrives; the table was filled once from the mail still stored. A sandbox reset clears it. Deleted with the user. (`dashboard_ai_tips`, the Dashboard's AI tip of 27 Oct 2026, was dropped on 3 Nov 2026.)
 
 Access is one of four states, derived from these facts: **Not set up**, **Ready**, **Needs attention**, **Limited**. While access is not Ready, emails needing AI wait as `PENDING`; this is not a processing failure.
 

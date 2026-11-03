@@ -68,7 +68,7 @@ The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mar
 
 - **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it, across the app: the name in a cell as wide as the side menu (288px), or only the mark in a 56px square cell when the menu is collapsed; then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
 - **Account menu** (`AccountMenu.tsx`), from the account button: name and email, Account, Theme (System, Light, Dark), Log out.
-- **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages (Dashboard, Mails, Applications; the Dashboard is the home page, owner 27 Oct 2026, and the logo leads to it), a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons.
+- **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages (Dashboard, Mails, Applications; the Dashboard is the home page, owner 27 Oct 2026, and the logo leads to it), a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons. On tablet widths (768 to 1199px) it starts collapsed until the user chooses (owner, 3 Nov 2026); the choice is remembered.
 - **Phones:** see "Phones" below.
 - The sign-in pages have their own top bar with the name and the chip.
 
@@ -96,14 +96,14 @@ Up to 767px wide the app looks and works like a phone app (approved mock boards 
 
 ## Charts and numbers
 
-The Dashboard (owner, 27 Oct 2026) is the only page with charts. The rules:
+The Dashboard (owner, 27 Oct 2026; reworked 3 Nov 2026) is the only page with charts. The rules:
 
-- **One chart part:** shadcn's `chart` (`components/ui/chart.tsx`, on Recharts), changed for this app: square corners, the popup look for its tooltip, and the theme class `.theme-dark`. Bars only; no pies, no 3D, no animation on load.
-- **Colours** are tokens in `src/index.css`, for light and dark: `--chart-1` blue, `--chart-2` teal, `--chart-3` purple (Carbon's categorical palette), `--chart-4` grey, `--chart-5` red for rejections; `--chart-grid` for grid lines and `--chart-track` for the empty part of a bar. A step's colour follows its status tag.
-- **Cards** are a thin line on the page colour, 24px padding (16px on phones), a 14/20 semibold title and an aside on the right (a note or a link). The main number of a card is 32/40 light (28/36 on phones).
+- **One chart part:** shadcn's `chart` (`components/ui/chart.tsx`, on Recharts), changed for this app: square corners, the popup look for its tooltip, and the theme class `.theme-dark`. Bars, columns, lines and small trend lines; no pies, no 3D, no animation on load. Every chart has a legend, a hover readout with every series, keyboard reading, and a hidden table for screen readers.
+- **Colours** are tokens in `src/index.css`, for light and dark: `--chart-1` blue, `--chart-2` teal, `--chart-3` purple (Carbon's categorical palette), `--chart-4` grey, `--chart-5` red for rejections; `--chart-grid` for grid lines and `--chart-track` for the empty part of a bar. Dark `--chart-2` is `#009d9a`, one step darker than Carbon's, because `#08bdba` fails the colour-blind lightness check on the dark page (3 Nov 2026).
+- **Cards** (the Calm look, owner, 3 Nov 2026) are soft grey panels (`surface-subtle`) with no outline, 8px apart, 24px padding (16px on phones), a 14/20 semibold title and an aside on the right (a note or a link); lines inside a card are the page colour. Sections have a 20/28 semibold title (18/24 on phones). The main number of a card is 32/40 light (28/36 on phones).
 - **Small numbers:** a rate shows only from 5 applications; below that, "1 of 3". "Too few" stands in a table cell.
 - **Every count leads somewhere:** to the list behind it (Applications with its step, Mails with its filter, Automation).
-- **Phones:** one column; the five numbers two per row.
+- **Layout** follows the page's own width (container queries), so it fits with the side menu open or closed. Phones: one column, the three "needs you now" tiles as rows with the number on the right, the five numbers two per row.
 
 ## Motion
 
