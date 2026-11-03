@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Status | **Accepted** by the owner on 2026-10-02 after explicit review ([Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md)). **SDK line decided by MCP-00 (2026-10-02): v2**: `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. The spike also used `/express` 2.0.1, but Career Companion does not: it re-types `req.auth` for the whole app (plan review 2026-10-02, MCP-04). Claude Code is verified on 2026-07-28. Antigravity is the target client and is verified in MCP-09. Codex is unsupported in the owner's environment ([spike report](../../planning/mcp-feature/MCP-00-spike-report.md)). **Implemented locally 2026-10-02** (MCP-01 to MCP-07 and MCP-09 part A; [execution report](../../planning/mcp-feature/execution-report.md)). MCP-08 is staged for the automation repository, and MCP-09 part B (Antigravity) is run by the owner. |
-| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)), **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)) and **2026-11-02** (see [Amendment of 2026-11-02](#amendment-of-2026-11-02-northlist-apply)) |
+| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)), **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)), **2026-11-02** (see [Amendment of 2026-11-02](#amendment-of-2026-11-02-northlist-apply)) and **2026-11-03** (see [Amendment of 2026-11-03](#amendment-of-2026-11-03-setup-prompt)) |
 | Decides | How applications submitted by `job-application-automation` reach Career Companion: where the MCP server lives, which data crosses the boundary, how it is authenticated, how it is matched to existing applications, and which system owns what |
 | Plan | [MCP Feature Planning — Automation submissions](../../planning/mcp-feature/README.md) |
 
@@ -276,3 +276,14 @@ Decided by the owner on 2026-11-02. Where this section and the text above differ
 4. **Daily file.** New entries are added at the end, in time order, without per-site sections or cooldown and tab tables. The entry heading and fields do not change, so `sourceRecordRef` does not change. Older files stay as they are.
 5. **Only opened jobs become not-submitted jobs.** The agent writes a `skipped` entry only for a job it opened and then turned down; jobs passed over in a results list get no entry, so they are not sent. `needs_user` entries are sent as before. The tool and its contract do not change.
 6. **One retry with the next send.** A failed send is retried once together with the next send, if that is at least 60 seconds later, and failed sends are resent at the end of the session. The wake-up, the send after each `applied` entry, the end-of-session sends and the replay do not change.
+
+## Amendment of 2026-11-03: setup prompt
+
+Decided by the owner on 2026-11-03. Where this section and the text above differ, this section wins.
+
+**Why:** connecting the automation took four manual steps, and the hardest one, adding an MCP server with a header, is different in every AI app.
+
+1. **Setup prompt.** Automation › Setup creates a token and shows it once inside a setup prompt: the server address, the token, and a pointer to `instructions/northlist_connect.md` in NorthList Apply. The user pastes it into their AI app with the NorthList Apply folder open. The agent adds NorthList to that app's user-level MCP settings (Claude Code: `claude mcp add --scope user` with the header; Codex: `~/.codex/config.toml`; Antigravity: `~/.gemini/settings/mcp_config.json`), and sets the profile line. The user allows the two tools in the app the first time each runs: the agent never changes the app's permission settings (in testing, Claude Code's safety check blocked that as self-modification). The prompt is built in the browser; nothing new is stored, and the API does not change.
+2. **The token passes through the AI chat.** It stays in that chat's history at the AI company. The owner accepted this: the token can only add the user's own automation records and never read anything, it expires, and it can be revoked at once. It never goes into a file in the automation folder.
+3. **A year by default.** The app now suggests 365 days; 30, 90 and 180 stay. The API's own default stays 90 days.
+4. **By hand stays.** The address, the header and the profile line remain under "Set it up by hand instead".
