@@ -13,6 +13,7 @@ The numbers are served by `GET /api/dashboard` (see [api-contracts.md](../archit
 - **What works best** shows only to users who sent at least one application through the automation. This replaces the 27 Oct 2026 decision to show it to everyone.
 - The **Calm look**, picked from three in a local mock (`DASHBOARD-V2-mock/` on the owner's computer): a greeting, soft grey panels without outlines, a blue dot on a tile that holds something, more space.
 - On tablet widths the side menu shows icons only (see `DESIGN_SYSTEM.md`).
+- Follow-ups (owner, 3 Nov 2026, after a review with a few applications): weekly bars instead of trend lines on the five numbers, the reply time as one line under 5 applications, "Not enough yet" in What works best until there is enough to compare, and "1 job" instead of "1 jobs".
 
 ## What the page shows
 
@@ -25,12 +26,12 @@ Top to bottom:
    - **Interviews coming up**: how many, and the next one with its day, time and company. Opens that conversation.
    - With nothing in them: "You have opened every job mail", "Nothing is waiting on you", "No interviews booked yet".
 3. **Your progress**, with the period (last 7, 30 or 90 days, or since Gmail was connected; kept in the address):
-   - **Five numbers**: applications sent, replies received, interviews reached, offers and rejections, each with the change against the same length of time just before, and a small trend line of the last 12 weeks (the weeks in the period in blue).
+   - **Five numbers**: applications sent, replies received, interviews reached, offers and rejections, each with the change against the same length of time just before, and 12 small weekly bars for the last 12 weeks (grey before the period, blue inside it; none when all 12 weeks are empty).
    - **Running total this period**: applications sent, replies received and interviews reached added up day by day, three lines on one axis.
-   - **From applied to offer**: applications sent in the period by the furthest step they reached (columns, or bars when the card is narrow), with the response, interview and offer rates and the usual reply time.
+   - **From applied to offer**: applications sent in the period by the furthest step they reached (columns, or bars when the card is narrow), with the response, interview and offer rates and the usual reply time. Under 5 applications there are no rates: one line inside the card says "Companies usually reply in N days." (when the reply time is known).
    - **Gone quiet**: jobs to follow up or close. Three are shown; "Show all" opens the rest in place.
 4. **Your mailbox**: mails scanned and job mails, all time with their count in the period, mails not linked to a job (leads to Mails), fake offers caught; then **Job mails per day** by kind (replies from companies, interviews and tests, rejections, other job mails) as stacked columns.
-5. **What works best**, for users of the automation only: by site, by work mode, and what the automation did.
+5. **What works best**, for users of the automation only: by site, by work mode, and what the automation did ("1 job looked at", "6 jobs looked at"). Until a site or a work mode has 5 applications sent by the automation, one card "Not enough yet" stands in for the two tables.
 
 States: no Gmail yet (one "Connect Gmail" start and nothing else), the AI reading the first mails (its progress instead of empty numbers), a part that did not load (`SectionError`).
 
