@@ -46,7 +46,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 **Main flow:**
 
-1. User selects **Sign in with Google**. (A user who has set a password can instead enter their email and password; see UF-17.)
+1. User selects **Continue with Google**, the first button on the sign-in page (owner, 3 Nov 2026: only Google creates accounts; "New here? Continuing with Google creates your account."). A user who has set a password can instead use the email and password form under "or sign in with email" (see UF-17). "Forgot password?" by the Password label says to continue with Google and set a new password on the Account page.
 2. Career Companion redirects the user to Google authentication.
 3. User authenticates with Google.
 4. Google returns the authentication result.
@@ -444,12 +444,12 @@ Owner decision, 24 Oct 2026 (approved mock `FREE-AI-mock.html`): the free AI, be
 
 **Main flow:**
 
-1. The **Job mails** tab lists one row per conversation (a Gmail thread of job-related mail), with open requests first.
-2. Each row shows the subject, sender and company, the type of mail (Recruiter, Interview, Assessment, Offer, Rejection, Update), and a **New** mark until the user opens it.
-3. The **Action** column shows what the mail asks for, in the AI's words, with a due date when one is known, and **Past due** in red once it has passed. It works with or without an application. Its state is **Needs action**, **Replied** (the user sent a later message the AI has not read yet, or could not read) or **Done**, with why it closed: "Your reply answered it", "Replaced by a newer mail", "A newer mail confirmed it", "You said you did it" or "Closed with the application".
+1. The **Job mails** tab lists one row per conversation (a Gmail thread of job-related mail), newest first (owner, 3 Nov 2026). Under the title the page says how many need the user and how many are past due ("4 mails need you, 2 are past due"); tapping it shows only those.
+2. Each row shows the subject, then the next step, then the sender, company, type of mail (Recruiter, Interview, Assessment, Offer, Rejection, Update) and mail count, with coloured initials and a **New** mark until the user opens it.
+3. The next step shows what the mail asks for, in the AI's words, with a due date when one is known, and **Past due** in red once it has passed. It works with or without an application. An open step has a blue arrow; a replied one (the user sent a later message the AI has not read yet, or could not read) a reply mark; a done one is grey with a green check and why it closed: "Your reply answered it", "Replaced by a newer mail", "A newer mail confirmed it", "You said you did it" or "Closed with the application".
 4. There is no "Mark done" (owner, 24 Oct 2026): an ask closes when the user's reply answers it or a newer mail settles it. An ask done outside mail (a form, a test) has **I did this** in the row's "⋯" menu and the phone swipe. The user can reopen a closed ask, or after a reply ask to be reminded again.
-5. The **Application** column shows the application and its stage, or a **Create application** button.
-6. The user can search, filter by action, type and application, show new mail only, and sort by attention or by date. The filters live in the page address, so Back returns to the same view.
+5. On the right the row shows the application and its stage, or **Create application**.
+6. The user can search, filter by action, type and application, show new mail only (all in one Filters menu; on phones Needs action and New only are one tap each), and sort newest first or needs action first. The filters live in the page address, so Back returns to the same view.
 
 **End state:** the user knows what each job mail needs and has acted on it or left it open on purpose.
 
@@ -666,4 +666,5 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 1.9 | 2026-10-27 | UF-06: the Dashboard is built and is the home page, first in the menu (owner decision); its numbers and rules are in dashboard.md. |
 | 2.0 | 2026-11-01 | §4.6: deleting an application also deletes what the automation reported for it; jobs not applied to and ignored submissions stay until the account is deleted (owner decision). |
 | 2.1 | 2026-11-02 | UF-11: the automation is NorthList Apply, and its profile line is `- NorthList server: <address>`; the old `Career Companion server:` line still works (owner decision). |
+| 2.3 | 2026-11-03 | UF-01: Continue with Google first on the new sign-in page; UF-14: the Mails list is newest first, with the "need you" line, the next step on each row and one Filters menu (owner decisions, COM-433). |
 | 2.2 | 2026-11-03 | UF-11: the setup prompt: the token is shown once inside a prompt the user pastes into their AI app, which connects itself; 365 days by default; the manual steps stay under "Set it up by hand instead" (owner decision). |
