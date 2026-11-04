@@ -125,6 +125,7 @@ Schemas: `src/contracts/conversation.ts` and `src/contracts/mailbox.ts` in the b
 | Endpoint | What it does |
 |---|---|
 | `GET /api/conversations` | One page of job-mail conversations (offset envelope). Filters: `q`, `request` (`open`, `replied`, `done`, `none`), `category`, `application` (`any`, `none` or an application ID), `unseen=true`, `sort` (`attention` by default, or `newest`). No email text. |
+| `GET /api/conversations/summary` | The Mails page's line "4 mails need you, 2 are past due" (2026-11-03): `?timeZone=<IANA zone>` (a missing or wrong zone is UTC). Answers `{ needsAction, pastDue }`: `needsAction` counts the conversations the `request=open` filter lists (the same query); `pastDue` those whose deadline has passed (a deadline with a time once it is past, a date-only deadline from the next day in the time zone; a fake offer's step never). |
 | `GET /api/conversations/:key` | One conversation with what the AI read from each of its emails. `:key` is the Gmail thread ID, or the ID of any email of the conversation. |
 | `POST /api/conversations/:key/seen` | Ends the New mark. Safe to repeat. |
 | `PATCH /api/conversations/:key/request` | The user's answer to the newest request: `{ emailId, state }` with `DONE` ("I did this") or `OPEN` (Reopen, Ask me again). `emailId` names the request the user saw; a newer request answers 409 `REQUEST_CHANGED`. `DONE` on an ask the user answers by mail answers 409 `CLOSES_BY_ITSELF` (2026-10-25). |
