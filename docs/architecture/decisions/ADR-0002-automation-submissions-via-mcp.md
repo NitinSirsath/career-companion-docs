@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Status | **Accepted** by the owner on 2026-10-02 after explicit review ([Project Constitution — Change Management](../../../PROJECT_CONSTITUTION.md)). **SDK line decided by MCP-00 (2026-10-02): v2**: `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. The spike also used `/express` 2.0.1, but Career Companion does not: it re-types `req.auth` for the whole app (plan review 2026-10-02, MCP-04). Claude Code is verified on 2026-07-28. Antigravity is the target client and is verified in MCP-09. Codex is unsupported in the owner's environment ([spike report](../../planning/mcp-feature/MCP-00-spike-report.md)). **Implemented locally 2026-10-02** (MCP-01 to MCP-07 and MCP-09 part A; [execution report](../../planning/mcp-feature/execution-report.md)). MCP-08 is staged for the automation repository, and MCP-09 part B (Antigravity) is run by the owner. |
-| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)), **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)), **2026-11-02** (see [Amendment of 2026-11-02](#amendment-of-2026-11-02-northlist-apply)) and **2026-11-03** (see [Amendment of 2026-11-03](#amendment-of-2026-11-03-setup-prompt)) |
+| Date | 2026-10-02; **amended 2026-10-21** (see [Amendment of 2026-10-21](#amendment-of-2026-10-21-full-automation-details)), **2026-11-01** (see [Amendment of 2026-11-01](#amendment-of-2026-11-01-deleting-an-application)), **2026-11-02** (see [Amendment of 2026-11-02](#amendment-of-2026-11-02-northlist-apply)), **2026-11-03** (see [Amendment of 2026-11-03](#amendment-of-2026-11-03-setup-prompt)) and **2026-11-06** (see [Amendment of 2026-11-06](#amendment-of-2026-11-06-sync-follows-the-connection)) |
 | Decides | How applications submitted by `job-application-automation` reach Career Companion: where the MCP server lives, which data crosses the boundary, how it is authenticated, how it is matched to existing applications, and which system owns what |
 | Plan | [MCP Feature Planning — Automation submissions](../../planning/mcp-feature/README.md) |
 
@@ -287,3 +287,14 @@ Decided by the owner on 2026-11-03. Where this section and the text above differ
 2. **The token passes through the AI chat.** It stays in that chat's history at the AI company. The owner accepted this: the token can only add the user's own automation records and never read anything, it expires, and it can be revoked at once. It never goes into a file in the automation folder.
 3. **A year by default.** The app now suggests 365 days; 30, 90 and 180 stay. The API's own default stays 90 days.
 4. **By hand stays.** The address, the header and the profile line remain under "Set it up by hand instead".
+
+## Amendment of 2026-11-06: sync follows the connection
+
+Decided by the owner on 2026-11-06. Where this section and the text above differ, this section wins.
+
+**Why:** on 2026-11-06 a real run applied to five jobs and sent none of them to NorthList until the user asked. Two gaps allowed that: sync was on only when the profile line held the server address, so with the tools connected and the line still `None` the run skipped NorthList without a word; and the send after each job was written only in the sync file, which the agent reads once and a long run can lose from the chat.
+
+1. **Connected means on.** Sync is on when the AI app has the two NorthList tools, whatever the profile line says, or when the profile line holds the server address. Tools that the app lists by name and loads only on request count. With neither, nothing is sent and nothing is said, as before. The profile line now only lets the agent wake the server before the first send; NorthList's setup prompt still sets it.
+2. **The send is a step of every application.** The send after each `applied` entry is a numbered step of the automation's main rules (`AGENTS.md` section 7), which the AI app keeps loaded, and the next job is not opened until the last `applied` entry has its sync line. After `ready` the agent tells the user once that NorthList is connected.
+3. **Missed sends are caught.** An `applied` entry without a sync line is sent before the next job, right after `ready` in a new chat that resumes the day, and at the end of the session. The session summary says how many of the day's applications NorthList has, and names each failed or unsent entry with the replay command.
+4. **No contract change.** The tool names, inputs and results, the sync line, the one retry and the replay do not change.
