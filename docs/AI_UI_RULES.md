@@ -2,8 +2,9 @@
 
 When you change the Career Companion frontend as an AI coding agent, you **must** follow these rules. They come from design part 1, which the owner approved on 17 Oct 2026, and design part 2, approved on 22 Oct 2026. The base is IBM Carbon with a Render-style look; [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) has the themes, type, the app shell, motion and the list of shared parts.
 
-## Owner decisions (17 Oct to 3 Nov 2026)
+## Owner decisions (17 Oct to 7 Nov 2026)
 
+- Owner decision, 7 Nov 2026 (approved local mock `LOGIN-POLISH-mock/`, button option A, issue COM-446): on the sign-in pages "Sign in" is the filled blue button and "Continue with Google" keeps Google's dark button and stays first; the Mails picture never shows a square bottom corner; two made-up mails come into the picture once and are read (grey shimmer, counts go up), then it stays still, and it never moves with "reduce motion" on; phones and tablets get a short blue band with the headline and a small Mails card above the form, with the footer right after the form. See DESIGN_SYSTEM.md, "Sign-in pages".
 - Owner decision, 3 Nov 2026 (approved local mocks `APP-CALM-mock/` and `LOGIN-mock/`, issue COM-433): style v3 for the whole app: cooler greys and lighter lines, text 14/20, page title 26/32, buttons 13 medium and 36px high, rounded corners (6px controls, 8px menus and panels, 12px dialogs, pill tags), tags with a pale fill, a thin outline and a dot, cards as soft grey panels without a line (mails stay white with a line), a pale grey open item in the side menu. Light mode stays simple (white side menu and top bar with lines); Dark puts the menu and top bar on near-black and the page on a raised sheet. The Mails list is one list, newest first, with a summary line, coloured initials and one Filters menu; the sign-in pages have two halves, Google first, and are always light. See DESIGN_SYSTEM.md. This replaces the square corners of 21 and 22 Oct 2026 and the 15/22 text of 26 Oct 2026.
 
 - Owner decision, 17 Oct 2026: great UX and a clear, working UI come first; looks come second. Behaviour and motion are modern.
