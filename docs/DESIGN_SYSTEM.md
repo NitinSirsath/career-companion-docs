@@ -194,7 +194,7 @@ One map, in `src/lib/statusTags.ts`. Colour carries meaning only here:
 | Offer | green |
 | Rejected | red |
 | Closed | outline |
-| Status unknown, Sent by automation, Archived | outline |
+| Status unknown, No reply yet (NorthList Apply, no status), Archived | outline |
 
 The to-do state ("Needs action", yellow) and the mail type never reuse these looks.
 
