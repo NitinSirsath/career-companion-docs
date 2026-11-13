@@ -2,7 +2,9 @@
 
 Design part 1 was built on 18 Oct 2026 (plan approved 17 Oct 2026). Design part 2 restyled it on 22 Oct 2026 from the mock the owner approved that day, boards "Mails list", "Mail conversation" and "Applications list" (the "Render detail pass" at the end of each board's style is the final look). The rules every agent must follow are in [AI_UI_RULES.md](AI_UI_RULES.md).
 
-The base is IBM Carbon (the blue, the status colours, motion times and curves, Carbon icons) with the look of the Render dashboard: a top bar with the breadcrumb, and the Geist font. Not a copy of Render. The goal is a mature, calm tool, not a showcase.
+The base is IBM Carbon (the blue, the status colours, motion times and curves) with the look of the Render dashboard: a top bar with the breadcrumb. Not a copy of Render. The goal is a mature, calm tool, not a showcase.
+
+**13 Nov 2026 (owner): the new look.** One design for phones, Android and laptops (approved local mock `IOS-LOOK-mock/`, with the laptop before and after pictures in `IOS-LOOK-mock/desktop/`; summary `NEW-LOOK-final.md`). Everywhere: Lucide icons (thin, rounded), the device's own font, rounder corners, frosted glass only on things that float, a refresh icon on every list, and one word, **Reopen**, for putting any closed step back on the list. Phones (and Android) get an iPhone-style frame: see "Phones". Laptops keep their layout, side menu, top bar and 14px text; only the icons, font, corners, glass and motion change, and Dashboard and NorthList Apply get a refresh button. The colours do not change.
 
 **3 Nov 2026 (owner): style v3.** After a friend said they did not like the design, the owner approved a calmer, more modern look for the whole app (approved local mocks `APP-CALM-mock/` and `LOGIN-mock/`, issue COM-433): cooler greys and lighter lines, 14/20 text, softer status tags, 36px controls, rounded corners, cards as soft grey panels, a new Mails list and new sign-in pages. It replaces the square corners of 22 Oct 2026 and the 15/22 text of 26 Oct 2026. The sections below are the current rules.
 
@@ -20,15 +22,16 @@ The theme is chosen in the account menu and on the Account page. Every colour is
 ## Surfaces and lines
 
 - The page, the menu bar and tables share the page colour. Lines split rows and sections (`border-border-subtle`); `border-border-default` goes around fields and buttons.
-- **Cards are panels** (owner, 3 Nov 2026, as on the Dashboard's Calm look): the `panel` utility in `src/index.css`, a soft grey fill (`surface-subtle`) with 8px corners and no line, 24px padding. Side cards on a mail, settings sections, the AI provider cards, the Gmail sync strip and the Dashboard cards are panels.
-- **Mails stay white:** in a conversation every mail sits on a white card with a thin line and 8px corners, full width, so it reads like mail; the user's own mails carry the blue "You" picture. The reply box is the same.
+- **Cards are panels** (owner, 3 Nov 2026, as on the Dashboard's Calm look): the `panel` utility in `src/index.css`, a soft grey fill (`surface-subtle`) with 16px corners (13 Nov 2026) and no line, 24px padding. Side cards on a mail, settings sections, the AI provider cards, the Gmail sync strip and the Dashboard cards are panels.
+- **Mails stay white:** in a conversation every mail sits on a white card with a thin line and 16px corners, full width, so it reads like mail; the user's own mails carry the blue "You" picture. The reply box is the same.
 - **Shadows** only on things that float (menus, dropdowns and dialogs use `shadow-popup`), the faint shadow under buttons, and in Dark the raised page sheet and the open menu item.
-- **Rounded corners** (owner, 3 Nov 2026): 6px on buttons, fields, dropdown boxes, the search box, tabs, chips and notices (`rounded-md`); 8px on menus, dropdown lists and panels (`rounded-lg`); 12px on dialogs and the Dark page sheet (`rounded-xl`); pills for tags. Round things stay round. Each shared part sets its own corner.
+- **Rounder corners** (owner, 13 Nov 2026; before: 6 / 8 / 12px): buttons, fields, dropdown boxes, the search box, tabs, chips, filter pills and floating bars are fully round (`rounded-full`); other small boxes 10px (`rounded-md`); groups, cards, panels and menus 16px (`rounded-lg`); dialogs and sheets 28px (`rounded-xl`; a tall sheet 22px at the top); the laptop's Dark page sheet keeps 12px (`rounded-page`); tags stay pills. Each shared part sets its own corner.
+- **Frosted glass** (owner, 13 Nov 2026): only on things that float over the page: the phone's tab bar, action bars and round top buttons (`glass` utility), menus and dropdown lists (`glass-menu`), and toasts. Quiet: a blur and a hairline edge, no shine or glow. Pages, cards and dialogs stay solid.
 - **Chosen state:** the open page in the side menu is a pale grey fill with dark text in Light, and a raised item (page colour, thin light outline, small shadow) in Dark, so blue means "you can act here". Segmented tabs keep the light blue tint (`bg-tint`) with blue text; the Mails tabs are underlined (see "Mails list").
 
 ## Type
 
-Geist (free, loaded from Google Fonts in `index.html`). Owner decision, 26 Oct 2026 (approved mock `TYPOGRAPHY-mock.html`): text is larger and stronger on a laptop than in design part 2.
+The device's own font (owner, 13 Nov 2026): San Francisco on Apple devices, Roboto or the maker's font on Android, the system font on Windows (`--font-sans` in `src/index.css`; no web font is loaded). The product site (`site/`) keeps Geist. Owner decision, 26 Oct 2026 (approved mock `TYPOGRAPHY-mock.html`): text is larger and stronger on a laptop than in design part 2.
 
 | Use | Size / line height | Weight |
 | --- | --- | --- |
@@ -45,7 +48,7 @@ Geist (free, loaded from Google Fonts in `index.html`). Owner decision, 26 Oct 2
 | Table header row | 13 / 16, grey (`text-text-secondary`), sentence case | medium |
 | Plain-text mail in a conversation | 15, line height 1.6 | regular |
 
-`text-sm` is 14 / 20 and `text-xs` is 13 / 18 in this app (set in `src/index.css`), not Tailwind's sizes. Dates and counts use numbers of equal width (`tabular-nums`). Controls (buttons, tabs, the menu, fields, dropdowns, filter buttons, the breadcrumb, toasts) use `text-[14px]`, so they keep their heights. The page uses the browser's own font smoothing (no `antialiased`, which makes Geist too thin on a Mac). No uppercase text and no extra letter spacing. Geist Mono is only for code, tokens and the small count after a table's first header label. There is no small label above page titles. Sentence case everywhere ("Sync now", not "Sync Now").
+`text-sm` is 14 / 20 and `text-xs` is 13 / 18 in this app (set in `src/index.css`), not Tailwind's sizes. Dates and counts use numbers of equal width (`tabular-nums`). Controls (buttons, tabs, the menu, fields, dropdowns, filter buttons, the breadcrumb, toasts) use `text-[14px]`, so they keep their heights. The page uses the browser's own font smoothing (no `antialiased`). No uppercase text and no extra letter spacing. The device's mono font (`font-mono`) is only for code, tokens and the small count after a table's first header label. Phones have their own sizes: see "Phones". There is no small label above page titles. Sentence case everywhere ("Sync now", not "Sync Now").
 
 ## Width and spacing
 
@@ -55,7 +58,7 @@ Geist (free, loaded from Google Fonts in `index.html`). Owner decision, 26 Oct 2
 
 ## Logo
 
-The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mark** as its "o": a half sun over list lines (owner, 25 Oct 2026; approved mock `LOGO-W3-final-mock.html`, a local file). Both are in `components/layout/Logo.tsx`: `Wordmark` is the name, `Logo` is the mark alone.
+The logo is the name "northlist" in lowercase bold (Geist on the product site and in the brand files; the app's own font in the app), with the **Horizon mark** as its "o": a half sun over list lines (owner, 25 Oct 2026; approved mock `LOGO-W3-final-mock.html`, a local file). Both are in `components/layout/Logo.tsx`: `Wordmark` is the name, `Logo` is the mark alone.
 
 - **The name** (`Wordmark`) wherever there is room: the top bar with the side menu open, the top of the sign-in pages, the top of the phone menu, the start-up screen and the privacy page. Letter spacing -0.045em. The "o" is the mark at 0.57em, set 0.011em after the "n", -0.031em before the "r" and 0.017em below the baseline. Screen readers hear "NorthList".
 - **The mark alone** (`Logo`) where the name does not fit: the top bar with the side menu collapsed, the browser tab and the phone home screen icon.
@@ -69,6 +72,7 @@ The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mar
 
 ## App shell
 
+- **Laptops** (`components/layout/LaptopShell.tsx`); phones have their own frame (see "Phones").
 - **Top bar** (`components/layout/TopBar.tsx`), 56px with a line under it in Light, across the app: the name in a cell as wide as the side menu (288px), or only the mark in a 56px square cell when the menu is collapsed; then the breadcrumb; on the right the dev mode or test account chip ("Dev mode · mail sandbox", yellow, sentence case) and the round account button.
 - **Account menu** (`AccountMenu.tsx`), from the account button: name and email, Account, Theme (System, Light, Dark), Log out.
 - **Side menu** (`Sidebar.tsx`), under the top bar, 288px: dark item text with grey icons, the daily pages (Dashboard, Mails, Applications; the Dashboard is the home page, owner 27 Oct 2026, and the logo leads to it), a "Settings" group label in small sentence-case text, then the settings pages; "Collapse menu" on its own row at the bottom with a line above it. Collapsed, it is 56px of icons. On tablet widths (768 to 1199px) it starts collapsed until the user chooses (owner, 3 Nov 2026); the choice is remembered.
@@ -78,17 +82,22 @@ The logo is the name "northlist" in lowercase Geist Bold, with the **Horizon mar
 
 ## Phones
 
-Up to 767px wide the app looks and works like a phone app (approved mock boards "Option B: Mails", "Option B: a mail" and "Option B: Applications"; rounded corners since 3 Nov 2026). The phone parts are drawn only on phones (`useIsPhone` in `components/layout/useIsPhone.ts`), so a laptop never has them hidden in the page.
+Up to 767px wide the app is a phone app in today's iPhone style (owner, 13 Nov 2026; approved local mock `IOS-LOOK-mock/`). Android gets the same design. The frame is `components/phone/PhoneShell.tsx`; phone-only parts are drawn only on phones (`useIsPhone`), never hidden with CSS.
 
-- **Top bar**, 56px, a row of square 48px cells split by thin lines: the menu, the page name, the page's own buttons (search, and "+" on Applications), the "Dev" or "Test" chip, the account button. A page puts its buttons there with `TopBarActions` and `TopBarButton` / `TopBarSearch` (`components/layout/TopBarButtons.tsx`).
-- **Menu** (`PhoneMenu.tsx`): the menu cell opens a drawer from the left with every page: the daily pages, the "Settings" label, the settings pages and the mail sandbox. A tap on a page closes it.
-- **Bottom bar** (`MobileNav.tsx`): Dashboard, Mails and Applications only, the chosen one on the blue tint. No "More": the rest is in the menu.
-- **Page header**: the title is in the top bar, so the page shows no title and no description (`PageHeader phoneCompact`). The sync line is one short row under the tabs.
-- **Lists**: `DataTable` takes `phoneRow`, one row or card per item, with no header row. A job mail is one row edge to edge (`PhoneMailRow`, see "Mails list"). Swiping it to the right does its first action, such as "I did this", with Undo in the toast. An application is a card (`PhoneApplicationCard`).
-- **Filters**: Applications keeps its search box and "Filters" button and shows its status tabs as a row of chips that scrolls sideways. Mails: see "Mails list".
-- **A mail**: the job panel comes first, the next step open and "Key dates" and "Application" folded. While the mail has no application, "Application" stays open right under the next step, with a full-width 48px "Create application" (or "Choose application") button; a probable fake offer keeps it folded with the quiet button, and it folds again once the application exists (owner, 7 Nov 2026). Reply is a floating button above the bottom bar; it opens the reply full screen with a close cell. Closing keeps the text.
-- **An application** (owner, 7 Nov 2026): a "…" menu sits at the top right of its block, never on a line of its own: beside the company name (`PageHeader actionsBesideTitle`) and beside each next step, with "Complete" under the step text. A History row keeps the title and "…" on its first line; the date joins the detail line under it ("Oct 27, 4:19 PM · The AI set the status to …"), and the AI note and the automation facts use the full width.
-- **Dialogs** cover the whole screen. **Toasts** sit above the bottom bar.
+- **Text:** 17px for rows and mail text, 15px for second lines (`text-sm` on phones), 13px for small notes (the `phone-type` utility). No field is under 16px, so an iPhone never zooms in.
+- **Tab bar** (`TabBar.tsx`): a floating glass bar with Dashboard, Mails, Applications and Settings: line icons when off, filled and blue when on, a soft highlight that slides to the chosen tab. It shows on each tab's first page; a page opened from it has its own action bar instead. There is no menu drawer and no account button on phones.
+- **Settings tab** (`/settings`, `SettingsTab.tsx`): Gmail sync, AI providers, NorthList Apply, the mail sandbox (dev mode and test accounts), Account, Appearance (`/settings/appearance`), alerts on this phone as a switch, and Sign out, as grouped rows with small coloured icon squares.
+- **Top bar:** no bar of its own, only round glass buttons over the page (`GlassButton`): Back on the left on a page opened from another; on the right the page's own buttons, put there with `TopBarActions`: on a list, refresh, search and filters in one glass capsule (`GlassCapsule`, `CapsuleButton`, `PhoneRefresh`); on a mail, one ⓘ. A soft blur fades in under the buttons as the page scrolls.
+- **Big titles** (`PhoneTitle`): 34px on a tab's first page, 28px on a page opened from it. They scroll under the top bar, where the small title then shows; pulling down at the top makes them a little bigger (iPhone only). `PageHeader` draws one on phones by itself.
+- **Moving between pages** (`usePhoneStack.ts`, `lib/phoneStack.ts`): a page slides in from the right; the page under it moves a third of the way left and darkens. Back, a swipe from anywhere on the page (not only the edge) and the phone's own back gesture or button slide back; let go halfway and the page springs back. Each tab keeps its pages and its place; tapping the open tab goes back to its first page, then to the top. Safari's own back swipe is not drawn twice.
+- **Sheets** (`Sheet` in `ui/sheet.tsx`, on Base UI Drawer): they float above the page with round corners, spring up, follow the finger when dragged down and close on a fling; the page behind shrinks a little (fully behind a tall sheet such as Reply, half behind a short one). An action list is an `ActionSheet`; rows sit on a `SheetGroup`. Dialogs rise as tall sheets on phones.
+- **Lists:** rows on one soft grey group with thin lines between them (`PhoneGroup`, `PhoneSection`, `PhoneLinkRow`; `DataTable` with `phoneRow`). The filters in use show as small pills under the title; the search opens as a row under the title, with Cancel. In progress and NorthList Apply on Applications are a segmented control.
+- **Mails:** "Job mails ⌄" is the big title and switches the lists; under it one status line: when mail last came in and what the AI is doing ("Synced 12:00 PM · 3 new mails wait for AI ›"), which opens the AI reading status in a sheet. Each mail is four short lines with no picture (who and when, the subject, the next step, the status and company), with a blue dot in the margin while new. Swiping a row to the right does its first action. The day's summary sits under the list.
+- **A mail** (`PhoneMailPage.tsx`): the big subject and the facts, the next step as one row (its sheet has "I did this" or Reopen, the way to its mail, and why it closed), the way to make the application while there is none, then the mails edge to edge with older ones folded to one line. Key dates and the application are behind ⓘ. A floating action bar: Reply (Draft once text is kept), Done or Reopen, AI reply, More. Reply is a tall sheet: Close and Send at its top, the AI's help (reply choices, an optional hint, "Write with AI") above the text, and the text tools at its bottom; AI reply opens it with the hint box ready.
+- **An application:** the big company name, the role and the status (a tap opens the status sheet), then grouped sections: Next steps, Conversations, Details, People, History. A floating action bar: Reply, Status, More.
+- **Refresh** on every list: Dashboard, Mails (also asks Gmail for new mail), Applications, Gmail sync and NorthList Apply. It spins while the page is fetched again and says "Up to date."
+- **Toasts** float just above the tab bar.
+- **Less motion asked for:** pages and sheets fade instead of moving, and the page behind a sheet does not shrink.
 
 ## Page structure
 
@@ -139,8 +148,14 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 | --- | --- |
 | 70ms | hover and pressed colours |
 | 110ms | dropdowns and menus close; tooltips open |
-| 150ms | dropdowns and menus open: they fade and grow out of the side next to their field; a page fades in (`animate-page-in`) |
-| 240ms | dialogs and toasts come and go; every change of size (below) |
+| 150ms | a page fades in (`animate-page-in`) |
+| 160ms | menus and dropdowns close |
+| 240ms | dialogs come and go; every change of size (below) |
+| 320ms | menus and dropdowns open with a small spring (`ease-spring`), growing out of their button (13 Nov 2026) |
+| 420ms | toasts slide in with the same spring |
+| 450ms | phone sheets rise and settle (`ease-sheet`) |
+
+**Phone pages move on springs** (owner, 13 Nov 2026): the slide between pages and the tab bar's highlight use a small spring in `lib/spring.ts` (no animation library), so a fling keeps its speed. With less motion asked for, they are a short fade.
 
 **Size changes are never a jump** (owner, 21 Oct 2026; approved demo "Motion: today vs new"). Three shared parts do it, so a page never builds its own:
 
@@ -154,7 +169,7 @@ Motion is short and quiet and never needed to understand the screen. With "reduc
 
 ## Icons
 
-Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the menu. The AI is shown with Carbon's machine-learning model icon, never a sparkle.
+Lucide icons only (`lucide-react`, owner, 13 Nov 2026), imported by their `…Icon` names (`CheckIcon`), thin lines (1.75, set once in `main.tsx`), 16px in text and buttons, 20px in the side menu, 22 to 26px in the phone's bars. The AI is shown with `AiIcon` (`components/ui/ai-icon.tsx`): the shape of Carbon's machine-learning model, drawn thin. Never a sparkle.
 
 ## Shared parts (`src/components/ui/`)
 
@@ -180,6 +195,10 @@ Carbon icons only (`@carbon/icons-react`), 16px in text and buttons, 20px in the
 | `showToast` (`toast.tsx`) | a short confirmation after an action, with Undo where the app can really undo |
 | `CodeSnippet` | one line to copy, with a copy button |
 | `Avatar` | initials of a person, in a circle; the user ("You") on the blue tint |
+| `Sheet`, `SheetGroup`, `SheetAction`, `ActionSheet` (`sheet.tsx`) | phones: a sheet from the bottom on Base UI Drawer; rows on a group; a list of actions |
+| `Switch` | an on/off setting, as phone settings have |
+| `RefreshButton`, `useRefresh` | fetching a list page again without reloading the app |
+| `AiIcon` (`ai-icon.tsx`) | the AI's icon |
 
 ## Status colours
 
