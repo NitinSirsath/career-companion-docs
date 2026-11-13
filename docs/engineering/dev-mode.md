@@ -82,7 +82,7 @@ Fake errors leave their states in the dev database: pauses, a rejected key, fail
 
 ## 7. Test accounts on a shared deploy
 
-Owner decision, 2026-10-20: one deploy (Render's free plan has one server and one database) serves real users and testers. Everyone signs in with Google and uses real Gmail. A few fixed **test accounts** sign in on their own page and use the mail sandbox instead of Gmail, with a real AI provider. This is prod mode, not dev mode: nothing else changes.
+Owner decision, 2026-10-20: one deploy (one server on Render's free plan, one database on Supabase's free plan since 2026-11-13) serves real users and testers. Everyone signs in with Google and uses real Gmail. A few fixed **test accounts** sign in on their own page and use the mail sandbox instead of Gmail, with a real AI provider. This is prod mode, not dev mode: nothing else changes.
 
 - **Setting:** `TEST_ACCOUNTS=dev1@test.com:<password>,dev2@test.com:<password>` in the backend's settings. At most 5 accounts. Each password is 16 to 200 characters. Empty: no test accounts, and the sandbox answers 404 before login as before.
 - **Passwords:** long and random, one per account, kept only in the host's secret settings (on Render: Environment, as a secret). Never in code, GitHub or chat. Hand each tester theirs privately.
