@@ -155,7 +155,7 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 | 420ms | toasts slide in with the same spring |
 | 450ms | phone sheets rise and settle (`ease-sheet`) |
 
-**Phone pages move on springs** (owner, 13 Nov 2026): the slide between pages and the tab bar's highlight use a small spring in `lib/spring.ts` (no animation library), so a fling keeps its speed. With less motion asked for, they are a short fade. |
+**Phone pages move on springs** (owner, 13 Nov 2026): the slide between pages and the tab bar's highlight use a small spring in `lib/spring.ts` (no animation library), so a fling keeps its speed. With less motion asked for, they are a short fade.
 
 **Size changes are never a jump** (owner, 21 Oct 2026; approved demo "Motion: today vs new"). Three shared parts do it, so a page never builds its own:
 
