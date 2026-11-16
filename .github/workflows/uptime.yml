@@ -1,0 +1,24 @@
+name: Uptime
+# Opens the product site, the app and the API (through the app) every 30 minutes. If one still does
+# not answer after three more tries, the run fails and GitHub emails the owner. The tries are 30
+# seconds apart, so an API that sleeps on Render's free plan has time to wake up first.
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Product site (northlist.site)
+        run: curl --fail --silent --show-error --output /dev/null --retry 3 --retry-delay 30 --retry-all-errors --max-time 60 https://northlist.site/
+      - name: App (app.northlist.site)
+        run: curl --fail --silent --show-error --output /dev/null --retry 3 --retry-delay 30 --retry-all-errors --max-time 60 https://app.northlist.site/
+      - name: API through the app
+        run: curl --fail --silent --show-error --output /dev/null --retry 3 --retry-delay 30 --retry-all-errors --max-time 60 https://app.northlist.site/api/app-mode
