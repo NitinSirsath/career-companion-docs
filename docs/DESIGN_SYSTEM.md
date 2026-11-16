@@ -92,7 +92,7 @@ Up to 767px wide the app is a phone app in today's iPhone style (owner, 13 Nov 2
 - **Moving between pages** (`usePhoneStack.ts`, `lib/phoneStack.ts`): a page slides in from the right; the page under it moves a third of the way left and darkens. Back, a swipe from anywhere on the page (not only the edge) and the phone's own back gesture or button slide back; let go halfway and the page springs back. Each tab keeps its pages and its place; tapping the open tab goes back to its first page, then to the top. Safari's own back swipe is not drawn twice.
 - **Sheets** (`Sheet` in `ui/sheet.tsx`, on Base UI Drawer): they float above the page with round corners, spring up, follow the finger when dragged down and close on a fling; the page behind shrinks a little (fully behind a tall sheet such as Reply, half behind a short one). An action list is an `ActionSheet`; rows sit on a `SheetGroup`. Dialogs rise as tall sheets on phones.
 - **Lists:** rows on one soft grey group with thin lines between them (`PhoneGroup`, `PhoneSection`, `PhoneLinkRow`; `DataTable` with `phoneRow`). The filters in use show as small pills under the title; the search opens as a row under the title, with Cancel. In progress and NorthList Apply on Applications are a segmented control.
-- **Mails:** "Job mails ⌄" is the big title and switches the lists; under it one status line: when mail last came in and what the AI is doing ("Synced 12:00 PM · 3 new mails wait for AI ›"), which opens the AI reading status in a sheet. Each mail is four short lines with no picture (who and when, the subject, the next step, the status and company), with a blue dot in the margin while new. Swiping a row to the right does its first action. The day's summary sits under the list.
+- **Mails:** "Job mails ⌄" is the big title and switches the lists; under it one status line: when mail last came in and what the AI is doing ("Synced 12:00 PM · 3 new mails wait for AI ›"), which opens the AI reading status in a sheet. Each mail is four short lines with no picture (who and when, the subject, the next step, the status and company), with a blue dot in the margin while new. On the last line the company is a little stronger than the rest (medium weight, secondary colour; owner, 16 Nov 2026), as on the product page. Every row's words start under the title's first letter (15 Nov 2026); the dot hangs in the side margin. Swiping a row to the right does its first action. The day's summary sits under the list, and is left out while the list is empty. The Whole inbox reads the same way (owner, 15 Nov 2026; mock `WHOLE-INBOX-mock/`, option B): edge to edge, who and when, the subject, two lines of the mail, "Job mail" when it is one, and a blue dot while unread (`PhoneInboxList.tsx`); its notice keeps the page margin. Laptops keep the inbox table.
 - **A mail** (`PhoneMailPage.tsx`): the big subject and the facts, the next step as one row (its sheet has "I did this" or Reopen, the way to its mail, and why it closed), the way to make the application while there is none, then the mails edge to edge with older ones folded to one line. Key dates and the application are behind ⓘ. A floating action bar: Reply (Draft once text is kept), Done or Reopen, AI reply, More. Reply is a tall sheet: Close and Send at its top, the AI's help (reply choices, an optional hint, "Write with AI") above the text, and the text tools at its bottom; AI reply opens it with the hint box ready.
 - **An application:** the big company name, the role and the status (a tap opens the status sheet), then grouped sections: Next steps, Conversations, Details, People, History. A floating action bar: Reply, Status, More.
 - **Refresh** on every list: Dashboard, Mails (also asks Gmail for new mail), Applications, Gmail sync and NorthList Apply. It spins while the page is fetched again and says "Up to date."
@@ -154,6 +154,11 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 | 320ms | menus and dropdowns open with a small spring (`ease-spring`), growing out of their button (13 Nov 2026) |
 | 420ms | toasts slide in with the same spring |
 | 450ms | phone sheets rise and settle (`ease-sheet`) |
+| 70ms, then 200ms | a button is pressed in a little (`scale-[0.96]`) and springs back (15 Nov 2026) |
+| 200 to 260ms | a filter pill pops in with a small spring and shrinks away when removed |
+| 280ms | a list's row that leaves shrinks away where it was; a new row grows in |
+| 380ms | a step marked done: the line draws across its words |
+| 520ms | an empty list's picture springs in; its words rise in after it |
 
 **Phone pages move on springs** (owner, 13 Nov 2026): the slide between pages and the tab bar's highlight use a small spring in `lib/spring.ts` (no animation library), so a fling keeps its speed. With less motion asked for, they are a short fade.
 
@@ -162,6 +167,12 @@ Carbon's productive curves, as tokens: `ease-standard` (0.2, 0, 0.38, 0.9), `eas
 - `Collapse`: a section the user shows and hides (an older mail, the AI's reading, done steps). It grows from no height to its own and fades in, and leaves the same way.
 - `Reveal`: something that appears by itself, such as an error under a field. It grows and fades in. `InlineNotification` already uses it.
 - `AutoHeight`: a box that follows its content's height when the content jumps (new results, the next step). Every dialog body and the Combobox list already sit in one. A part inside that animates its own height is followed as it moves, so the two never fight.
+
+**Small changes move too** (owner, 15 Nov 2026; approved preview, pictures in `EMPTY-STATES-mock/`). Nothing on screen changes state with a jump:
+
+- Lists: `useListMotion` (`components/ui/useListMotion.ts`) keeps a row that leaves where it was while it shrinks away (for example a mail marked done under "Needs action"), and grows a new row in. It compares rows by their keys. A new filter or page is drawn at once, and so is the last list while the next one loads. The Job mails list (phone and laptop) and Applications (`DataTable` with `motionKey`) use it. Filter pills use it too, so they pop in and shrink away.
+- The phone search row slides open and closed (`Collapse`). Cancel and the filter pills dim while pressed.
+- The new-mail dot shrinks away once the mail is read. The phone refresh icon finishes its turn instead of snapping back. The "Job mails ⌄" arrow turns while its menu is open. Copy shows a tick, then resets after 2 seconds. Dashboard numbers rise in, and rise again when they change.
 
 Motion is short and quiet and never needed to understand the screen. With "reduce motion" on, it is off, and every part still ends at the right size.
 
@@ -186,7 +197,7 @@ Lucide icons only (`lucide-react`, owner, 13 Nov 2026), imported by their `…Ic
 | `Tag` | statuses and counts; colours from `lib/statusTags.ts` only |
 | `InlineNotification` | a notice inside a page: info, success, warning, error |
 | `SectionError` | a part of the page that did not load: plain words and "Try again", never the raw error |
-| `EmptyState` | "nothing here": why, and the one next step |
+| `EmptyState` | "nothing here", centred: a thin icon in a soft circle, a short title, why, and the one next step (`EMPTY_ACTION`, or `EMPTY_ACTION_QUIET` for "Clear filters") |
 | `Skeleton`, `SkeletonList` | loading |
 | `Dialog` | a confirm or a short form: title and description at the top, the buttons at the bottom right (secondary, then the main one) under a line; its body follows its content's height |
 | `Collapse` | a section the user shows and hides; the toggle keeps `aria-expanded` |
@@ -223,7 +234,7 @@ Tags (owner, 3 Nov 2026) are pills, 22px high, 12px medium text, with a pale fil
 
 - Opening the app: until it knows who is signed in, the start-up screen (`components/startup/StartupScreen.tsx`, approved mock boards "Start-up screen (laptop)" and "Start-up screen (phone)"): the name and a thin moving line, centred on the page colour. It never shows the app's shape. After 5 seconds it says the server is waking up (about a minute) with the time waited; after 2 minutes, or with no network, it says what happened and offers "Try again" (full width on phones). With no network but a copy saved on this device, the app opens at once, read-only (see "Offline and alerts").
 - Loading: skeletons shaped like the content, never a bare "Loading…".
-- Empty: `EmptyState` says why and offers the next step.
+- Empty: `EmptyState` says why and offers the next step (owner, 15 Nov 2026: drawn as a phone draws it, centred, with a thin icon that names the list). The step depends on the state: "Connect Gmail" while Gmail is not connected; "Clear filters" when a search or filter finds nothing, with the search words in the title. Counts and filters that would only show zeros wait until there is something to count (Applications › NorthList Apply hides "0 of 0 replied" and its filters until something is sent).
 - Error: `SectionError` or an error `InlineNotification` in plain words, with "Try again" where it helps. The rest of the page keeps working.
 - A save that may or may not have happened is read back from the server and never sent again by itself.
 
