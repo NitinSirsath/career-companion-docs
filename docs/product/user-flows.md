@@ -111,7 +111,7 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 2. Career Companion requests the minimum required Google/Gmail permissions: reading mail, and sending the replies the user writes in the app (UF-16).
 3. User grants consent.
 4. Career Companion securely stores the authorization required for future Gmail access.
-5. Career Companion starts the initial synchronization. *(2026-10-15: connecting does not start a sync. The first sync runs when the user presses Sync Now, or at the next scheduled sync, see UF-04.)*
+5. Career Companion starts the initial synchronization. *(2026-10-15: connecting did not start a sync. Owner decision, 15 Nov 2026: connecting starts the first sync at once, with no button; a new connection's first sync reads 7 days back, and the user can choose 1, 14 or 30 instead.)*
 6. Gmail messages are retrieved in manageable batches.
 7. Relevant messages are identified for job-search processing.
 8. Relevant messages enter the AI processing pipeline.
