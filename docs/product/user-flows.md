@@ -46,7 +46,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 **Main flow:**
 
-1. User selects **Continue with Google**, the first button on the sign-in page (owner, 3 Nov 2026: only Google creates accounts; "New here? Continuing with Google creates your account."). A user who has set a password can instead use the email and password form under "or sign in with email" (see UF-17). "Forgot password?" by the Password label says to continue with Google and set a new password on the Account page.
+1. User selects **Continue with Google**, the first button on the sign-in page (owner, 3 Nov 2026: only Google creates accounts; "New here? Continuing with Google creates your account."). A user who has set a password can instead use the email and password form under "or sign in with email" (see UF-17). "Forgot password?" by the Password label says to continue with Google and set a new password on the Account page. On phones (owner, 15 Nov 2026) Continue with Google is the one main button, the hint reads "New here? This creates your account.", and the email and password form opens in a sheet from "Sign in with email" under it.
 2. Career Companion redirects the user to Google authentication.
 3. User authenticates with Google.
 4. Google returns the authentication result.
@@ -671,3 +671,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.3 | 2026-11-03 | UF-01: Continue with Google first on the new sign-in page; UF-14: the Mails list is newest first, with the "need you" line, the next step on each row and one Filters menu (owner decisions, COM-433). |
 | 2.4 | 2026-11-10 | UF-12: the Applications page has two lists, In progress and NorthList Apply, with the reply rule; "Automation" is called NorthList Apply wherever a user reads it (owner decision). |
 | 2.2 | 2026-11-03 | UF-11: the setup prompt: the token is shown once inside a prompt the user pastes into their AI app, which connects itself; 365 days by default; the manual steps stay under "Set it up by hand instead" (owner decision). |
+| 2.5 | 2026-11-15 | UF-01: on phones Continue with Google is the one main button and email sign-in opens in a sheet from "Sign in with email" (owner decision, approved mock `SIGNIN-PHONE-mock/`). |
