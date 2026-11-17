@@ -104,7 +104,7 @@ OAuth access/refresh credentials are sensitive infrastructure secrets and must n
 | `seenAt` | DateTime | No | When the user first opened the email's conversation. Null shows the conversation as new. |
 | `requestUserState` | Enum | No | `DONE`, `OPEN`. Set only by the user, for the request this email makes. Null means the user gave no answer. |
 | `requestUserStateAt` | DateTime | No | When the user gave that answer. |
-| `requestClosedReason` | Enum | No | Why the request closed: `REPLACED_BY_MAIL`, `CONFIRMED_BY_MAIL`, `YOUR_REPLY`, `YOU_SAID_DONE`, `APPLICATION_CLOSED`. Reopen clears it. |
+| `requestClosedReason` | Enum | No | Why the request closed: `REPLACED_BY_MAIL`, `CONFIRMED_BY_MAIL`, `YOUR_REPLY`, `YOU_SAID_DONE`, `APPLICATION_CLOSED`, `YOU_DECLINED` (the user's reply said no to it, 2026-11-17). Reopen clears it. |
 | `requestClosedAt` | DateTime | No | When it closed. |
 | `requestClosedByMessageId` | String | No | The Gmail ID of the newer mail or the user's reply that closed it. |
 | `createdAt` | DateTime | Yes | Creation timestamp. |
@@ -146,7 +146,8 @@ OPEN     → otherwise
 | `gmailMessageId` | String | Yes | Gmail message ID; unique per user. |
 | `threadId` | String | Yes | Gmail thread ID of the conversation. |
 | `sentAt` | DateTime | Yes | When the user sent it. |
-| `replyReadState` | Enum | No | `WAITING`, `READ`, `NOT_READ`: whether the AI read it to see which open asks it settles. Null when nothing was open (since 2026-10-25). |
+| `replyReadState` | Enum | No | `WAITING`, `READ`, `ASKED_BACK` (read; it asked them a question about an ask that stays open, 2026-11-17), `NOT_READ`: whether the AI read it to see what it does with the open asks. Null when nothing was open (since 2026-10-25). |
+| `replyReadVersion` | String | No | The reply-read version that reads it, fixed when it is queued (2026-11-17). Null: queued before, read with `reply-read/v1`. |
 | `replyReadTries` | Int | Yes | Tries used, three at most. |
 | `replyReadAt` | DateTime | No | When it was read. |
 
@@ -228,6 +229,9 @@ Access is one of four states, derived from these facts: **Not set up**, **Ready*
 | `userStatus` | Enum | No | Explicit user-confirmed status. |
 | `userStatusSetAt` | DateTime | No | Timestamp for the current explicit user confirmation. |
 | `userStatusRevision` | Int | Yes | Manual-correction revision, default 0. Changed only by a user set/change/clear; never by AI. |
+| `declinedAt` | DateTime | No | When the user sent the reply that said they no longer want this job (2026-11-17). The app then asks "Close the application?". |
+| `declineAnswer` | Enum | No | `CLOSED` (Close it, or three days with no answer) or `KEPT_OPEN`. Null: not answered. |
+| `declineAnsweredAt` | DateTime | No | When it was answered or closed by itself. |
 | `appliedAt` | DateTime | No | Application date when reliable evidence exists; distinct from `createdAt`. |
 | `createdAt` | DateTime | Yes | Record creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
@@ -236,6 +240,7 @@ Access is one of four states, derived from these facts: **Not set up**, **Ready*
 
 - Effective status is `userStatus ?? aiStatus`. Every application response carries derived (not persisted) `effectiveStatus`, `statusSource` (`USER` whenever `userStatus` is set, even when it equals AI; `AI` when only `aiStatus` is set; `UNKNOWN` when both are null) and `hasStatusConflict` (both set and different). A null effective status is a valid unknown, never defaulted to Applied.
 - AI may update `aiStatus` but must never write `userStatus`, `userStatusSetAt` or `userStatusRevision`. AI/user disagreement is informational only.
+- After the user's own reply declined the job (2026-11-17), Close it, or three days with no answer and no newer job mail, sets `userStatus` to `CLOSED` as the user's choice, with `userStatusSetAt` and a new `userStatusRevision`. The AI only notes the reply (`declinedAt`); it never sets a status.
 - Manual correction (`PATCH /api/applications/:id/status`, approved D2 2026-10-02): one transaction locks the owned application row, compares `expectedUserStatusRevision` **before** no-op detection (a stale request is 409 even if its value equals the latest), then: a current same-value request changes nothing (revision, `userStatusSetAt`, `updatedAt` kept); a changed value sets `userStatus`, a server-generated `userStatusSetAt` and increments the revision once; clearing sets `userStatus` and `userStatusSetAt` to null and increments once, revealing the persisted AI status (or unknown) without rerunning AI.
 - Provenance is latest-only: the Application holds the current correction and its confirmation time. Clearing removes that time. A full correction audit log is not kept. A legacy user status with a null timestamp stays "confirmation time unknown"; no date is invented.
 - Manual corrections never modify `aiStatus`, create recruitment events, resolve actions, enqueue jobs, call providers or touch AI operation/budget records. Locking is application-only, compatible with matcher's email → application order.

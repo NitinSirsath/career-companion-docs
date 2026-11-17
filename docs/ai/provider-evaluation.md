@@ -43,7 +43,8 @@ The backend workflow `.github/workflows/ai-eval.yml` runs the evaluation on GitH
 - since COM-133, job alerts and job-platform newsletters are expected `IRRELEVANT`;
 - fictitious companies and people, reserved domains only (enforced by a CI test);
 - case 1 is the built-in sample email used by the user's "Try a sample email".
-- since 25 Oct 2026, a thread version (`extraction/v6`, the default, or `v7`) also runs the thread cases in `src/eval/ai/dataset-thread/` (8: mails read with open asks, which they must close or keep open, the kind of ask, reply choices, a quoted ask that is not new, and text that tells the AI to close asks) and the 8 reply-read cases in `src/eval/ai/replyRead.ts` (`reply-read/v1`: no wrong close, at least 90% exactly right). The 44-mail test must pass again on GPT-6 Luna before the thread prompt is merged (owner, 24 Oct 2026).
+- since 25 Oct 2026, a thread version (`extraction/v6`, the default, or `v7`) also runs the thread cases in `src/eval/ai/dataset-thread/` (8: mails read with open asks, which they must close or keep open, the kind of ask, reply choices, a quoted ask that is not new, and text that tells the AI to close asks) and the reply-read cases in `src/eval/ai/replyRead.ts` (since 17 Nov 2026 `reply-read/v2`, 14 cases: each open ask must get its outcome, answered, declined, asked back or not answered, and the reply must or must not leave the job; no wrong close, no wrong "leaves the job", at least 90% exactly right).
+- since 17 Nov 2026 (`extraction/v8`, the default, and `v9`), the thread run also has two long or tricky mails built in `src/eval/ai/longMails.ts`: one of more than 1,000 lines with its ask at the top, and one with hidden "ignore your rules" text that must change nothing. In batch mode (the CI run) they are only sorted; their reading runs in single mode. The 44-mail test must pass again on GPT-6 Luna before the thread prompt is merged (owner, 24 Oct 2026).
 
 ## Pass criteria (starting floors)
 
