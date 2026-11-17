@@ -19,7 +19,8 @@ A deterministic confidence threshold (configurable via \`RELEVANCE_CONFIDENCE_TH
 ## Email Categories
 
 When an email is deemed relevant, it is categorized into one of the strongly typed values:
-\`RECRUITER\`, \`INTERVIEW\`, \`ASSESSMENT\`, \`OFFER\`, \`REJECTION\`, \`FOLLOW_UP\`, \`NEWSLETTER\`, or \`SPAM\`.
+\`RECRUITER\`, \`INTERVIEW\`, \`ASSESSMENT\`, \`OFFER\`, \`REJECTION\`, \`FOLLOW_UP\`, \`CAREER_CONTACT\`, \`NEWSLETTER\`, or \`SPAM\`.
+\`CAREER_CONTACT\` exists from \`classification/v5\` and \`relevance-batch/v4\` (see "Career contact").
 
 ## Structured Extraction
 
@@ -46,7 +47,7 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 
 ## How a mail moves the application status
 
-Each processed mail suggests at most one status for its application (`inferState` in `src/services/matcher.ts`). The first rule that fits wins:
+Each processed mail suggests at most one status for its application (`inferState` in `src/services/matcher.ts`). A mail with a fake-offer warning, and a career contact (2026-11-17), suggest none. Otherwise the first rule that fits wins:
 
 1. Rejected: rejection details, or the type `REJECTION`.
 2. Offer: offer details, or the type `OFFER`.
@@ -151,17 +152,33 @@ Logs hold IDs and counts only.
 
 **LinkedIn:** a message or InMail where a named person reaches out about a specific role is Relevant. LinkedIn job alerts, recommendations and sponsored jobs are Irrelevant. The model decides from content, not only the sender address.
 
-Contracts: `classification/v4` (per-email) and `relevance-batch/v3` (batch) are current: the strict rules plus the rule for job offers that ask for money (below). `classification/v3` and `relevance-batch/v2` (the strict rules alone), and `classification/v2` and `relevance-batch/v1` (before the strict rules), are frozen for emails that started on them.
+Contracts: `classification/v5` (per-email) and `relevance-batch/v4` (batch) are current: the strict rules, the rule for job offers that ask for money (below), and Career contact with the job platform rules (below). Frozen for emails that started on them: `classification/v4` and `relevance-batch/v3` (the strict rules plus the fee rule), `classification/v3` and `relevance-batch/v2` (the strict rules alone), and `classification/v2` and `relevance-batch/v1` (before the strict rules). Each frozen version keeps its own schema, so it never answers `CAREER_CONTACT`; an answer outside a version's list counts as no answer.
 
-- **Categories:** the strict prompts offer only `RECRUITER`, `INTERVIEW`, `ASSESSMENT`, `OFFER`, `REJECTION` and `FOLLOW_UP`. `NEWSLETTER` and `SPAM` stay in the enum for older results.
+- **Categories:** the strict prompts offer only `RECRUITER`, `INTERVIEW`, `ASSESSMENT`, `OFFER`, `REJECTION` and `FOLLOW_UP`, and from `classification/v5` also `CAREER_CONTACT`. `NEWSLETTER` and `SPAM` stay in the enum for older results.
 - **Pre-filter:** under the strict rules, Gmail's Social label no longer drops mail from a linkedin.com sender; the AI decides. Promotions and Spam are unchanged. Emails on the older rules keep the old label rule.
 - **Example models:** Gemini 3.5 Flash-Lite (fast) and Gemini 3.8 Flash (detailed). Google limits Gemini 2.5 models to projects that used them before.
+
+### Career contact and job platform rules (owner, 2026-11-17)
+
+Found on 17 Nov 2026: a Naukri "you're invited to apply to this exclusive job" mass mail was read as a recruiter writing to the user, and a person writing about the user's own product (a listing on Agensi) was read as a recruiter, with "Create application" offered.
+
+- **Career contact** (`CAREER_CONTACT`): a named person writes to the user personally about their work or career, not a specific job: partners, investors, listing or featuring the user's product, talks, collaborations, freelance clients, introductions. A recruiter or company writing about a role stays `RECRUITER`. Sales pitches, cold marketing and newsletters are Irrelevant; when unsure between a career contact and a sales pitch, the AI keeps the mail as a career contact.
+- **A career contact never gets an application.** The matcher never links it (not by company, not by its Gmail thread), it suggests no status, `POST /api/conversations/:key/application` refuses it with 409 `CAREER_CONTACT`, and the Mails page shows "No application needed" with no way to create one (owner, 17 Nov 2026). Its next step and replies work as for any job mail. It is not an application, so the Dashboard does not count it as one and leaves it out of "Not linked to a job"; on "Job mails per day" it counts under other mails. The conversation's type is its newest typed mail's: a later recruiter mail in the same thread makes it linkable again.
+- **Job platform rules** (Naukri, Wellfound, Indeed, Instahyre, LinkedIn, Glassdoor, Foundit, Workday and other job sites or applicant tracking systems): a mail the platform sends from its own no-reply or notification address to many users is Irrelevant, even when it says the user is invited to apply, shortlisted for an exclusive or premium job, viewed by recruiters, or offered a Pro or premium membership. A confirmation of the user's own application, or a status update on it, stays Relevant (`FOLLOW_UP`) and keeps creating or updating the application, also from a no-reply address. A named recruiter or hiring manager writing personally through the platform stays Relevant.
+- **New mails only:** mails already read keep their type and links.
+- **Evaluation:** the dataset adds `platform.json` (Wellfound, Naukri, Indeed, Instahyre, Workday and LinkedIn: confirmations, mass mails, personal recruiter messages, a rejection) and `career-contact.json` (a listing, an investor, a talk, a freelance client, a recruiter that must stay Recruiter, a newsletter, and a cold sales mail that may go either way).
+
+### How a mail finds its application (2026-11-17)
+
+- **Same company, same job** (`candidateApplications` in `src/services/matcher.ts`, `sameJobTitle` in `src/services/jobTitle.ts`): two titles name the same job when they are equal after dropping text in brackets and everything after a spaced dash or bar ("Front-end Developer (only for folks graduated in 2026 or earlier)", "Backend Engineer - Remote"), or when one title's words appear in the other as whole words ("Senior Front-end Developer" contains "Front-end Developer"; "Developer" never matches "Development Lead"). "Frontend" and "Front end" are equal. The company must still be the same. One fitting application links the mail; more than one asks the user. "Create application" uses the same rule, so it joins the fitting application instead of making a second one. NorthList Apply's own matching (`decideMatch`) is unchanged.
+- **"Link to" offer:** a conversation that is not linked lists in `sameCompanyApplications` the user's active applications at the same company (none for a career contact or an unknown company). The mail page then shows "Link to POOLit · Front-end Developer" first and "Create application" second; with several, "Link to POOLit" opens the choice.
+- Found on 17 Nov 2026: a Wellfound "Application to POOLit successfully submitted" mail (title "Front-end Developer (only for folks graduated in 2026 or earlier)") was not linked to the NorthList Apply application "POOLit · Front-end Developer". Old mails are not checked again; such a mail can be linked by hand.
 
 ### Job offers that ask for money
 
 **Owner decision, 23 Oct 2026:** a mail that offers a job and asks the user to pay, or to send bank, card or ID details, is not dropped. It stays a job mail with a "probably a fake offer" warning, and Career Companion never suggests paying. Found in a 49-mail sandbox test: a fake "Google India" offer from a gmail.com address asking for a Rs 8,500 fee was read as a real Offer whose next step was to pay (Haiku 5.5 + Gemini 3.8 Flash, and GPT-6 Luna in batch mode), or dropped as not a job mail (GPT-6 Luna one mail at a time, GPT-6 Sol).
 
-- **First check** (`classification/v4`, `relevance-batch/v3`): such a mail is Relevant, even when it looks fake, with its category (usually Offer or Recruiter).
+- **First check** (`classification/v4` and `relevance-batch/v3`, and the versions after them): such a mail is Relevant, even when it looks fake, with its category (usually Offer or Recruiter).
 - **Detailed read** (`extraction/v4`; `extraction/v5` when `AGENDA_EXTRACTION_V3_ENABLED` is on): `fakeOfferWarning` names the signs seen (the fee and its amount; a free-mail sender for a large company, an offer with no interview, a very short deadline). The AI must never put paying or sending bank, card or ID details in `requestedAction`.
 - **In code, not left to the AI:** when `fakeOfferWarning` is set, the next step is always "Don't pay. Check this job on the company's own careers site.", with no deadline. No application action or reminder is created from that mail. The mail never changes an application's status and is never linked to an application automatically; the user can still link it by hand.
 - **API:** `fakeOfferWarning` on a conversation (the newest warning among its received mails), on each mail's AI read, and on the sandbox mail result. The Mails page and the mail page show a yellow warning and a "Probably fake" chip.
