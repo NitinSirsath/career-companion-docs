@@ -478,7 +478,9 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 
 **Variations:**
 
-- The user already has one application that fits: the conversation joins it. No second application is made.
+- The user already has one application that fits: the conversation joins it. No second application is made. Titles fit when they name the same job: extra text in brackets or after a dash, or one title inside the other ("Front-end Developer (only for folks graduated in 2026 or earlier)" fits "Front-end Developer"; 2026-11-17).
+- The company has an application, but with another title: the mail page shows **Link to POOLit · Front-end Developer** first and **Create application** second (owner, 2026-11-17). With several, **Link to POOLit** lets the user choose.
+- A career contact (a person writing about the user's work, not a job) has no application: the row and the mail page say "No application needed" and offer no button (owner, 2026-11-17).
 - More than one application fits: the row offers only those applications to choose from.
 - The AI could not read a company name: the row asks for one.
 - Pressing twice never creates two applications.
