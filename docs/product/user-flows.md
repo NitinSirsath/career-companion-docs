@@ -134,6 +134,8 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 
 A partial sync must not be represented as a fully completed sync.
 
+> **Gmail sync page (owner decision, 17 Nov 2026; approved mock `GMAIL-SUMMARY-mock/`):** the page shows information, not every mail. Top to bottom: the account, last and next sync and the look-back, as before; "What the app has read", last 30 days by the day each mail arrived: mails checked, job mails, not job mails and fake offers caught, with "N mails are still waiting for the AI" only when some wait; a yellow line "N mails could not be read by the AI. See them" only when some did; "See every mail it read"; "How your mail is read": Gmail access (read, and send only when the user presses Send; "only read" for a connection made for reading only), which mail (the inbox, from the look-back, then about once an hour; Promotions, Social and Spam skipped without the AI, except LinkedIn under Social), what goes to the AI to sort each mail (sender, subject, labels and Gmail's preview, up to 1,000 characters), what more for job mails (the text, first 8,000 characters; the new text of the user's own reply, up to 4,000), what is kept (other mail: only Gmail's id and date, 35 days) and which AI reads it (the free AI, the user's own key, or none yet), then the privacy policy link. Every mail it read has its own page, `/gmail/mails`, with Retry and Change link as before, and the AI notice above it. Phones use the Settings tab's grouped rows.
+
 ---
 
 ### UF-04 — Ongoing Email Sync
@@ -674,3 +676,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.5 | 2026-11-15 | UF-03 and UF-10: the first run (owner decision): Connect Gmail turns on the free AI for a user with no AI (the line under the button and "What is sent" are the agreement), starts the first sync at once (7 days back) and returns to the Dashboard; without the free AI, the AI providers page as before. |
 | 2.2 | 2026-11-03 | UF-11: the setup prompt: the token is shown once inside a prompt the user pastes into their AI app, which connects itself; 365 days by default; the manual steps stay under "Set it up by hand instead" (owner decision). |
 | 2.5 | 2026-11-15 | UF-01: on phones Continue with Google is the one main button and email sign-in opens in a sheet from "Sign in with email" (owner decision, approved mock `SIGNIN-PHONE-mock/`). |
+| 2.6 | 2026-11-17 | UF-03: the Gmail sync page is a summary: what the app has read in 30 days and how mail is read; every mail it read has its own page (owner decision, approved mock `GMAIL-SUMMARY-mock/`). |
