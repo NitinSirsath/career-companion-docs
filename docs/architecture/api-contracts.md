@@ -43,6 +43,10 @@ Canonical examples are in `career-companion-backend/src/middleware/auth.ts` and 
 - The path is kept in a signed, HttpOnly, SameSite=Lax cookie that lasts 5 minutes, like the sign-in state. `GET /api/auth/callback` checks it again, clears it, and after a successful sign-in redirects to `${FRONTEND_URL}<path>`. A failed sign-in goes to `/login?error=<code>`, with `&next=<path>` added when there was a path other than `/`. Neither ever redirects outside the app.
 - The sign-in pages read `next` from their address with the same rule (and never return to a sign-in page): password and test-account sign-in open it afterwards, and the Google button passes it on as `returnTo`.
 
+## Gmail sync summary (17 Nov 2026)
+
+`GET /api/gmail/summary` (schema `GmailSummaryResponseSchema`, `src/contracts/gmail.ts` in the backend) answers the Gmail sync page's "What the app has read" for the signed-in user: `{ days, since, checked, jobMails, notJobMails, waiting, fakeOffers, failed }`. `days` is 30 and `since` is the UTC midnight of the first day; today is included and mails count by the day they arrived. `failed` counts mails of any date the AI could not read (the ones "Every mail it read" offers to retry). Read only; no query parameters.
+
 ## AI providers (ADR-0001, 22 Oct 2026)
 
 Schemas: `src/contracts/ai.ts` in the backend. A user can connect several providers, one key each; one is active and does all AI work. No response ever holds a key in any form.
