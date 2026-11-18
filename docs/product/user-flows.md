@@ -561,6 +561,7 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 4. "AI use" shows AI calls per day for 14 days and the free AI money: spent today and this month, and left under the key's credit limit.
 5. **Suspend:** the owner presses Suspend on an account, writes why (required; the user sees it) and confirms. The row shows "Suspended" and a Resume button.
 6. **Resume:** the owner presses Resume on the row or on the resume request. Everything starts again as before.
+7. **Messages:** the owner writes a short message to everyone or one account, optionally also as a push alert, and presses Send. The last 10 sent are listed, each with Remove (UF-20).
 
 **Rules:**
 
@@ -583,6 +584,22 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 - While suspended: no Gmail sync, no NorthList Apply, no alerts. Nothing is deleted.
 - Suspended in the middle of using the app, the app reloads into the suspended page.
 - A reply to a request comes by the owner's own email; the app sends none.
+
+### UF-20 — A User Reads a Message from NorthList (18 Nov 2026)
+
+**Entry point:** The owner sent a message to everyone, or to this user, from the Admin page (UF-18).
+
+**Main flow:**
+
+1. At the top of every app page, laptop and phone, the user sees "Message from NorthList", when it was sent, and the text.
+2. The user closes it (×). It stays closed on all their devices.
+3. If the owner also sent it as an alert, the user's devices with alerts on show it as a push alert ("NorthList" and the text); a tap opens the app.
+
+**Rules:**
+
+- A message to everyone reaches the accounts that existed when it was sent.
+- Plain text only. A message the owner removed is no longer shown.
+- A suspended user sees only the suspended page, not messages.
 
 ---
 
@@ -717,3 +734,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.5 | 2026-11-15 | UF-01: on phones Continue with Google is the one main button and email sign-in opens in a sheet from "Sign in with email" (owner decision, approved mock `SIGNIN-PHONE-mock/`). |
 | 2.6 | 2026-11-17 | UF-03: the Gmail sync page is a summary: what the app has read in 30 days and how mail is read; every mail it read has its own page (owner decision, approved mock `GMAIL-SUMMARY-mock/`). |
 | 2.7 | 2026-11-18 | Added UF-18 (the owner's Admin page: accounts, what needs a look, AI use and money, Suspend and Resume) and UF-19 (a suspended user asks to be resumed); §4.1 notes the suspended page (owner decision, approved mock `ADMIN-PANEL-mock/`). |
+| 2.8 | 2026-11-18 | UF-18 step 7 and UF-20: messages from the Admin page to everyone or one account, shown until closed, with an optional push alert (owner decision, approved mock `OWNER-MESSAGES-mock/`). |
