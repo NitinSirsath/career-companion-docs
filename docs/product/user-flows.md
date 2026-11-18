@@ -547,13 +547,50 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 - A new account is created by Google sign-in only. There is no sign-up with a password.
 - Career Companion never shows, logs or returns a password.
 
+### UF-18 — The Owner Checks Accounts on the Admin Page (18 Nov 2026)
+
+**Entry point:** The owner, signed in with an email in `ADMIN_EMAILS`, opens **Admin** (laptop menu, group "Owner"; phone Settings tab, last row).
+
+**User intent:** See how full the beta is, who uses the app and what is broken, and suspend or resume an account.
+
+**Main flow:**
+
+1. The top shows the real accounts against the beta limit, Gmail connected, new this week and AI calls today.
+2. "Needs a look" lists only what needs the owner now: resume requests (with their text and a Resume button), paused free AI models, free AI money running low, failing Gmail syncs, mails the AI could not read, own-key problems and daily limits reached. With none, it says "All good".
+3. "Accounts" lists every account, newest first, 25 at a time, with sign-up, last active, Gmail, AI, mails checked in 30 days and applications. Test accounts have a grey tag and do not count toward the beta.
+4. "AI use" shows AI calls per day for 14 days and the free AI money: spent today and this month, and left under the key's credit limit.
+5. **Suspend:** the owner presses Suspend on an account, writes why (required; the user sees it) and confirms. The row shows "Suspended" and a Resume button.
+6. **Resume:** the owner presses Resume on the row or on the resume request. Everything starts again as before.
+
+**Rules:**
+
+- Anyone not in `ADMIN_EMAILS` sees "Page not found" at `/admin`; the server answers 404.
+- The page never shows a mail's text, subject or sender.
+- The owner cannot suspend their own account.
+
+### UF-19 — A Suspended User Asks to Be Resumed (18 Nov 2026)
+
+**Entry point:** A user whose account the owner suspended signs in.
+
+**Main flow:**
+
+1. Sign-in works, but instead of the app the user sees "Your account is suspended", the owner's reason ("Why: …"), that their data is kept and that Gmail is not read while suspended, and Sign out.
+2. The user writes to the owner in "Ask to resume" (up to 1,000 characters) and presses Send. The page then says when the request was sent; the user can change it.
+3. When the owner resumes the account, the app opens as before on the next load. The next Gmail sync reads the mail that came in meanwhile, up to 30 days back.
+
+**Rules:**
+
+- While suspended: no Gmail sync, no NorthList Apply, no alerts. Nothing is deleted.
+- Suspended in the middle of using the app, the app reloads into the suspended page.
+- A reply to a request comes by the owner's own email; the app sends none.
+
 ---
 
 ## 4. Cross-Flow State Rules
 
 ### 4.1 Authentication state
 
-A user must be authenticated before accessing their Career Companion job-search data.
+A user must be authenticated before accessing their Career Companion job-search data. A suspended user is signed in but reaches only the suspended page (UF-19).
 
 ### 4.2 Gmail connection state
 
@@ -679,3 +716,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.2 | 2026-11-03 | UF-11: the setup prompt: the token is shown once inside a prompt the user pastes into their AI app, which connects itself; 365 days by default; the manual steps stay under "Set it up by hand instead" (owner decision). |
 | 2.5 | 2026-11-15 | UF-01: on phones Continue with Google is the one main button and email sign-in opens in a sheet from "Sign in with email" (owner decision, approved mock `SIGNIN-PHONE-mock/`). |
 | 2.6 | 2026-11-17 | UF-03: the Gmail sync page is a summary: what the app has read in 30 days and how mail is read; every mail it read has its own page (owner decision, approved mock `GMAIL-SUMMARY-mock/`). |
+| 2.7 | 2026-11-18 | Added UF-18 (the owner's Admin page: accounts, what needs a look, AI use and money, Suspend and Resume) and UF-19 (a suspended user asks to be resumed); §4.1 notes the suspended page (owner decision, approved mock `ADMIN-PANEL-mock/`). |

@@ -28,7 +28,7 @@ Paginated responses use:
 
 ## Authentication and ownership
 
-Authenticated API routes should use `requireAuth`.
+Authenticated API routes should use `requireAuth`. It refuses a suspended account with 403 `ACCOUNT_SUSPENDED` (18 Nov 2026); only `GET /api/auth/me` and `POST /api/auth/resume-request` use `requireSignedIn`, which lets a suspended account in. Admin routes use `requireAdmin` (see "Admin page and suspension").
 
 User-owned resources must be scoped from the authenticated user identity rather than from a request-supplied `userId`.
 
@@ -185,6 +185,19 @@ Schema: `src/contracts/alerts.ts` in the backend. An alert goes to every device 
 | `POST /api/alerts/devices/off` | Turns alerts off for this device: `{ endpoint }`. Removes it only when it belongs to the signed-in user; always `{ on: false }`. |
 
 The request bodies hold the device's keys and are never logged; an endpoint is logged by its host only.
+
+## Admin page and suspension (18 Nov 2026)
+
+Schema: `src/contracts/admin.ts` in the backend. Every `/api/admin` route is for the emails in `ADMIN_EMAILS` only; anyone else, signed in or not, and a suspended admin, gets 404 `NOT_FOUND`. Answers hold account facts and counts, never a mail's text, subject or sender.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/admin` | `AdminOverviewSchema`: `betaUserLimit`, every account newest first (email, name, test account, `self`, sign-up, `lastActiveAt`, Gmail state and last sync, AI provider and own-key problem, daily limits reached today, the account's AI call limit, mails the AI could not read in 24 hours, mails checked in 30 days, applications, suspension with its request), the free AI pauses still running, and AI calls of all accounts per UTC day for 14 days. |
+| `GET /api/admin/free-ai-money` | `AdminFreeAIMoneySchema`: `OK` with `todayUsd`, `monthUsd`, `limitUsd` and `leftUsd` (both null when the key has no credit limit), from OpenRouter's `GET /api/v1/key` with `FREE_AI_OPENROUTER_KEY` (5-second limit); `NO_KEY` when that key is not set; `UNAVAILABLE` when OpenRouter does not answer or refuses. Never stored. |
+| `POST /api/admin/accounts/:id/suspend` | `{ reason }`, 1 to 500 characters, shown to the user. Suspends the account, or changes the reason of one already suspended. Answers `{ account }`. 409 `CANNOT_SUSPEND_SELF` for the admin's own account; 404 for an unknown account. |
+| `POST /api/admin/accounts/:id/resume` | Ends the suspension and deletes the reason and the request text. Answers `{ account }`. |
+
+The profile (`GET /api/auth/me`, and the sign-in answers) carries `admin` and `suspension` (`{ suspendedAt, reason, request: { text, sentAt } | null } | null`). `POST /api/auth/resume-request` with `{ text }` (1 to 1,000 characters) saves or replaces a suspended user's request and answers the profile; 409 `NOT_SUSPENDED` when the account is not suspended. The first request of a suspension sends the owner a Discord message without the email or the text.
 
 ## Verification
 
