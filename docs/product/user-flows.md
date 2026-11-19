@@ -211,6 +211,8 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 ### UF-06 — View Job Search Dashboard
 
+> **Changed 2026-11-18 (owner, phones only; approved local mock `PHONE-LINEAR-mock/`):** on phones the Dashboard tab is **Today**: "Needs you" rows with counts (mails to act on, new job mails, interviews coming up, jobs gone quiet), the period's four numbers in one line, and a **Charts and rates** row. Charts and rates (`/dashboard/charts`) holds the period picker and every chart and rate; Today follows the period picked there after Back. **Gone quiet** opens Charts and rates at its list of quiet jobs. Laptops keep the whole Dashboard on one page; the menu still calls it Dashboard.
+>
 > **Changed 2026-10-27 (owner):** the Dashboard is built and is the page the user lands on, first in the menu. It shows the job search in numbers, as described in [dashboard.md](dashboard.md); to-dos and mails stay on the Mails page (UF-14). The Agenda still shows "Coming soon"; until it is built, each interview and assessment date is shown on its mail.
 >
 > **Changed 2026-10-11:** the Mails page (UF-14) became the page the user lands on, and the Dashboard showed "Coming soon". The text below is the original flow, kept for history; its edge states still apply.
@@ -337,6 +339,8 @@ Actions should remain traceable to the underlying job-search evidence that cause
 
 User-confirmed status must not be silently overwritten by subsequent AI processing. Detailed status precedence and transition rules belong to the data/domain design phase.
 
+**Changed 2026-11-18 (owner, phones; approved local mock `PHONE-LINEAR-mock/`):** on a phone the status is a pill in the facts card at the top of the application page **and of a job mail's page**. A tap opens the Status sheet: the seven statuses with their rings, a tick on the current one, "Use the AI's status", and who set it ("Set by you · Nov 18"). Picking one closes the sheet and saves it at once, with the same save as before; on a mail's page a note about the change shows under the facts card. Laptops keep the status drop-down.
+
 **Implemented behavior (Sprint 6, 2026-10-02):** "Change status" on the application detail opens an inline editor offering the seven statuses and "Use AI status (clear my status)". The editor explains that clearing uses the latest stored AI status without rerunning AI, and that a status change does not complete actions or send notifications. Opening the editor freezes the application, draft and base revision; background refresh may show "This status changed after you started editing" but never changes the draft or its revision.
 
 - **Save** sends the frozen revision once; duplicate clicks are blocked and the request is never retried automatically. Success closes the editor, announces "Status saved." and returns focus.
@@ -454,6 +458,8 @@ Owner decision, 24 Oct 2026 (approved mock `FREE-AI-mock.html`): the free AI, be
 3. The next step shows what the mail asks for, in the AI's words, with a due date when one is known, and **Past due** in red once it has passed. It works with or without an application. An open step has a blue arrow; a replied one (the user sent a later message the AI has not read yet, or could not read) a reply mark; a done one is grey with a green check and why it closed: "Your reply answered it", "Replaced by a newer mail", "A newer mail confirmed it", "You said you did it" or "Closed with the application".
 4. There is no "Mark done" (owner, 24 Oct 2026): an ask closes when the user's reply answers it or a newer mail settles it. An ask done outside mail (a form, a test) has **I did this** in the row's "⋯" menu and the phone swipe. The user can reopen a closed ask, or after a reply ask to be reminded again.
 5. On the right the row shows the application and its stage, or **Create application**.
+
+> **Changed 2026-11-18 (owner; approved local mocks `PHONE-LINEAR-mock/`):** a row starts with the person: their picture with the application's status ring on it, the person and the subject, one grey line with the ask and its due date ("Past due" in red once late), then the company with its status ring. On phones the list's big title is "Mails ⌄" (it switches lists), and when mail last came in and what the AI is doing move into the "···" menu, with Refresh. Pulling the list down also refreshes it and asks Gmail for new mail. The Applications list on phones starts with the company and shows each application's next step, with a red "Past due" when it is late.
 6. The user can search, filter by action, type and application, show new mail only (all in one Filters menu; on phones Needs action and New only are one tap each), and sort newest first or needs action first. The filters live in the page address, so Back returns to the same view.
 
 **End state:** the user knows what each job mail needs and has acted on it or left it open on purpose.
@@ -549,7 +555,7 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 
 ### UF-18 — The Owner Checks Accounts on the Admin Page (18 Nov 2026)
 
-**Entry point:** The owner, signed in with an email in `ADMIN_EMAILS`, opens **Admin** (laptop menu, group "Owner"; phone Settings tab, last row).
+**Entry point:** The owner, signed in with an email in `ADMIN_EMAILS`, opens **Admin** (laptop menu, group "Owner"; phone Settings tab, Owner › Admin).
 
 **User intent:** See how full the beta is, who uses the app and what is broken, and suspend or resume an account.
 
@@ -562,6 +568,12 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 5. **Suspend:** the owner presses Suspend on an account, writes why (required; the user sees it) and confirms. The row shows "Suspended" and a Resume button.
 6. **Resume:** the owner presses Resume on the row or on the resume request. Everything starts again as before.
 7. **Messages:** the owner writes a short message to everyone or one account, optionally also as a push alert, and presses Send. The last 10 sent are listed, each with Remove (UF-20).
+
+**On phones** (owner, 2026-11-18; approved local mock `PHONE-LINEAR-mock/`, screens 13 to 15): the page shows the four numbers in one line, then Needs a look, Accounts, Free AI money and Messages as plain rows.
+
+- **An account** opens its own page (`/admin/accounts/<id>`): the name, a grey line with sign-up and last active, and its facts as pills (Gmail, AI, limits, mails, applications). "···" › **Suspend…** opens a sheet where the reason is required; a suspended account has Resume instead.
+- **Free AI money** opens its own page (`/admin/money`): today, this month and what is left, and AI calls per day. On laptops it stays on the Admin page.
+- **Message to everyone** sits in the bottom bar and opens **Write a message**, a tall sheet: To as a pill (everyone or one account), the text, the alert switch (off), Send, and the last sent messages with Remove.
 
 **Rules:**
 
@@ -735,3 +747,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.6 | 2026-11-17 | UF-03: the Gmail sync page is a summary: what the app has read in 30 days and how mail is read; every mail it read has its own page (owner decision, approved mock `GMAIL-SUMMARY-mock/`). |
 | 2.7 | 2026-11-18 | Added UF-18 (the owner's Admin page: accounts, what needs a look, AI use and money, Suspend and Resume) and UF-19 (a suspended user asks to be resumed); §4.1 notes the suspended page (owner decision, approved mock `ADMIN-PANEL-mock/`). |
 | 2.8 | 2026-11-18 | UF-18 step 7 and UF-20: messages from the Admin page to everyone or one account, shown until closed, with an optional push alert (owner decision, approved mock `OWNER-MESSAGES-mock/`). |
+| 2.9 | 2026-11-19 | The Linear iOS look (owner decision, approved mocks `PHONE-LINEAR-mock/`): UF-06 Today and the Charts and rates page on phones; UF-09 the status pill and Status sheet on a phone's mail and application pages; UF-14 person-first mail rows and the next step on phone application rows; UF-18 the phone's account page, Free AI money page and Write a message sheet. |
