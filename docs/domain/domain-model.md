@@ -232,6 +232,7 @@ Access is one of four states, derived from these facts: **Not set up**, **Ready*
 | `declinedAt` | DateTime | No | When the user sent the reply that said they no longer want this job (2026-11-17). The app then asks "Close the application?". |
 | `declineAnswer` | Enum | No | `CLOSED` (Close it, or three days with no answer) or `KEPT_OPEN`. Null: not answered. |
 | `declineAnsweredAt` | DateTime | No | When it was answered or closed by itself. |
+| `declineNotedAt` | DateTime | No | When Reanalyze found the decline in an older reply (2026-11-19): the three days count from it. Null when the reply was read as it came. |
 | `appliedAt` | DateTime | No | Application date when reliable evidence exists; distinct from `createdAt`. |
 | `createdAt` | DateTime | Yes | Record creation timestamp. |
 | `updatedAt` | DateTime | Yes | Last modification timestamp. |
@@ -373,6 +374,14 @@ Rules:
 Rules: it never creates, links or changes an application. A repeat fills only an empty job link. Listed newest first on the Automation page ("Not submitted"). The app has no delete for it; it stays until the user is deleted.
 
 - Ownership triggers reject: a submission linked to another owner's application or token; a change of a submission's or token's owner; an event whose submission belongs to someone other than the application's owner. Links are checked when set or changed, so SetNull deletions never fail.
+
+### 4.9 ReanalysisRun (Reanalyze, 2026-11-19)
+
+One Reanalyze the user asked for (table `reanalysis_runs`): the conversations it reads (`keys`, newest first), those saved so far (`savedKeys`), `state` (`QUEUED`, `RUNNING`, `SAVED`, `STOPPED`), `stopReason`, `changed`, `gone`, the application whose page started it (`applicationId`, plain id) and its times. Ids, counts and times only, never mail text. Deleted with the user.
+
+- A run reads a conversation's mails and replies again in memory and saves each conversation once, in one transaction, only when every read worked and nothing changed meanwhile. It changes only what the AI made; the user's status, links, "I did this", reopened steps, finished or dismissed to-dos and agenda dates the user touched stay.
+- The mail keeps one extraction row in `ai_operations`: Reanalyze moves that row to the newer version and answer (the only way a mail's version changes), keeping its times.
+- To-dos and agenda dates that a re-read no longer finds are retired with `retiredReason` `REANALYZED`, never deleted.
 
 ## 5. Relationships
 
