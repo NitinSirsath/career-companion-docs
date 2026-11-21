@@ -211,6 +211,8 @@ Invalid AI output must not silently overwrite reliable existing application info
 
 ### UF-06 — View Job Search Dashboard
 
+> **Changed 2026-11-21 (owner, phones only):** Today shows everything on the page. "Needs you" is three tiles (mails to act on, new job mails, interviews coming up); "Your progress" has a small period pill on its heading, the five numbers with their change, Over time and job mails per day, the mailbox numbers and what works best. "Gone quiet" and "From applied to offer" are laptop only. The Charts and rates page is gone: `/dashboard/charts` sends to `/dashboard` with the period kept. The note of 2026-11-18 below is history.
+>
 > **Changed 2026-11-18 (owner, phones only; approved local mock `PHONE-LINEAR-mock/`):** on phones the Dashboard tab is **Today**: "Needs you" rows with counts (mails to act on, new job mails, interviews coming up, jobs gone quiet), the period's four numbers in one line, and a **Charts and rates** row. Charts and rates (`/dashboard/charts`) holds the period picker and every chart and rate; Today follows the period picked there after Back. **Gone quiet** opens Charts and rates at its list of quiet jobs. Laptops keep the whole Dashboard on one page; the menu still calls it Dashboard.
 >
 > **Changed 2026-10-27 (owner):** the Dashboard is built and is the page the user lands on, first in the menu. It shows the job search in numbers, as described in [dashboard.md](dashboard.md); to-dos and mails stay on the Mails page (UF-14). The Agenda still shows "Coming soon"; until it is built, each interview and assessment date is shown on its mail.
@@ -748,3 +750,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.7 | 2026-11-18 | Added UF-18 (the owner's Admin page: accounts, what needs a look, AI use and money, Suspend and Resume) and UF-19 (a suspended user asks to be resumed); §4.1 notes the suspended page (owner decision, approved mock `ADMIN-PANEL-mock/`). |
 | 2.8 | 2026-11-18 | UF-18 step 7 and UF-20: messages from the Admin page to everyone or one account, shown until closed, with an optional push alert (owner decision, approved mock `OWNER-MESSAGES-mock/`). |
 | 2.9 | 2026-11-19 | The Linear iOS look (owner decision, approved mocks `PHONE-LINEAR-mock/`): UF-06 Today and the Charts and rates page on phones; UF-09 the status pill and Status sheet on a phone's mail and application pages; UF-14 person-first mail rows and the next step on phone application rows; UF-18 the phone's account page, Free AI money page and Write a message sheet. |
+| 3.0 | 2026-11-21 | UF-06: phone Today shows its charts on the page; the Charts and rates page is gone (owner decision). |
