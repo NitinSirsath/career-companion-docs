@@ -72,30 +72,30 @@ Career Companion must not treat a failed or cancelled authentication as a succes
 
 ### UF-02 — First-Run / Onboarding
 
-> **Not built (2026-10-15):** there is no first-run screen. After sign-in the user lands on the Mails page (UF-14) and connects Gmail from the Gmail Sync page (UF-03). The text below is the intended flow.
+> **Guided first run (owner decision, 22 Nov 2026; approved mock `POSTS-SPACES-mock/northlist.html`):** it replaces the 15 Nov "no tour, checklist or pop-up" choice. Before 22 Nov there was no first-run screen.
 
-**Entry point:** Authenticated user has not completed initial Career Companion setup.
+**Entry point:** A new account signs in for the first time. Accounts made before 22 Nov 2026 never see it (the migration marked them done).
 
-**User intent:** Understand the setup requirements and connect the Gmail account needed by the product.
+**User intent:** Set NorthList up in about two minutes and see how it works.
 
-**Main flow:**
+**Main flow:** full screen at `/welcome`, one step per screen, a progress line, Back on every step and Skip on every optional one. Laptop: words left, a big moving picture right. Phone: the phone app in a small iPhone, half shown, words below.
 
-1. User enters the first-run experience.
-2. Career Companion explains that Gmail access is required for the MVP.
-3. User chooses to connect Gmail.
-4. User completes the Gmail authorization flow described in UF-03.
-5. Initial synchronization begins.
-6. User is shown the sync/processing state and can proceed when the product is ready.
-7. User reaches the dashboard.
+1. **Welcome.**
+2. **Connect Gmail** (optional, can be skipped): the same button and grey free AI line as UF-03; back from Google the first sync and the reading start at once and the step shows them.
+3. **Install** (only where the browser can install: Chrome and Edge open their own install box; iPhone and iPad show the Share › Add to Home Screen steps). Skip counts as the install card's "Not now".
+4. **Alerts** (only where the server has alert keys and the browser can show alerts): "Turn on alerts", the same switch as the Account page; on iPhone outside the Home Screen app it says to add NorthList to the Home Screen first.
+5. **Theme:** System, Light or Dark; the real setting, the whole screen switches.
+6. **How it works:** four cards (Mails, Applications, Dashboard, Reply with AI), each with a moving picture.
+7. **Your AI** (optional): NorthList Apply in Antigravity (chosen first, "Recommended"), Claude Code or Codex. Four steps tick by themselves: getting the folder, opening it, copying the setup prompt (UF-11; the token is made on Copy), and the token's first use. On a phone: "Do this on your laptop".
+8. **Done:** with Gmail, the AI reading card and a live list of the mails it reads (same words as the Dashboard's reading card); without, "Connect Gmail now". **Open Dashboard** ends the first run.
 
-**End state:** User has completed the required MVP setup and can use Career Companion.
+**End state:** The first run is finished for good. Every choice stays changeable in Settings, Gmail sync, Account and Automation.
 
 **Edge/error states:**
 
-- User leaves onboarding before connecting Gmail.
-- Gmail authorization is denied.
-- Initial sync fails or is only partially completed.
-- User returns later and resumes setup without creating duplicate connection state.
+- The user leaves halfway: the server keeps the step reached, and the next sign-in, on any device, continues there (a step this device cannot do moves on to the next one).
+- Gmail authorization is denied: the user is back on the Gmail step and can try again or skip.
+- Any other page opened while the first run is open leads back to it.
 
 ---
 
@@ -751,3 +751,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.8 | 2026-11-18 | UF-18 step 7 and UF-20: messages from the Admin page to everyone or one account, shown until closed, with an optional push alert (owner decision, approved mock `OWNER-MESSAGES-mock/`). |
 | 2.9 | 2026-11-19 | The Linear iOS look (owner decision, approved mocks `PHONE-LINEAR-mock/`): UF-06 Today and the Charts and rates page on phones; UF-09 the status pill and Status sheet on a phone's mail and application pages; UF-14 person-first mail rows and the next step on phone application rows; UF-18 the phone's account page, Free AI money page and Write a message sheet. |
 | 3.0 | 2026-11-21 | UF-06: phone Today shows its charts on the page; the Charts and rates page is gone (owner decision). |
+| 3.1 | 2026-11-22 | UF-02: the guided first run is built (owner decision, approved mock `POSTS-SPACES-mock/northlist.html`): Welcome, Connect Gmail, Install, Alerts, Theme, How it works, Your AI, Done; resumes where the user stopped; existing accounts never see it. It replaces the 15 Nov "no tour" choice. |
