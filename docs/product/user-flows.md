@@ -46,7 +46,7 @@ System-initiated processing may occur without direct user interaction when new o
 
 **Main flow:**
 
-1. User selects **Continue with Google**, the first button on the sign-in page (owner, 3 Nov 2026: only Google creates accounts; "New here? Continuing with Google creates your account."). A user who has set a password can instead use the email and password form under "or sign in with email" (see UF-17). "Forgot password?" by the Password label says to continue with Google and set a new password on the Account page. On phones (owner, 15 Nov 2026) Continue with Google is the one main button, the hint reads "New here? This creates your account.", and the email and password form opens in a sheet from "Sign in with email" under it.
+1. User selects **Continue with Google**, the first button on the sign-in page (owner, 3 Nov 2026: only Google creates accounts; "New here? Continuing with Google creates your account."). Above the button (owner, 22 Nov 2026) a yellow warning says Google will show "Google hasn't verified this app" because NorthList is in early beta and not yet verified by Google: choose Advanced, then continue to NorthList. A user who has set a password can instead use the email and password form under "or sign in with email" (see UF-17). "Forgot password?" by the Password label says to continue with Google and set a new password on the Account page. On phones (owner, 15 Nov 2026) Continue with Google is the one main button, the hint reads "New here? This creates your account.", and the email and password form opens in a sheet from "Sign in with email" under it.
 2. Career Companion redirects the user to Google authentication.
 3. User authenticates with Google.
 4. Google returns the authentication result.
