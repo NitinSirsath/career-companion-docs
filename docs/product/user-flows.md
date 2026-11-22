@@ -571,6 +571,7 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 5. **Suspend:** the owner presses Suspend on an account, writes why (required; the user sees it) and confirms. The row shows "Suspended" and a Resume button.
 6. **Resume:** the owner presses Resume on the row or on the resume request. Everything starts again as before.
 7. **Messages:** the owner writes a short message to everyone or one account, optionally also as a push alert, and presses Send. The last 10 sent are listed, each with Remove (UF-20).
+8. **Release invites** (22 Nov 2026): under Accounts, everyone who asked for an invite while the beta was full (UF-21): email, where they heard about NorthList, date; newest first, 10 then Show all. **Copy emails** copies every email, one per line, for the release mail. On phones the same rows sit under Accounts.
 
 **On phones** (owner, 2026-11-18; approved local mock `PHONE-LINEAR-mock/`, screens 13 to 15): the page shows the four numbers in one line, then Needs a look, Accounts, Free AI money and Messages as plain rows.
 
@@ -615,6 +616,24 @@ No label on this page uses an internal pipeline word such as "unmatched" or "pro
 - A message to everyone reaches the accounts that existed when it was sent.
 - Plain text only. A message the owner removed is no longer shown.
 - A suspended user sees only the suspended page, not messages.
+
+### UF-21 — Someone Asks for an Invite While the Beta Is Full (22 Nov 2026)
+
+**Entry point:** A new person continues with Google while the beta has all its places, and lands on the sign-in page with "The NorthList beta is full."
+
+**Main flow:**
+
+1. Under the warning: "Leave your email and we'll send you an invite when NorthList opens to everyone." On phones, **Get an invite** opens the form in a sheet.
+2. The person enters an email and taps where they heard about NorthList (Other opens a small "Where?" field), then presses **Get an invite**.
+3. The form turns into "You're on the list.", with the email the invite will go to.
+4. The owner sees the request on the Admin page (UF-18 step 8).
+
+**Rules:**
+
+- No account is made. Only the email, the answer and the date are kept (privacy policy, "What NorthList keeps").
+- The same email again shows the same thank-you and keeps the first request.
+- Members still sign in under the form ("Already have an account? Sign in").
+- The app sends no mail; the owner writes to the list at the release.
 
 ---
 
@@ -753,3 +772,4 @@ The document is now considered sufficient as the behavioral foundation for the n
 | 2.9 | 2026-11-19 | The Linear iOS look (owner decision, approved mocks `PHONE-LINEAR-mock/`): UF-06 Today and the Charts and rates page on phones; UF-09 the status pill and Status sheet on a phone's mail and application pages; UF-14 person-first mail rows and the next step on phone application rows; UF-18 the phone's account page, Free AI money page and Write a message sheet. |
 | 3.0 | 2026-11-21 | UF-06: phone Today shows its charts on the page; the Charts and rates page is gone (owner decision). |
 | 3.1 | 2026-11-22 | UF-02: the guided first run is built (owner decision, approved mock `POSTS-SPACES-mock/northlist.html`): Welcome, Connect Gmail, Install, Alerts, Theme, How it works, Your AI, Done; resumes where the user stopped; existing accounts never see it. It replaces the 15 Nov "no tour" choice. |
+| 3.2 | 2026-11-22 | UF-18 step 8 and UF-21: "Get an invite" on the sign-in page while the beta is full, and the Release invites list on the Admin page (owner decision, approved mock `INVITE-mock/`). |
