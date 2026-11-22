@@ -207,6 +207,10 @@ The profile (`GET /api/auth/me`, and the sign-in answers) carries `admin` and `s
 
 **First run (owner decision, 22 Nov 2026):** the profile also carries `onboarding`: `{ step }` while the guided first run is open (`step` is one of `welcome`, `gmail`, `install`, `alerts`, `theme`, `tour`, `ai`, `done`), else `null`. Accounts made before it existed were marked done by the migration. `POST /api/auth/onboarding` with `{ step }` saves the step reached (ignored once the run is finished); `POST /api/auth/onboarding/finish` ends it for good. Both use `requireAuth` and answer the profile. See UF-02 in [user flows](../product/user-flows.md).
 
+## Get an invite for the release (22 Nov 2026)
+
+Schema: `src/contracts/invites.ts` in the backend. `POST /api/invites` needs no sign-in: { email, source, otherSource? }, `source` one of `FRIEND`, `LINKEDIN`, `X`, `YOUTUBE`, `SEARCH`, `OTHER`; `otherSource` (1 to 100 characters) is needed with `OTHER` and refused otherwise. It answers 200 { saved: true }, also when the email already asked (the first request is kept). 400 `VALIDATION_ERROR` for a wrong body; 429 `TOO_MANY_REQUESTS` past 5 a minute or 20 a day from one network address; 503 `INVITE_LIST_FULL` once 5,000 requests are stored. `GET /api/admin/invites` (admins only, 404 for anyone else) answers { invites: [{ email, source, otherSource, createdAt }] }, newest first.
+
 ## Verification
 
 Cross-cutting contracts should be verified with focused automated tests where practical, especially:
