@@ -313,3 +313,18 @@ Decided by the owner on 2026-11-21. Where this section and the text above differ
 6. **The user decides.** NorthList Apply sends the account only for an application that used one, never asks the user for a password they set themselves (then `madeBy` is `user` and no password is sent), and leaves the password, or the whole account, out when the user says so in a run.
 
 The site's NorthList Apply page, the privacy policy and the app's Setup tab say this in plain words (frontend, same date).
+
+## Amendment of 2026-11-25: runs as tasks
+
+Decided by the owner on 2026-11-25. Where this section and the text above differ, this section wins. It changes "plan, limit, cooldown, tab or session state are never sent" (item 1 of the amendment of 2026-11-21) for one field.
+
+**Why:** the NorthList Apply page listed everything the automation sent in one list. The owner wants each run shown as a task, named by when it started ("Yesterday 9:02 pm"), with its totals per site and how long it took.
+
+1. **New optional tool field on both tools.** `record_application_submission` and `record_not_submitted_job` accept `task`: `startedAt` (ISO 8601 with the user's UTC offset: the session's `Started` time, on the date the session started) and `plan` (at most 20 items in run order, each `site`, a plan item name of lowercase letters, digits and `_`, and `planned`, 0–100). It is the same on every entry of a run. Limits, cooldowns and tabs are still never sent.
+2. **Never refuses an entry.** `task` is checked apart from the strict contract: a malformed one, or a start more than 5 minutes in the future, is dropped and the entry is recorded without a run, as from an older Apply version.
+3. **One row per run** (`ApplyTask`, unique on user and `startedAt`, with the UTC offset in minutes and the plan; the newest plan sent wins). Submissions and not-submitted jobs point to it (`taskId`, set null if the row goes). A repeat of a `sourceRecordRef` that had no run links it; a stored run is never moved.
+4. **Time taken** runs from `startedAt` to the newest entry of the run (submission or not-submitted job). No end message is sent.
+5. **Read side.** `GET /api/submissions/tasks` lists the owner's runs, newest start first (paged): sent (every submission except ignored ones), not sent, newest entry time, and per plan item the planned and sent counts (a job source's job counts toward the source when it is in the plan, else toward its site; a site outside the plan is added with no planned number). A `summary` gives the number of runs, applications sent, minutes taken in all, and `earlier`: NorthList Apply applications that belong to no run. `GET /api/applications` takes `applyTask=<id>` (one run's applications) or `applyTask=none` (those of no run).
+6. **Plan page.** At `start`, in an AI app with its own browser, NorthList Apply asks "What should I apply to today?" on `northlist.site/apply/plan` instead of the chat: the user taps sites and numbers inside the daily limits and presses Start; the AI reads the plan back from the page text. Like the run page, the page sends nothing anywhere.
+
+The privacy policy says this in plain words (frontend, same date).
