@@ -22,7 +22,7 @@ Top to bottom:
 1. **Greeting** (the page heading): "Good morning", "Good afternoon" or "Good evening" by the browser's clock, with the user's first name, then today's date and "your job search, from your mails since <date>". The menu still says Dashboard.
 2. **Needs you now**, three tiles, whatever the period:
    - **New job mails**: conversations not opened yet, and how many of them got their newest mail today. Opens Mails with "New only".
-   - **Needs action**: open requests, and how many answers by mail wait over a day. Opens Mails on "Needs action".
+   - **Needs action**: open requests, and how many answers by mail wait over a day. Opens Mails on "Needs action". Since 26 Nov 2026 a request that left Needs action by itself (Missed) is not in the number; the line names them at its end ("· 2 missed").
    - **Interviews coming up**: how many, and the next one with its day, time and company. Opens that conversation.
    - With nothing in them: "You have opened every job mail", "Nothing is waiting on you", "No interviews booked yet".
 3. **Your progress**, with the period (last 7, 30 or 90 days, or since Gmail was connected; kept in the address):
@@ -31,7 +31,7 @@ Top to bottom:
    - **From applied to offer**: applications sent in the period by the furthest step they reached (columns, or bars when the card is narrow), with the response, interview and offer rates and the usual reply time. Under 5 applications there are no rates: one line inside the card says "Companies usually reply in N days." (when the reply time is known).
    - **Gone quiet**: jobs to follow up or close. Three are shown; "Show all" opens the rest in place.
 4. **Your mailbox**: mails scanned and job mails, all time with their count in the period, mails not linked to a job (leads to Mails), fake offers caught; then **Job mails per day** by kind (replies from companies, interviews and tests, rejections, other job mails) as stacked columns.
-5. **What works best**, for users of the automation only: by site, by work mode, and what the automation did ("1 job looked at", "6 jobs looked at"). Until a site or a work mode has 5 applications sent by the automation, one card "Not enough yet" stands in for the two tables.
+5. **What works best**, for users of the automation only: by site, by work mode, and what the automation did ("1 job looked at", "6 jobs looked at"; since 26 Nov 2026 a job left for the user more than 7 days ago is "Missed", in grey, not "Needs you"). Until a site or a work mode has 5 applications sent by the automation, one card "Not enough yet" stands in for the two tables.
 
 States: no Gmail yet (one "Connect Gmail" start and nothing else), the AI reading the first mails (its progress instead of empty numbers), a part that did not load (`SectionError`).
 
