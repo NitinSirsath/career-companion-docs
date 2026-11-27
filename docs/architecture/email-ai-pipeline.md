@@ -50,13 +50,15 @@ Processing lifecycle (\`PENDING\`, \`PROCESSING\`, \`COMPLETED\`, \`FAILED\`) is
 Each processed mail suggests at most one status for its application (`inferState` in `src/services/matcher.ts`). A mail with a fake-offer warning, and a career contact (2026-11-17), suggest none. Otherwise the first rule that fits wins:
 
 1. Rejected: rejection details, or the type `REJECTION`.
-2. Offer: offer details, or the type `OFFER`.
+2. Offer: the type `OFFER`, or offer details on any mail but a confirmation (`FOLLOW_UP`) or a recruiter's mail (`RECRUITER`). Those describe the job: a role's pay is not an offer to the user (`DESCRIBES_THE_JOB`, 2026-11-27).
 3. Interview: the type `INTERVIEW`, or an interview date. A stage name (`interviewStage`) alone counts too, except when the type is `ASSESSMENT` or `RECRUITER`. The AI also names the stage of an assessment ("Assessment") or of a recruiter's first call ("Initial Screening") (2026-10-17).
-4. Assessment: assessment details, or the type `ASSESSMENT`.
+4. Assessment: the type `ASSESSMENT`, or assessment details on any mail but a confirmation or a recruiter's mail. "Assessments are part of our process" is not a test sent to the user (2026-11-27).
 5. Recruiter contact: a recruiter's name, or the type `RECRUITER`.
 6. Applied: the type `FOLLOW_UP` with nothing stronger.
 
 The AI status never moves back in this order: Applied, Recruiter contact, Assessment, Interview, Offer, Rejected, Closed (`canTransition`). The user's own status is kept apart and always wins.
+
+Statuses saved before the 2026-11-27 rule: `request-upkeep-job` (hourly, and once at server start) also runs `tidyAllStatuses` (`services/statusUpkeep.ts`). An application that a confirmation or a recruiter's mail gave an Assessment or an Offer, in its AI status or its AI status history, gets both worked out again from its mails, as Reanalyze does (`rebuildAiStatus` in `services/reanalysisSave.ts`). The AI status may go down; the user's own status is not touched. Safe to run again. Checked by `src/tests/status-upkeep.test.ts` (the real case with made-up names) and `matcher-infer-state.test.ts`.
 
 ## Privacy Boundary
 
